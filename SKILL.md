@@ -6,6 +6,7 @@ author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: LicenseRef-Zero-State-Proprietary-1.0
 platforms: [linux, macos, windows]
 metadata:
+  author: Applied Alchemy Labs / Zero State <scrimshawlife@gmail.com>
   hermes:
     tags:
       - Product
