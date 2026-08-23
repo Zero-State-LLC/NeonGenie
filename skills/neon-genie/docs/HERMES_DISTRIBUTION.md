@@ -231,9 +231,9 @@ git tag vX.Y.Z && git push origin vX.Y.Z
 # → Release workflow: smoke + neon-genie-X.Y.Z.tar.gz + sha256 + notes
 ```
 
-Current tagged release: **v3.25.0** (privacy spine from **v3.24.0** + founder cold-start).
+Current packaging line: **3.26.0**. Latest git tag: **v3.25.0** (privacy spine from **v3.24.0** + founder cold-start). A `v3.26.0` tag is not in this repository yet.
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) and [docs/GOVERNANCE.md](./GOVERNANCE.md).
+See [CONTRIBUTING.md](../CONTRIBUTING.md) and [GOVERNANCE.md](./GOVERNANCE.md).
 
 ---
 

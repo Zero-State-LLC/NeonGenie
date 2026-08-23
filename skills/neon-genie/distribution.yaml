@@ -66,6 +66,10 @@ hub_package:
     - "*.pyc"
     - .venv
     - venv
+    - .github/CODEOWNERS
+    - .github/pull_request_template.md
+    - .github/workflows/codeql.yml
+    - .github/workflows/project-collaboration.yml
 
 # Globs (relative to skill root) that must appear as file-level refs in SKILL.md
 # for Hermes Hub install selection. Regenerated into the marked section.

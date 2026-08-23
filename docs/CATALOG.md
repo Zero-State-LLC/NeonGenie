@@ -24,7 +24,7 @@ skills.sh.json         # Product Intelligence grouping
 distribution.yaml      # mirror + support-file contract
 ```
 
-Verified: security scan SAFE, hub install pulls `PRIVACY.md` / privacy runtime + schemas via hub support list, `do doctor` green (hub layout). Skill **3.25.0** ships privacy-by-construction (`do privacy --json`, always-on `privacy` profile), founder cold-start routing, and `capital_sprint` packaging. Landing: https://scrimshawlife-ctrl.github.io/NeonGenie/
+Verified: security scan SAFE, hub install pulls `PRIVACY.md` / privacy runtime + schemas via hub support list, `do doctor` green (hub layout). Skill **3.26.0** ships the packaging wizard (`do wizard`), privacy-by-construction (`do privacy --json`, always-on `privacy` profile), founder cold-start routing, and `capital_sprint` packaging. Landing: https://scrimshawlife-ctrl.github.io/NeonGenie/
 
 ## Official optional catalog (PR)
 

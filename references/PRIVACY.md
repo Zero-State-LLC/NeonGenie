@@ -4,7 +4,7 @@
 **Skill target:** 3.24.0+  
 **Status:** Binding product contract for repository-owned behavior
 
-This document is the human-readable privacy contract for Neon Genie (Hermes skill + packaging CLI). A hub-safe mirror ships as [`references/PRIVACY.md`](references/PRIVACY.md). Compact machine summary: [`references/privacy-contract.md`](references/privacy-contract.md). Runtime engine: [`scripts/privacy_runtime.py`](scripts/privacy_runtime.py). Provenance appears on run receipts and envelopes (nested `privacy` context + top-level `privacy_mode`).
+This document is the human-readable privacy contract for Neon Genie (Hermes skill + packaging CLI). A hub-safe mirror ships as `references/PRIVACY.md`. Compact machine summary: `references/privacy-contract.md`. Runtime engine: `scripts/privacy_runtime.py`. Provenance appears on run receipts and envelopes (nested `privacy` context + top-level `privacy_mode`).
 
 ---
 
@@ -171,7 +171,7 @@ Local packet drafting remains allowed when the operator task requires private ma
 
 ## 11. Gates S–Y pointer
 
-Privacy CLEAR gates (after authority and evidence P–R). Full registration: [`references/gates.yaml`](references/gates.yaml) and [`references/anti-overclaim-patterns.md`](references/anti-overclaim-patterns.md).
+Privacy CLEAR gates (after authority and evidence P–R). Full registration: `references/gates.yaml` and `references/anti-overclaim-patterns.md`.
 
 | Gate | Name | Blocking when |
 |------|------|---------------|
@@ -206,7 +206,7 @@ Questions, corrections, and privacy incidents related to this skill:
 - **Issues:** https://github.com/scrimshawlife-ctrl/NeonGenie/issues  
 - Prefer labeling privacy contract gaps clearly so `privacy_contract_version` can bump when semantics change.
 
-Related docs: ADR [0006 — Privacy by construction](docs/adr/0006-privacy-by-construction.md), ADR [0004 — Wayfinder boundary](docs/adr/0004-neon-genie-wayfinder-boundary.md), design spec `docs/superpowers/specs/2026-08-06-neon-genie-privacy-spine-design.md`.
+Related docs: ADR 0006 (`docs/adr/0006-privacy-by-construction.md`), ADR 0004 (`docs/adr/0004-neon-genie-wayfinder-boundary.md`), design spec `docs/superpowers/specs/2026-08-06-neon-genie-privacy-spine-design.md`. ADRs ship on a full clone, not in the hub package.
 
 ## 14. Runtime engine & purpose-bound consent (integrated #17)
 

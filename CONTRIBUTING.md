@@ -4,11 +4,13 @@ Thank you for helping keep Neon Genie rigorous and advisory-only.
 
 ## Principles (do not “simplify” away)
 
-1. **Advisory only** — never grant spend/publish/mutate ([ADR 0001](docs/adr/0001-advisory-only-authority.md)).
-2. **Skill contract is the product brain** — Python is packaging only ([ADR 0002](docs/adr/0002-skill-contract-is-product-brain.md)).
-3. **Hub mirrors are generated** — edit root sources; run `distribution_spine.py write` ([ADR 0003](docs/adr/0003-hub-mirror-strategy.md)).
-4. **Wayfinder boundary** — Neon Genie owns intent; Wayfinder owns execution planning ([ADR 0004](docs/adr/0004-neon-genie-wayfinder-boundary.md)).
-5. **Claim labels** — never invent OBSERVED ([ADR 0005](docs/adr/0005-claim-label-ontology.md)).
+1. **Advisory only** — never grant spend/publish/mutate (`docs/adr/0001-advisory-only-authority.md`).
+2. **Skill contract is the product brain** — Python is packaging only (`docs/adr/0002-skill-contract-is-product-brain.md`).
+3. **Hub mirrors are generated** — edit root sources; run `distribution_spine.py write` (`docs/adr/0003-hub-mirror-strategy.md`).
+4. **Wayfinder boundary** — Neon Genie owns intent; Wayfinder owns execution planning (`docs/adr/0004-neon-genie-wayfinder-boundary.md`).
+5. **Claim labels** — never invent OBSERVED (`docs/adr/0005-claim-label-ontology.md`).
+
+Architecture decision records live in `docs/adr/` on a full clone. The hub package does not ship that directory.
 
 ## Development
 
