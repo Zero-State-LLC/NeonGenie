@@ -45,6 +45,7 @@ jobs:
       - name: Full packaging smoke
         run: |
           python scripts/neon_genie.py do check
+          python scripts/test_hermes_frontmatter.py
           python scripts/neon_genie.py do dist verify
           python scripts/test_run_envelope.py
           python scripts/test_operator_surface.py
