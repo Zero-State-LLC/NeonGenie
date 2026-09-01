@@ -108,8 +108,8 @@ def test_dir_style_hub_ref_fails() -> None:
         text = skill.read_text(encoding="utf-8")
         # inject a bare directory hub path that Hermes would reject
         text = text.replace(
-            "## Mission",
-            "See also `references/profiles` for contracts.\n\n## Mission",
+            "## Procedure",
+            "See also `references/profiles` for contracts.\n\n## Procedure",
             1,
         )
         skill.write_text(text, encoding="utf-8")
