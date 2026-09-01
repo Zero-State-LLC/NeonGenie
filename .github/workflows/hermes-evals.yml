@@ -21,6 +21,9 @@ jobs:
       - name: Skill integrity (do check)
         run: python scripts/neon_genie.py do check
 
+      - name: Hermes frontmatter contract
+        run: python scripts/test_hermes_frontmatter.py
+
       - name: Distribution spine (mirrors + package + SKILL list)
         run: |
           python scripts/distribution_spine.py verify

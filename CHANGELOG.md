@@ -12,6 +12,24 @@ and this project uses semantic versioning.
 - Public install/docs paths updated for repo rename **NeonGenie**
   (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
 
+## [3.26.1] — 2026-09-01
+
+### Fixed
+
+- `SKILL.md` frontmatter now matches Hermes Agent v0.21.0 (tag v2026.8.31):
+  one-sentence `description` ≤60 characters, required author/license/platforms
+  and `metadata.hermes.{tags, related_skills}`, frontmatter at byte 0.
+- `do check` rejects folded or over-long descriptions so the skill index
+  no longer truncates routing text at 57 characters.
+
+### Changed
+
+- Skill body uses the v0.21 section order (When to Use, Prerequisites, How to
+  Run, Quick Reference, Procedure, Pitfalls, Verification).
+- Packaging examples use `${HERMES_SKILL_DIR}` and Hermes `terminal`.
+- Author credit is `Daniel Meyer (scrimshawlife-ctrl), Hermes Agent`. Applied
+  Alchemy Labs / Zero State credit remains in the skill body.
+
 ## [3.26.0] — 2026-08-08
 
 ### Added

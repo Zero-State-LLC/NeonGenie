@@ -24,7 +24,28 @@ import paths as ng_paths  # noqa: E402
 
 SKILL_FILE = SKILL_ROOT / "SKILL.md"
 
-REQUIRED_FRONTMATTER = {"name", "description", "version", "author"}
+# Hermes Agent v0.21 hardline (tools/skill_linter.py + skill-authoring SKILL.md).
+# Index truncates at SKILL_PROMPT_DESC_LIMIT (57 chars + "...").
+SKILL_PROMPT_DESC_LIMIT = 60
+REQUIRED_FRONTMATTER = {
+    "name",
+    "description",
+    "version",
+    "author",
+    "license",
+    "platforms",
+}
+REQUIRED_HERMES_KEYS = {"tags", "related_skills"}
+MARKETING_WORDS = (
+    "powerful",
+    "comprehensive",
+    "seamless",
+    "advanced",
+    "cutting-edge",
+    "state-of-the-art",
+    "revolutionary",
+    "robust",
+)
 
 # Paths that must exist either at full-tree location or hub mirror.
 # Each entry is a list of candidate relative paths (first existing wins).
@@ -119,23 +140,118 @@ FORBIDDEN_PATTERNS = [
 ]
 
 
-def parse_frontmatter(text: str) -> dict[str, str]:
+def _strip_yaml_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
+
+
+def _fold_block(lines: list[str], start: int, indent: int, literal: bool) -> tuple[str, int]:
+    collected: list[str] = []
+    i = start
+    while i < len(lines):
+        line = lines[i]
+        if not line.strip():
+            collected.append("")
+            i += 1
+            continue
+        leading = len(line) - len(line.lstrip(" "))
+        if leading < indent:
+            break
+        collected.append(line[indent:] if leading >= indent else line.lstrip())
+        i += 1
+    while collected and collected[-1] == "":
+        collected.pop()
+    if literal:
+        return "\n".join(collected), i
+    paragraphs = "\n".join(collected).split("\n\n")
+    folded = " ".join(" ".join(p.split()) for p in paragraphs if p.strip())
+    return folded, i
+
+
+def parse_frontmatter(text: str) -> dict[str, object]:
+    """Parse SKILL.md YAML frontmatter. Frontmatter must start at byte 0."""
+    if text.startswith("\ufeff"):
+        raise ValueError("SKILL.md frontmatter must start at byte 0 (BOM present)")
     if not text.startswith("---\n"):
         raise ValueError("SKILL.md must begin with YAML frontmatter")
     end = text.find("\n---\n", 4)
     if end < 0:
         raise ValueError("SKILL.md frontmatter is not closed")
-    fields: dict[str, str] = {}
-    for line in text[4:end].splitlines():
-        if not line or line[0].isspace() or ":" not in line:
+    fields: dict[str, object] = {}
+    lines = text[4:end].splitlines()
+    i = 0
+    hermes: dict[str, object] = {}
+    in_hermes = False
+    hermes_indent = 0
+    while i < len(lines):
+        line = lines[i]
+        if not line.strip() or line.lstrip().startswith("#"):
+            i += 1
             continue
-        key, value = line.split(":", 1)
-        key = key.strip()
-        val = value.strip().strip('"').strip("'")
-        if key in fields:
+        indent = len(line) - len(line.lstrip(" "))
+        stripped = line.strip()
+        if in_hermes and indent <= hermes_indent:
+            in_hermes = False
+        if in_hermes and ":" in stripped:
+            key, value = stripped.split(":", 1)
+            key = key.strip()
+            val = value.strip()
+            if val in {">", "|", ">-", "|-", ">+", "|+"}:
+                block, i = _fold_block(
+                    lines, i + 1, indent + 2, literal=val.startswith("|")
+                )
+                hermes[key] = block
+                continue
+            hermes[key] = _strip_yaml_scalar(val) if val else []
+            i += 1
             continue
-        fields[key] = val
+        if indent == 0 and ":" in stripped:
+            key, value = stripped.split(":", 1)
+            key = key.strip()
+            val = value.strip()
+            if val in {">", "|", ">-", "|-", ">+", "|+"}:
+                block, i = _fold_block(
+                    lines, i + 1, 2, literal=val.startswith("|")
+                )
+                fields[key] = block
+                continue
+            fields[key] = _strip_yaml_scalar(val)
+            i += 1
+            continue
+        if stripped == "hermes:" or stripped.startswith("hermes:"):
+            in_hermes = True
+            hermes_indent = indent
+            i += 1
+            continue
+        i += 1
+    if hermes:
+        fields["_hermes"] = hermes
     return fields
+
+
+def validate_description(description: str) -> list[str]:
+    errors: list[str] = []
+    desc = str(description or "").strip()
+    if not desc:
+        errors.append("Frontmatter description is empty")
+        return errors
+    if len(desc) > SKILL_PROMPT_DESC_LIMIT:
+        errors.append(
+            f"Frontmatter description is {len(desc)} chars; Hermes index "
+            f"truncates past {SKILL_PROMPT_DESC_LIMIT} (57 + '...'). "
+            "Keep one sentence that ends with a period."
+        )
+    if not desc.endswith("."):
+        errors.append("Frontmatter description must end with a period")
+    if desc.count(".") > 1:
+        errors.append("Frontmatter description must be one sentence")
+    lower = desc.lower()
+    hits = [w for w in MARKETING_WORDS if re.search(rf"\b{re.escape(w)}\b", lower)]
+    if hits:
+        errors.append(f"Frontmatter description contains marketing words: {hits}")
+    return errors
 
 
 def referenced_relative_paths(text: str) -> set[str]:
@@ -194,8 +310,18 @@ def main(argv: list[str] | None = None) -> int:
         errors.append(f"Missing frontmatter fields: {', '.join(missing_fields)}")
     if frontmatter.get("name") != "neon-genie":
         errors.append("Frontmatter name must be 'neon-genie'")
+    errors.extend(validate_description(str(frontmatter.get("description", ""))))
+    hermes_meta = frontmatter.get("_hermes")
+    if not isinstance(hermes_meta, dict):
+        errors.append("Missing frontmatter metadata.hermes.{tags, related_skills}")
+    else:
+        missing_hermes = sorted(REQUIRED_HERMES_KEYS - set(hermes_meta))
+        if missing_hermes:
+            errors.append(
+                "Missing metadata.hermes fields: " + ", ".join(missing_hermes)
+            )
 
-    version_fm = frontmatter.get("version", "")
+    version_fm = str(frontmatter.get("version", ""))
     try:
         version_file = ng_paths.version_path().read_text(encoding="utf-8").strip()
     except (OSError, FileNotFoundError):

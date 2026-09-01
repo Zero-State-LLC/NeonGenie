@@ -136,7 +136,8 @@ python scripts/validate_hermes_skill.py
 
 Minimum pass conditions:
 
-- frontmatter parses and required fields exist,
+- frontmatter parses at byte 0 and required fields exist (`name`, `description`, `version`, `author`, `license`, `platforms`, `metadata.hermes.tags`, `metadata.hermes.related_skills`),
+- `description` is one sentence, ≤60 characters, and ends with a period,
 - `name` is `neon-genie`,
 - VERSION matches SKILL frontmatter and `manifest.json`,
 - required profiles, schemas, references, evals, examples, and install script exist,

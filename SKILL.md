@@ -1,15 +1,10 @@
 ---
 name: neon-genie
-description: >
-  Evidence-bound product and opportunity intelligence — audits, zero-option
-  loops, commercial models, agentic graphs, and Wayfinder handoffs with claim
-  labels and fail-closed gates. Use for product intent, opportunity mining,
-  and advisory packets — not cinematic work (use Kubrick) or code execution.
-version: 3.26.0
-author: Applied Alchemy Labs / Zero State
+description: Audit products and opportunities with labeled evidence.
+version: 3.26.1
+author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
-dependencies: []
 metadata:
   hermes:
     tags:
@@ -24,452 +19,298 @@ metadata:
       - AgenticServices
     category: product
     related_skills: []
-triggers:
-  - neon genie
-  - product audit
-  - opportunity mining
-  - blocked transition
-  - fragmentation scan
-  - zero option
-  - first cash
-  - agentic services
-  - x402
-  - commercial simulation
-  - evidence intelligence
-  - wayfinder handoff
-  - wayfinder execution packet
-  - cost of inaction
-  - audit delivery
 ---
 
-# Neon Genie v3
+# Neon Genie Skill
 
-## Hermes skill identity
+Neon Genie is a standalone Hermes skill for evidence-bound product and opportunity intelligence. It drafts audits, opportunity packets, commercial models, agentic graphs, and Wayfinder handoffs with claim labels and fail-closed gates. It does not execute code, spend, publish, contact, or mutate repositories, and it is not cinematic work (use Kubrick). Credit: Applied Alchemy Labs / Zero State.
 
-Neon Genie is a **standalone Hermes skill**. Hermes loads this directory directly and uses `SKILL.md` as the operating contract. No Python package install, Kubrick skill, Wayfinder runtime, or external knowledge base is required to load.
+See `references/hermes-runtime-contract.md` for path, artifact, authority, and dependency policy. Profile contracts, packet schemas, and golden tests ship as hub mirrors and as root `profiles/`, `schemas/`, `evals/` on full install.
 
-See `references/hermes-runtime-contract.md` for path, artifact, authority, and dependency policy.
+## When to Use
 
-Profile contracts, packet schemas, and golden tests ship as hub mirrors (see **Hermes Hub support files** below) and as root `profiles/`, `schemas/`, `evals/` on full install.
+- Product intent, product audit, app/game/system design, or feature coherence.
+- Opportunity mining, blocked transitions, roadmaps, or first-cash / zero-option work.
+- Fragmentation, commercial simulation, agentic/x402 graphs, or evidence intelligence.
+- Wayfinder execution-packet handoff, audit delivery, or capital-sprint planning.
+- The operator needs labeled claims (`OBSERVED` / `INFERRED` / `SPECULATIVE` / `NOT_COMPUTABLE`) and fail-closed gates.
 
-**Optional companions:** host research tools, Wayfinder (handoff consumer). Their absence never blocks local advisory work.
+Do not use for:
 
-## Packaging CLI
+- Cinematic or motif work (use Kubrick).
+- Code execution, repo mutation, spend, publish, contact, or canon promotion.
+- Treating packaging envelopes as execution authority.
 
-One pattern (packaging only — not a product brain):
+## Prerequisites
 
-```text
-python scripts/neon_genie.py do <job> [options]
-```
+- Hermes Agent that can load this directory and invoke `terminal`.
+- Python 3 on PATH for the packaging CLI (stdlib only). No package install, API key, or secret is required to load.
+- Optional companions: host research tools, Wayfinder (handoff consumer). Their absence never blocks local advisory work.
+- Path, artifact, and authority rules: `references/hermes-runtime-contract.md`.
+- Privacy contract: root `PRIVACY.md` and hub mirror `references/PRIVACY.md`; always-on profile `profiles/privacy.md`.
 
-| Job | Use |
-|-----|-----|
-| `doctor` | Full smoke after install |
-| `wizard` | Guided packaging: resolve plan or quick onboarding |
-| `privacy` | Resolved repository privacy boundary (`--json`) |
-| `check` | Skill integrity |
-| `run` | Operator packaging run (brief/recipe → envelope) |
-| `capabilities` | Machine-readable skill surface (JSON) |
-| `dist` | Hub mirrors + package (`verify` / `write`) |
-| `recipe` | Named example (`--list` / `--name`) |
-| `route` / `validate` / `receipt` / `envelope` | Profiles, schema, receipt, run envelope |
-| `eval` / `transcripts` | Golden tests |
-| `behavioral` / `runtime` | Semantic agent gates + hub install smoke |
-| `learn` / `reconcile` | PROPOSED ledger entry; link entries to run_id |
-| `release-check` | Pre-release version / changelog / dist gate |
+## How to Run
 
-```bash
-python scripts/neon_genie.py help
-python scripts/neon_genie.py do doctor
-python scripts/neon_genie.py do wizard --preset product-audit --print-only --json
-python scripts/neon_genie.py do wizard --path quick --auto
-python scripts/neon_genie.py do run --recipe product-audit --out out/neon-genie/demo
-```
-
-### Prefer the wizard
-
-When the operator is new, unsure which packaging job to run, or says “wizard” /
-“guide me” / “walk me through”:
-
-1. Prefer `do wizard` over freestyling `do run` flags.
-2. **Chat-driven Q&A** (Desktop-safe): merge answers JSON →
-   `do wizard --answers answers.json --print-only --json` → confirm → `--run`.
-3. **New install:** `do wizard --path quick --auto` (doctor + sample product-audit).
-4. After packaging, resume product judgment in chat (OPEN→SEAL). Envelope is not
-   execution authority.
-
-Load [references/wizard.md](references/wizard.md) while guiding. Packaging only —
-no invented opportunities, no ledger writes, no repo mutation.
-
-See `README.md` (How to use) and `QUICKSTART.md`. Golden prose: `examples/evals/transcripts/README.md`. Post-SEAL: `references/post-seal-verification.md`. Gate ontology: `references/gates.yaml`. Privacy contract: root `PRIVACY.md` and hub mirror `references/PRIVACY.md`; always-on profile `profiles/privacy.md`.
-
-## Mission
-
-Convert weak signals, blocked state transitions, fragmented systems, raw ideas, and incomplete products into evidence-bound, externally testable, buildable opportunity systems.
-
-Neon Genie owns product and opportunity intelligence. It does not grant execution, forecast, governance, spending, publication, or canon-promotion authority.
-
-## Default operator job (transitional builders)
-
-When the operator is developing an idea under constraint (solo, transitional,
-limited money/time/skills) and has not named a specialized recipe, default to
-this job shape — still **advisory only**:
-
-1. **Name the stuck point** — who is blocked, current state, what “done” looks like.
-2. **Capture constraints** — time, money, skills, access. Never invent resources.
-3. **Find → request → refuse** — research public facts; emit `DataRequest` for private
-   facts; label claims `OBSERVED` / `INFERRED` / `SPECULATIVE` / `NOT_COMPUTABLE`.
-4. **Shape the plan** — roadmap and/or approach options with **completion_proof**
-   (externally checkable). Prefer profiles `opportunity_mining` and, when resources
-   are scarce, `zero_option` (plus `product_architecture` only if a product/system
-   boundary is in scope).
-5. **Seal as drafts** — packets + receipt; no spend, publish, contact, or repo mutation.
-
-**Example Hermes prompt (plain English):**
+Frame every packaging command through Hermes `terminal`. Substitute `${HERMES_SKILL_DIR}` (Hermes replaces it with the installed skill root):
 
 ```text
-Use Neon Genie. I'm between jobs with limited money and an app idea.
-I need a realistic roadmap and first approaches I can actually run.
-Do not invent buyers, capital, or skills I did not declare.
-Research public facts if you can; request private facts with DataRequest.
-Label every important claim. Advisory only — do not modify any repo.
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do <job> [options]")
 ```
 
-## Research doctrine (default: proactive)
+When the operator is new, unsure which packaging job to run, or says “wizard” / “guide me” / “walk me through”:
 
-**Automatically perform any research the host can run when it improves usefulness of the result.** Do not wait for the operator to name every source. Prefer a researched, labeled answer over a thin `NOT_COMPUTABLE` wall when facts are fetchable.
+1. Prefer `do wizard` over freestyling `do run` flags. Completion: a resolve plan is printed or a named recipe is queued.
+2. Chat-driven Q&A (Desktop-safe): merge answers JSON → `do wizard --answers answers.json --print-only --json` → confirm → `--run`. Completion: plan JSON matches the answers file.
+3. New install: `do wizard --path quick --auto` (doctor + sample product-audit). Completion: doctor exits 0 and a demo envelope exists.
+4. After packaging, resume product judgment in chat (OPEN→SEAL). The envelope is not execution authority.
 
-### Source stack (priority order)
+Load [references/wizard.md](references/wizard.md) while guiding. Packaging only — no invented opportunities, no ledger writes, no repo mutation.
 
-1. **Operator-supplied** — pasted evidence, attached files, declared URLs, explicit `canonical_sources`
-2. **Workspace / host context** — open repo, local files, prior run artifacts Hermes can read
-3. **Live host research** — web search, page fetch, academic indexes (e.g. arXiv), docs, registries, market/public filings, standards bodies, news, competitor sites, grant/board databases — *whatever tools the host exposes*
-4. **Model prior** — only as `SPECULATIVE` or scaffolding; never as `OBSERVED`
+See `README.md` (How to use) and `QUICKSTART.md`. Golden prose: `examples/evals/transcripts/README.md`. Post-SEAL: `references/post-seal-verification.md`. Gate ontology: `references/gates.yaml`.
 
-No external knowledge base is required to *load* the skill. Research uses **host-available tools at run time**. If a tool class is unavailable, record the gap and continue with the best remaining stack.
-
-### When to research (auto)
-
-Run research during `ALIGN` and again in `ASCEND` whenever any of these hold:
-
-- a material claim would otherwise be `NOT_COMPUTABLE` or weak `SPECULATIVE` and is fetchable;
-- buyer, market, competitor, pricing, regulation, or technical feasibility is decision-critical;
-- grants, boards, philanthropy, standards, or “current external facts” affect the scorecard;
-- product/system claims depend on public APIs, licenses, or third-party capabilities;
-- the operator asked for an audit, opportunity, commercial model, or handoff packet.
-
-### Research loop
+## Quick Reference
 
 ```text
-GAP_DETECT → QUERY_PLAN → PRIVACY_EGRESS_CHECK → FETCH (host tools) → NORMALIZE → CITE
-  → LABEL (OBSERVED | INFERRED | SPECULATIVE | NOT_COMPUTABLE)
-  → RE-SCORE → (repeat until usefulness plateaus or budget/tooling ends)
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py help")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do doctor")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do check")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do wizard --preset product-audit --print-only --json")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do wizard --path quick --auto")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do run --recipe product-audit --out out/neon-genie/demo")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do privacy --json")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do eval")
 ```
 
-Before every host research/tool send: classify → minimize → `RUNE.PRIVACY_EGRESS_CHECK` → only then FETCH. Outcomes: `ALLOW` | `REDACT_THEN_ALLOW` | `REQUEST_CONSENT` | `BLOCK`. Log attempts in receipt `external_actions`. See `profiles/privacy.md` and `references/PRIVACY.md`.
+Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved boundary), `check` (skill integrity), `run` (brief/recipe → envelope), `capabilities` (JSON surface), `dist` (hub mirrors), `recipe` (named example), `route` / `validate` / `receipt` / `envelope`, `eval` / `transcripts`, `behavioral` / `runtime`, `learn` / `reconcile` (PROPOSED ledger only), `release-check`.
 
-### Research rules
+## Procedure
 
-- **Proactive by default** — research is on unless the operator sets `research: false` or `offline: true`.
-- **Smallest sufficient fetch** — enough evidence for the decision, not infinite crawl.
-- **Cite or drop** — every `OBSERVED` claim needs a source pointer (URL, path, title+date, or tool result id).
-- **Find → request private → NOT_COMPUTABLE** — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
-- **Never fabricate** — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
-- **Freshness** — prefer primary/current sources; note retrieval time for volatile facts.
-- **Attribution boundaries** — separate person / company / foundation / model inference.
-- **Authority unchanged** — research may draft; it may not submit, contact, spend, publish, or mutate repos.
-- **Privacy** — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
+1. **Load as a standalone skill.** Hermes uses this `SKILL.md` as the operating contract. No Python package install, Kubrick skill, Wayfinder runtime, or external knowledge base is required to load. Completion: skill index shows `neon-genie` with an intact description.
 
-## Evidence Request Protocol
+2. **State the mission.** Convert weak signals, blocked state transitions, fragmented systems, raw ideas, and incomplete products into evidence-bound, externally testable, buildable opportunity systems. Neon Genie owns product and opportunity intelligence. It does not grant execution, forecast, governance, spending, publication, or canon-promotion authority. Completion: the operator can name the blocked transition and the desired state.
 
-Priority when a material fact is missing:
+3. **Default operator job (transitional builders).** When the operator is developing an idea under constraint (solo, transitional, limited money/time/skills) and has not named a specialized recipe, still stay advisory only:
+   1. Name the stuck point — who is blocked, current state, what “done” looks like.
+   2. Capture constraints — time, money, skills, access. Never invent resources.
+   3. Find → request → refuse — research public facts; emit `DataRequest` for private facts; label claims `OBSERVED` / `INFERRED` / `SPECULATIVE` / `NOT_COMPUTABLE`.
+   4. Shape the plan — roadmap and/or approach options with `completion_proof` (externally checkable). Prefer profiles `opportunity_mining` and, when resources are scarce, `zero_option` (plus `product_architecture` only if a product/system boundary is in scope).
+   5. Seal as drafts — packets + receipt; no spend, publish, contact, or repo mutation.
 
-1. **Find** — if sensitivity is public (or unknown-but-likely-public) and host tools can run, attempt research; cite or drop.
-2. **Request** — if sensitivity is operator/private or access is undeclared, emit a `DataRequest` (`references/schemas/data-request.schema.json`) instead of inventing.
-3. **NOT_COMPUTABLE** — only after find was attempted (or correctly skipped offline) and/or a DataRequest is open or unanswered.
-4. **Never** mark model prior as `OBSERVED`.
+   Example Hermes prompt:
 
-### DataRequest (required fields)
+   ```text
+   Use Neon Genie. I'm between jobs with limited money and an app idea.
+   I need a realistic roadmap and first approaches I can actually run.
+   Do not invent buyers, capital, or skills I did not declare.
+   Research public facts if you can; request private facts with DataRequest.
+   Label every important claim. Advisory only — do not modify any repo.
+   ```
 
-- `field`, `why_decision_critical`, `sensitivity` (`public`|`operator`|`private`),
-  `suggested_source`, `blocks_promotion` (bool), `status` (`open`|`satisfied`|`waived`)
+   Completion: every material claim has a label; missing private facts have a `DataRequest`.
 
-### CLEAR rules
+4. **Research doctrine (default: proactive).** Automatically perform any research the host can run when it improves usefulness. Do not wait for the operator to name every source. Prefer a researched, labeled answer over a thin `NOT_COMPUTABLE` wall when facts are fetchable.
 
-- Public gap + tools available + no research attempt → fail (Gate P)
-- Private decision-critical gap + no DataRequest → fail (Gate Q)
-- Private/unknown fact labeled OBSERVED from model prior without source → fail (Gate R)
-- Open DataRequests with `blocks_promotion: true` cap promotion until satisfied or waived
-- CLEAR order: authority → evidence P–R → privacy S–Y → remaining anti-overclaim
+   Source stack (priority order):
 
-### SEAL
+   1. Operator-supplied — pasted evidence, attached files, declared URLs, explicit `canonical_sources`
+   2. Workspace / host context — open repo, local files, prior run artifacts Hermes can read
+   3. Live host research — web search, page fetch, academic indexes, docs, registries, market/public filings, standards, news, competitor sites, grant/board databases — *whatever tools the host exposes*
+   4. Model prior — only as `SPECULATIVE` or scaffolding; never as `OBSERVED`
 
-Run receipt must list `data_requests`, `open_blocking_requests`, and `research_attempts` (may be empty arrays). See `references/schemas/run-receipt.schema.json`.
+   No external knowledge base is required to *load* the skill. Research uses host-available tools at run time. If a tool class is unavailable, record the gap and continue with the best remaining stack.
 
-Privacy provenance (Gate Y / `RUNE.PRIVACY_SEAL_PROVENANCE`) is also required: `privacy_mode`, `privacy_contract_version`, `data_sources_used`, `external_actions`, `artifact_paths`, `telemetry_status` (`disabled`), `retention_statement`, `privacy_warnings`, `deletion_instructions`, `redaction`, `research_policy`. Contract: `PRIVACY.md` / `references/PRIVACY.md`.
+   Run research during `ALIGN` and again in `ASCEND` whenever any of these hold:
 
-Opportunity, product, and zero-option packets at `TESTABLE` or higher require **`completion_proof`** (externally checkable) and should include a **`proof_path`**. After SEAL, follow `references/post-seal-verification.md`. Record real outcomes with:
+   - a material claim would otherwise be `NOT_COMPUTABLE` or weak `SPECULATIVE` and is fetchable;
+   - buyer, market, competitor, pricing, regulation, or technical feasibility is decision-critical;
+   - grants, boards, philanthropy, standards, or current external facts affect the scorecard;
+   - product/system claims depend on public APIs, licenses, or third-party capabilities;
+   - the operator asked for an audit, opportunity, commercial model, or handoff packet.
 
-```bash
-python scripts/neon_genie.py do learn --class proof_obtained --summary "..." \
-  --envelope out/neon-genie/demo/run-envelope.json \
-  --ledger out/neon-genie/learning-ledger.jsonl
-python scripts/neon_genie.py do reconcile --ledger out/neon-genie/learning-ledger.jsonl \
-  --runs-root out/neon-genie
-```
+   Research loop:
 
-Learning ledger entries are `PROPOSED` / `OBSERVATION` only — never auto-canon. Prefer linking via `--envelope` / `run_id`.
+   ```text
+   GAP_DETECT → QUERY_PLAN → PRIVACY_EGRESS_CHECK → FETCH (host tools) → NORMALIZE → CITE
+     → LABEL (OBSERVED | INFERRED | SPECULATIVE | NOT_COMPUTABLE)
+     → RE-SCORE → (repeat until usefulness plateaus or budget/tooling ends)
+   ```
 
-## Default operating sequence
+   Before every host research/tool send: classify → minimize → `RUNE.PRIVACY_EGRESS_CHECK` → only then FETCH. Outcomes: `ALLOW` | `REDACT_THEN_ALLOW` | `REQUEST_CONSENT` | `BLOCK`. Log attempts in receipt `external_actions`. See `profiles/privacy.md` and `references/PRIVACY.md`.
 
-Always execute:
+   Research rules:
 
-1. `OPEN`
-2. `ALIGN`  ← includes gap-driven research plan + first fetch pass
-3. `ASCEND` ← continues research when new gaps appear
-4. `CLEAR`
-5. `SEAL`   ← source manifest lists every fetch
+   - Proactive by default — research is on unless the operator sets `research: false` or `offline: true`.
+   - Smallest sufficient fetch — enough evidence for the decision, not infinite crawl.
+   - Cite or drop — every `OBSERVED` claim needs a source pointer (URL, path, title+date, or tool result id).
+   - Find → request private → `NOT_COMPUTABLE` — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
+   - Never fabricate — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
+   - Freshness — prefer primary/current sources; note retrieval time for volatile facts.
+   - Attribution boundaries — separate person / company / foundation / model inference.
+   - Authority unchanged — research may draft; it may not submit, contact, spend, publish, or mutate repos.
+   - Privacy — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
 
-Every material claim must be labeled:
+   Completion: every fetch is cited or dropped; egress decisions are logged.
 
-- `OBSERVED`
-- `INFERRED`
-- `SPECULATIVE`
-- `NOT_COMPUTABLE`
+5. **Evidence Request Protocol.** Priority when a material fact is missing:
+   1. Find — if sensitivity is public (or unknown-but-likely-public) and host tools can run, attempt research; cite or drop.
+   2. Request — if sensitivity is operator/private or access is undeclared, emit a `DataRequest` (`references/schemas/data-request.schema.json`) instead of inventing.
+   3. `NOT_COMPUTABLE` — only after find was attempted (or correctly skipped offline) and/or a DataRequest is open or unanswered.
+   4. Never mark model prior as `OBSERVED`.
 
-SHADOW detects drift and anomalies only. FORECAST performs evidence-based inference only.
+   DataRequest required fields: `field`, `why_decision_critical`, `sensitivity` (`public`|`operator`|`private`), `suggested_source`, `blocks_promotion` (bool), `status` (`open`|`satisfied`|`waived`).
 
-## Router
+   CLEAR rules:
 
-Determine the smallest sufficient profile set. **Additionally auto-load** `evidence_intelligence` whenever external facts would change the recommendation, scorecard, or handoff quality — even if the operator did not name that profile.
+   - Public gap + tools available + no research attempt → fail (Gate P)
+   - Private decision-critical gap + no DataRequest → fail (Gate Q)
+   - Private/unknown fact labeled OBSERVED from model prior without source → fail (Gate R)
+   - Open DataRequests with `blocks_promotion: true` cap promotion until satisfied or waived
+   - CLEAR order: authority → evidence P–R → privacy S–Y → remaining anti-overclaim
 
-```yaml
-profile_router:
-  core: always
-  privacy:
-    triggers: [always]
-    default_when: always_with_core
-  product_architecture:
-    triggers: [product audit, app design, game design, system design, feature coherence]
-  opportunity_mining:
-    triggers: [new venture, unmet need, market opportunity, blocked transition, roadmap, business idea, go into business, side project, app idea, product idea, what should I build, where do I start, next steps]
-  fragmentation:
-    triggers: [many portals, repeated handoffs, incompatible systems, coordination problem]
-  zero_option:
-    triggers: [zero capital, first cash, immediate executable opportunity, constrained launch, limited money, limited resources, limited capital, between jobs, bootstrapped, no budget, first revenue]
-  agentic_services:
-    triggers: [agent workflow, delegated outcome, automation, x402, machine services]
-  commercial:
-    triggers: [pricing, buyer, revenue, costs, market pressure, business model]
-  evidence_intelligence:
-    triggers:
-      - grants
-      - boards
-      - philanthropy
-      - competitive research
-      - current external facts
-      - auto: any material external gap that research can close
-    default_when: improves_result
-  memetic:
-    triggers: [name, hook, pitch language, public framing, shareability]
-  audit_delivery:
-    triggers: [client audit, cost of inaction, diagnostic package, implementation offer]
-  wayfinder_handoff:
-    triggers: [build plan, engineering readiness, execution packet]
-  capital_sprint:
-    triggers:
-      - capital sprint
-      - annual fund
-      - donation drive
-      - membership drive
-      - fundraising deadline
-      - impact object
-      - donor sprint
-      - nonprofit capital raise
-```
+   SEAL: run receipt must list `data_requests`, `open_blocking_requests`, and `research_attempts` (may be empty arrays). See `references/schemas/run-receipt.schema.json`.
 
-Do not activate a specialized product/commercial profile merely because it exists. Do activate research when usefulness requires it.
+   Privacy provenance (Gate Y / `RUNE.PRIVACY_SEAL_PROVENANCE`) is also required: `privacy_mode`, `privacy_contract_version`, `data_sources_used`, `external_actions`, `artifact_paths`, `telemetry_status` (`disabled`), `retention_statement`, `privacy_warnings`, `deletion_instructions`, `redaction`, `research_policy`. Contract: `PRIVACY.md` / `references/PRIVACY.md`.
 
-## Core pipeline
+   Opportunity, product, and zero-option packets at `TESTABLE` or higher require `completion_proof` (externally checkable) and should include a `proof_path`. After SEAL, follow `references/post-seal-verification.md`. Record real outcomes with:
 
-```text
-SIGNAL
-→ BLOCKED TRANSITION
-→ OUTCOME MODEL
-→ EVIDENCE GAPS
-→ RESEARCH LOOP (PRIVACY_EGRESS_CHECK → host tools)
-→ SYSTEM TOPOLOGY
-→ OPPORTUNITY THESIS
-→ INTERVENTION
-→ PRODUCT / SERVICE GRAPH
-→ VALIDATION LOOP
-→ SCORECARD
-→ ROUTING
-→ VERIFIED OUTCOME
-→ LEARNING MEMORY
-```
+   ```text
+   terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do learn --class proof_obtained --summary \"...\" --envelope out/neon-genie/demo/run-envelope.json --ledger out/neon-genie/learning-ledger.jsonl")
+   terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do reconcile --ledger out/neon-genie/learning-ledger.jsonl --runs-root out/neon-genie")
+   ```
 
-## Core runes
+   Learning ledger entries are `PROPOSED` / `OBSERVATION` only — never auto-canon. Prefer linking via `--envelope` / `run_id`. Completion: receipt lists requests and research attempts; TESTABLE+ packets have `completion_proof`.
 
-- `RUNE.NG.INTAKE`
-- `RUNE.NG.EVIDENCE.NORMALIZE`
-- `RUNE.NG.RESEARCH.GAP_DETECT`
-- `RUNE.NG.RESEARCH.QUERY_PLAN`
-- `RUNE.NG.RESEARCH.FETCH`
-- `RUNE.NG.RESEARCH.CITE`
-- `RUNE.NG.BLOCKED_TRANSITION`
-- `RUNE.NG.OUTCOME.MODEL`
-- `RUNE.NG.TOPOLOGY`
-- `RUNE.NG.DISCOVER`
-- `RUNE.NG.RECOMBINE`
-- `RUNE.NG.DIFFERENTIATE`
-- `RUNE.NG.SHAPE`
-- `RUNE.NG.SCORE`
-- `RUNE.NG.VALIDATE_PATH`
-- `RUNE.NG.ROUTE`
-- `RUNE.NG.CLEAR_CHECK`
-- `RUNE.NG.SEAL`
-- `RUNE.PRIVACY_CLASSIFY`
-- `RUNE.PRIVACY_MINIMIZE`
-- `RUNE.PRIVACY_EGRESS_CHECK`
-- `RUNE.PRIVACY_SEAL_PROVENANCE`
+6. **Default operating sequence.** Always execute `OPEN` → `ALIGN` (gap-driven research plan + first fetch) → `ASCEND` (continue research when new gaps appear) → `CLEAR` → `SEAL` (source manifest lists every fetch). Every material claim must be labeled `OBSERVED`, `INFERRED`, `SPECULATIVE`, or `NOT_COMPUTABLE`. SHADOW detects drift and anomalies only. FORECAST performs evidence-based inference only. Completion: all five modes ran; unlabeled material claims are absent.
 
-## Authority boundaries
+7. **Router.** Determine the smallest sufficient profile set. Additionally auto-load `evidence_intelligence` whenever external facts would change the recommendation, scorecard, or handoff quality — even if the operator did not name that profile.
 
-Neon Genie may:
+   ```yaml
+   profile_router:
+     core: always
+     privacy:
+       triggers: [always]
+       default_when: always_with_core
+     product_architecture:
+       triggers: [product audit, app design, game design, system design, feature coherence]
+     opportunity_mining:
+       triggers: [new venture, unmet need, market opportunity, blocked transition, roadmap, business idea, go into business, side project, app idea, product idea, what should I build, where do I start, next steps]
+     fragmentation:
+       triggers: [many portals, repeated handoffs, incompatible systems, coordination problem]
+     zero_option:
+       triggers: [zero capital, first cash, immediate executable opportunity, constrained launch, limited money, limited resources, limited capital, between jobs, bootstrapped, no budget, first revenue]
+     agentic_services:
+       triggers: [agent workflow, delegated outcome, automation, x402, machine services]
+     commercial:
+       triggers: [pricing, buyer, revenue, costs, market pressure, business model]
+     evidence_intelligence:
+       triggers:
+         - grants
+         - boards
+         - philanthropy
+         - competitive research
+         - current external facts
+         - auto: any material external gap that research can close
+       default_when: improves_result
+     memetic:
+       triggers: [name, hook, pitch language, public framing, shareability]
+     audit_delivery:
+       triggers: [client audit, cost of inaction, diagnostic package, implementation offer]
+     wayfinder_handoff:
+       triggers: [build plan, engineering readiness, execution packet]
+     capital_sprint:
+       triggers:
+         - capital sprint
+         - annual fund
+         - donation drive
+         - membership drive
+         - fundraising deadline
+         - impact object
+         - donor sprint
+         - nonprofit capital raise
+   ```
 
-- research (proactively, via host tools);
-- infer;
-- generate;
-- compare;
-- score;
-- model;
-- audit;
-- specify;
-- route;
-- draft;
-- recommend.
+   Do not activate a specialized product/commercial profile merely because it exists. Do activate research when usefulness requires it. Completion: selected profiles match triggers; unused specialized profiles stay unloaded.
 
-Neon Genie may not, without explicit downstream authorization:
+8. **Core pipeline.**
 
-- spend or transfer money;
-- submit applications;
-- contact targets;
-- publish content;
-- modify repositories;
-- execute irreversible workflows;
-- promote artifacts to canon;
-- represent forecasts as facts;
-- mutate runtime state.
+   ```text
+   SIGNAL
+   → BLOCKED TRANSITION
+   → OUTCOME MODEL
+   → EVIDENCE GAPS
+   → RESEARCH LOOP (PRIVACY_EGRESS_CHECK → host tools)
+   → SYSTEM TOPOLOGY
+   → OPPORTUNITY THESIS
+   → INTERVENTION
+   → PRODUCT / SERVICE GRAPH
+   → VALIDATION LOOP
+   → SCORECARD
+   → ROUTING
+   → VERIFIED OUTCOME
+   → LEARNING MEMORY
+   ```
 
-## Output selection
+   Core runes: `RUNE.NG.INTAKE`, `RUNE.NG.EVIDENCE.NORMALIZE`, `RUNE.NG.RESEARCH.GAP_DETECT`, `RUNE.NG.RESEARCH.QUERY_PLAN`, `RUNE.NG.RESEARCH.FETCH`, `RUNE.NG.RESEARCH.CITE`, `RUNE.NG.BLOCKED_TRANSITION`, `RUNE.NG.OUTCOME.MODEL`, `RUNE.NG.TOPOLOGY`, `RUNE.NG.DISCOVER`, `RUNE.NG.RECOMBINE`, `RUNE.NG.DIFFERENTIATE`, `RUNE.NG.SHAPE`, `RUNE.NG.SCORE`, `RUNE.NG.VALIDATE_PATH`, `RUNE.NG.ROUTE`, `RUNE.NG.CLEAR_CHECK`, `RUNE.NG.SEAL`, `RUNE.PRIVACY_CLASSIFY`, `RUNE.PRIVACY_MINIMIZE`, `RUNE.PRIVACY_EGRESS_CHECK`, `RUNE.PRIVACY_SEAL_PROVENANCE`.
 
-A run emits one or more of:
+   Completion: pipeline stages that ran are named in the receipt; skipped stages have a reason.
 
-- `NeonGenieOpportunityPacket` → `references/schemas/opportunity-packet.schema.json`
-- `NeonGenieProductPacket` → `references/schemas/product-packet.schema.json`
-- `FragmentationOpportunityPacket` → `references/schemas/fragmentation-packet.schema.json`
-- `ZeroOptionPacket` → `references/schemas/zero-option-packet.schema.json`
-- `AgenticServiceGraph` → `references/schemas/agentic-service-graph.schema.json`
-- `CommercialSimulationPacket` → `references/schemas/commercial-simulation.schema.json`
-- `EvidenceIntelligencePacket` → `references/schemas/evidence-intelligence-packet.schema.json`
-- `MemeticPressurePacket` → `references/schemas/memetic-pressure-packet.schema.json`
-- `AuditDeliveryPacket` → `references/schemas/audit-delivery-packet.schema.json`
-- `WayfinderExecutionPacket` → `references/schemas/wayfinder-execution-packet.schema.json`
-- `CapitalSprintPacket` → `references/schemas/capital-sprint-packet.schema.json`
-- `NeonGenieRunReceipt` → `references/schemas/run-receipt.schema.json`
+9. **Authority boundaries.** Neon Genie may research (proactively, via host tools), infer, generate, compare, score, model, audit, specify, route, draft, and recommend. Neon Genie may not, without explicit downstream authorization: spend or transfer money; submit applications; contact targets; publish content; modify repositories; execute irreversible workflows; promote artifacts to canon; represent forecasts as facts; mutate runtime state. Completion: no output claims execution authority.
 
-Anti-overclaim gates: `references/anti-overclaim-patterns.md`. Privacy: `PRIVACY.md`, `references/PRIVACY.md`, `profiles/privacy.md`.
+10. **Output selection.** A run emits one or more of:
 
-## Promotion ladder
+    - `NeonGenieOpportunityPacket` → `references/schemas/opportunity-packet.schema.json`
+    - `NeonGenieProductPacket` → `references/schemas/product-packet.schema.json`
+    - `FragmentationOpportunityPacket` → `references/schemas/fragmentation-packet.schema.json`
+    - `ZeroOptionPacket` → `references/schemas/zero-option-packet.schema.json`
+    - `AgenticServiceGraph` → `references/schemas/agentic-service-graph.schema.json`
+    - `CommercialSimulationPacket` → `references/schemas/commercial-simulation.schema.json`
+    - `EvidenceIntelligencePacket` → `references/schemas/evidence-intelligence-packet.schema.json`
+    - `MemeticPressurePacket` → `references/schemas/memetic-pressure-packet.schema.json`
+    - `AuditDeliveryPacket` → `references/schemas/audit-delivery-packet.schema.json`
+    - `WayfinderExecutionPacket` → `references/schemas/wayfinder-execution-packet.schema.json`
+    - `CapitalSprintPacket` → `references/schemas/capital-sprint-packet.schema.json`
+    - `NeonGenieRunReceipt` → `references/schemas/run-receipt.schema.json`
 
-- `RAW_SIGNAL`
-- `MAPPED`
-- `CONCEPTUAL`
-- `TESTABLE`
-- `SERVICE_FIRST`
-- `SERVICE_PROVEN`
-- `SPEC_COMPLETE`
-- `WAYFINDER_READY`
-- `BUILD_READY`
-- `CANON_CANDIDATE`
-- `ARCHIVED`
-- `NOT_COMPUTABLE`
+    Anti-overclaim gates: `references/anti-overclaim-patterns.md`. Privacy: `PRIVACY.md`, `references/PRIVACY.md`, `profiles/privacy.md`. Completion: emitted packets validate against the named schema.
 
-A composite score may never override a mandatory gate failure.
+11. **Promotion ladder.** `RAW_SIGNAL` → `MAPPED` → `CONCEPTUAL` → `TESTABLE` → `SERVICE_FIRST` → `SERVICE_PROVEN` → `SPEC_COMPLETE` → `WAYFINDER_READY` → `BUILD_READY` → `CANON_CANDIDATE` → `ARCHIVED` / `NOT_COMPUTABLE`. A composite score may never override a mandatory gate failure. Completion: promotion state matches the weakest mandatory gate.
 
-## Mandatory gates
+12. **Mandatory gates.** Fail closed when:
 
-Fail closed when:
+    - the desired state is ambiguous;
+    - the affected user is absent;
+    - buyer and beneficiary are conflated;
+    - completion proof is undefined;
+    - critical integration access is unknown;
+    - claims lack provenance;
+    - a proposed action exceeds authority;
+    - x402 is ornamental rather than economically useful;
+    - Zero State benefit reduces portability or user control;
+    - a concept duplicates an existing subsystem without wrapper classification;
+    - the implementation handoff changes product intent;
+    - missing data is fabricated instead of marked `NOT_COMPUTABLE` after research was attempted (or correctly skipped under offline mode);
+    - public fetchable facts are skipped without a research attempt (Gate P);
+    - private decision-critical facts lack a `DataRequest` (Gate Q);
+    - private facts are silently invented as `OBSERVED` without source or request (Gate R);
+    - external action sent with unknown/empty destination (Gate S);
+    - offline / `LOCAL_ONLY` / research disabled but external send recorded (Gate T);
+    - credential or secret-like payload would be or was sent (Gate U);
+    - private/operator egress without consent reference (Gate V);
+    - absolute privacy claim without matching mode and evidence (Gate W);
+    - telemetry status is not `disabled` (Gate X);
+    - SEAL without required privacy provenance fields (Gate Y).
 
-- the desired state is ambiguous;
-- the affected user is absent;
-- buyer and beneficiary are conflated;
-- completion proof is undefined;
-- critical integration access is unknown;
-- claims lack provenance;
-- a proposed action exceeds authority;
-- x402 is ornamental rather than economically useful;
-- Zero State benefit reduces portability or user control;
-- a concept duplicates an existing subsystem without wrapper classification;
-- the implementation handoff changes product intent;
-- missing data is fabricated instead of marked `NOT_COMPUTABLE` after research was attempted (or correctly skipped under offline mode);
-- public fetchable facts are skipped without a research attempt (Gate P);
-- private decision-critical facts lack a `DataRequest` (Gate Q);
-- private facts are silently invented as `OBSERVED` without source or request (Gate R);
-- external action sent with unknown/empty destination (Gate S);
-- offline / `LOCAL_ONLY` / research disabled but external send recorded (Gate T);
-- credential or secret-like payload would be or was sent (Gate U);
-- private/operator egress without consent reference (Gate V);
-- absolute privacy claim without matching mode and evidence (Gate W);
-- telemetry status is not `disabled` (Gate X);
-- SEAL without required privacy provenance fields (Gate Y).
+    Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml`. Completion: CLEAR lists every failed gate or records none.
 
-Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml`.
+13. **Profile loading.** Load the relevant profile markdown contracts (hub mirror files listed below, or root profiles on full install) and follow their local contracts. Profile-specific runes must remain namespaced and must not silently change core outputs. Completion: each loaded profile file exists.
 
-## Profile loading
+14. **Wayfinder contract.** Neon Genie determines what should be built, why it should exist, target user and blocked transition, product boundary, system behavior, success criteria, and proof requirements. Wayfinder determines work decomposition, dependency sequence, milestones, engineering validation, and implementation status. Any proposed change to product intent returns to Neon Genie as a change request. Completion: handoff packets do not rewrite product intent.
 
-Load the relevant profile markdown contracts (hub mirror files listed below, or root profiles on full install) and follow their local contracts. Profile-specific runes must remain namespaced and must not silently change core outputs.
+15. **Registry and memory.** Every run should record: source manifest (operator + workspace + live fetches, with tool and timestamp); research queries attempted and outcomes; input hash; selected profiles; assumptions; scores; promotion state; rejected alternatives; failure reasons; output hash; human review status.
 
-## Wayfinder contract
+    Neon Genie must become harder to impress over time by learning from failed opportunities, brittle integrations, buyer failures, distribution failures, and anti-capture failures. Capture those as append-only learning ledger observations (`references/schemas/learning-ledger-entry.schema.json`, `do learn`) with `canon_status: PROPOSED` only — never auto-apply to the skill corpus.
 
-Neon Genie determines:
-
-- what should be built;
-- why it should exist;
-- target user and blocked transition;
-- product boundary;
-- system behavior;
-- success criteria;
-- proof requirements.
-
-Wayfinder determines:
-
-- work decomposition;
-- dependency sequence;
-- milestones;
-- engineering validation;
-- implementation status.
-
-Any proposed change to product intent returns to Neon Genie as a change request.
-
-## Registry and memory
-
-Every run should record:
-
-- source manifest (operator + workspace + live fetches, with tool and timestamp);
-- research queries attempted and outcomes;
-- input hash;
-- selected profiles;
-- assumptions;
-- scores;
-- promotion state;
-- rejected alternatives;
-- failure reasons;
-- output hash;
-- human review status.
-
-Neon Genie must become harder to impress over time by learning from failed opportunities, brittle integrations, buyer failures, distribution failures, and anti-capture failures. Capture those as append-only learning ledger observations (`references/schemas/learning-ledger-entry.schema.json`, `do learn`) with `canon_status: PROPOSED` only — never auto-apply to the skill corpus.
+16. **Hermes Hub support files.** Hub installs copy only the generated list below.
 
 ### Hermes Hub support files
 
@@ -630,3 +471,36 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 <!-- END HUB_SUPPORT_FILES -->
 
 Full tree also keeps root schemas, profiles, evals, VERSION, and manifest for clone/`./install.sh` installs (scripts resolve either layout via `scripts/paths.py`).
+
+## Pitfalls
+
+- A folded or multi-sentence `description` loses routing signal: Hermes indexes 60 characters and truncates at 57 + `...`.
+- Leading blank lines or a BOM before `---` fail frontmatter parse.
+- Treating `do run` / `run-envelope.json` as execution authority. Packaging is not product judgment.
+- Inventing buyers, capital, skills, or `OBSERVED` facts. Use Find → `DataRequest` → `NOT_COMPUTABLE`.
+- Skipping host research on public fetchable gaps (Gate P) or skipping `DataRequest` on private gaps (Gate Q).
+- Sending credentials or private/operator data without consent (Gates U/V). Offline / `LOCAL_ONLY` still recorded as an external send (Gate T).
+- Letting a scorecard override a failed mandatory gate.
+- Changing product intent inside a Wayfinder handoff. Return a change request to Neon Genie.
+- Loading Kubrick, Wayfinder, or an external knowledge base as a load-time dependency.
+- Pointing `related_skills` at other-org repos. Keep `related_skills: []`.
+- Machine-local home paths in skill docs. Use `${HERMES_SKILL_DIR}` and repo-relative paths.
+
+## Verification
+
+Prove the skill loaded and the packaging CLI still works:
+
+```text
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do check")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do eval")
+terminal(command="python ${HERMES_SKILL_DIR}/scripts/neon_genie.py do doctor")
+```
+
+Pass when:
+
+- `SKILL.md` starts at byte 0 with `---`; `name` is `neon-genie`.
+- `description` is one sentence, ≤60 characters, ends with a period, and has no marketing words.
+- `version`, `author`, `license`, `platforms`, `metadata.hermes.tags`, and `metadata.hermes.related_skills` are present.
+- VERSION matches frontmatter and `manifest.json`.
+- `do check`, `do eval`, and `do doctor` exit 0.
+- Advisory authority is unchanged: no spend, publish, contact, or repo mutation.
