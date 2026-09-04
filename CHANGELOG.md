@@ -7,6 +7,12 @@ and this project uses semantic versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Org multi-agent SDLC pack: short `AGENTS.md` (with Escalation), thin
+  `CLAUDE.md` pointer, and `intent/` README + `_TEMPLATE.md`. Docs-only;
+  no `SKILL.md` rewrite and no Noema deploy dumps.
+
 ### Changed
 
 - Public install/docs paths updated for repo rename **NeonGenie**
