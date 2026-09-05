@@ -80,7 +80,6 @@ When `research.enabled=false` / offline: use operator + workspace only; model pr
 - Prefer PaperPilot-style search DAG later (U7 · P2): keyword → cite-expand → filter → score → extract — write DAG only when research runs.
 - Keeper: arXiv:2605.14306 (never-generate-cites).
 
-P1 ledger (U4) is deferred: claims will cite only active ledger entries once EviGraph-style Ready(G) lands.
 
 ## Metric roles (P0-3)
 
@@ -88,7 +87,22 @@ When this profile scores or recommends metrics, label each as `success` | `guard
 
 ## Claim → evidence → stance (P1-1 prose)
 
-For material claims, prefer the spine **claim → evidence item → stance** (`Support` | `Contradict` | `Invalidate` | `Unknown`). Feeds deferred U4 EviGraph ledger; do not invent ledger IDs. Keeper: arXiv:2506.16383.
+For material claims, prefer the spine **claim → evidence item → stance**. Stance values may still use `Support` | `Contradict` | `Invalidate` | `Unknown`. Keeper: arXiv:2506.16383.
+
+## Claim graph as control plane (U4 · EviGraph prose · intent DRAFT)
+
+The **claim graph / evidence ledger** is the CLEAR control plane, not a post-hoc appendix log. Schema/SKILL field lift waits on accepted intent (`intent/2026-09-05-evigraph-ledger.md`); until then emit ledger cites in narrative / `gate_results` notes.
+
+| Rule | Hold |
+|------|------|
+| No material claim promotes without an **active ledger cite** (pointer to claim node + evidence edge) | Gate LEDGER |
+| Typed relations | `Support` · `Depend-on` · `Contradict` · `Invalidate` · `Update` |
+| Do not invent ledger IDs as `OBSERVED` | Gate R / CITE / LEDGER |
+| Final-answer fluency ≠ provenance | Anti-overclaim; execution traces ≠ truth (arXiv:2606.04990, 2608.04738, 2607.28374) |
+| Contradict / Invalidate without resolution | Block ≥TESTABLE until Update or explicit waive |
+| Ready(G)-style closure | SPECULATIVE until schema + goldens; do not invent Brier / auto-settle |
+
+Keepers: arXiv:2606.04990, 2608.04738, 2607.28374 (plus P1-1 2506.16383). Out of scope this draft: U7 PaperPilot DAG, phenomenology, new bots.
 
 ## Proxy vs construct (P1-2)
 

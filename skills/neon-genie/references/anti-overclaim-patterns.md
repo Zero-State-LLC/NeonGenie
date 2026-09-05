@@ -4,6 +4,8 @@ Gates that keep Neon Genie evidence-bound and advisory. Fail closed when a patte
 
 Use alongside mandatory gates in `SKILL.md`. Labels: `OBSERVED` · `INFERRED` · `SPECULATIVE` · `NOT_COMPUTABLE`.
 
+**Fluency ≠ provenance:** a fluent final answer (or a tidy agent trace) is not evidence that claims are grounded. Execution provenance ≠ final-answer accuracy. Prefer claim-graph ledger cites over narrative polish (arXiv:2606.04990, 2608.04738, 2607.28374). Do not invent Brier / auto-settle scores.
+
 | Gate | Pattern | Repair |
 |------|---------|--------|
 | **A — Fabricated fact** | Claim presented as true without source or research attempt | Label `NOT_COMPUTABLE` or re-fetch; never invent `OBSERVED` |
@@ -49,6 +51,9 @@ CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti
 
 | **LIVE — Offline before live** | Live A/B or pricing rec without offline/logged causal pass + human-yes; or p-value as OBSERVED without source | Offline pass or human-yes; keep n SPECULATIVE; no auto-roll |
 | **CSET — Competitor set missing** | Share/competitive OBSERVED without competitor_set_definition + metric | Define set/metric or DataRequest; else Gate B/Q |
+
+
+| **LEDGER — Uncited claim / invent OBSERVED** | Material claim promotes without active ledger cite, or OBSERVED from model prior without ledger edge; unresolved Contradict/Invalidate at ≥TESTABLE | Emit ledger cite + typed relation (`Support`/`Depend-on`/`Contradict`/`Invalidate`/`Update`); else relabel or block |
 
 ## Scorecard rule
 
