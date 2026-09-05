@@ -41,9 +41,20 @@ mirrors:
 
 hub_package:
   root: skills/neon-genie
+  license: MIT  # Existing bundled LICENSE grants are preserved; root is proprietary.
   # Files/dirs excluded when rsyncing root → hub package
   exclude:
     - .git
+    - .github
+    - LICENSE
+    - LICENSE_POLICY.md
+    - AGENTS.md
+    - CLAUDE.md
+    - intent
+    - tests_audit
+    - graft
+    - CONTRIBUTING.md
+    - CHANGELOG.md
     - out
     - skills
     - .superpowers
@@ -91,6 +102,8 @@ hub_support_globs:
   - scripts/release_check.py
   - scripts/privacy_preflight.py
   - scripts/privacy_report.py
+  - references/profile-routing.md
+  - references/output-selection.md
   - references/VERSION
   - references/gates.yaml
   - references/manifest.json
