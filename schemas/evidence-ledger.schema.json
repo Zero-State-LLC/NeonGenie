@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "neon-genie/evidence-ledger/1.0.0",
   "title": "Evidence Ledger (EviGraph claim graph)",
-  "description": "Shared claim graph for Gate LEDGER. Optional attach in 3.26.x (warn-then-require); required next minor when evidence_intelligence resolves. No invent Brier / auto-settle.",
+  "description": "Shared claim graph for Gate LEDGER. Required on EvidenceIntelligence packets as of 3.27.0. No invent Brier / auto-settle.",
   "type": "object",
   "required": [
     "claims",

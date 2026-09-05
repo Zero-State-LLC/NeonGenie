@@ -8,11 +8,20 @@
     "proof": "invoice or signed SOW"
   },
   "system_topology": {
-    "actors": ["operator", "buyer"],
-    "systems": ["outreach", "delivery"]
+    "actors": [
+      "operator",
+      "buyer"
+    ],
+    "systems": [
+      "outreach",
+      "delivery"
+    ]
   },
   "opportunity_thesis": "Warm-network micro-audit converts faster than cold content",
-  "validation_path": ["offer to 10 warm contacts", "track yes/no"],
+  "validation_path": [
+    "offer to 10 warm contacts",
+    "track yes/no"
+  ],
   "completion_proof": "first paid diagnostic invoice or signed SOW within 14 days",
   "proof_path": [
     "list 10 warm contacts",
@@ -25,5 +34,6 @@
     "outcome_clarity": 0.7
   },
   "promotion_state": "TESTABLE",
-  "authority": "advisory_only"
+  "authority": "advisory_only",
+  "logic_label": "mixed"
 }

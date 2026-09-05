@@ -273,5 +273,6 @@
     "provider_retention": "NOT_COMPUTABLE",
     "provider_processing": "NOT_COMPUTABLE"
   },
-  "learning_ledger_disclosure": "Learning ledger entries are local operator artifacts under the chosen output path; they are never auto-applied to the skill corpus and must not contain raw secrets or private source payloads."
+  "learning_ledger_disclosure": "Learning ledger entries are local operator artifacts under the chosen output path; they are never auto-applied to the skill corpus and must not contain raw secrets or private source payloads.",
+  "stage": "shape"
 }

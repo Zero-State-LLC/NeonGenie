@@ -1,0 +1,13 @@
+{
+  "input": {
+    "citation": "arXiv:9999.99999",
+    "verified_fetch": false,
+    "operator_source": false,
+    "in_search_dag": true
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "CITE",
+    "reason": "Unverified paper/DOI/arXiv citation forbidden (never generate citations)"
+  }
+}

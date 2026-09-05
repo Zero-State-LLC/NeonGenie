@@ -1,7 +1,7 @@
 ---
 name: neon-genie
 description: Audit products and opportunities with labeled evidence.
-version: 3.26.1
+version: 3.27.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -165,17 +165,19 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Private decision-critical gap + no DataRequest → fail (Gate Q)
    - Private/unknown fact labeled OBSERVED from model prior without source → fail (Gate R)
    - Open DataRequests with `blocks_promotion: true` cap promotion until satisfied or waived
-   - Dual-logic / stage / means / cites (warn-then-require in 3.26.x; schemas optional):
+   - Dual-logic / stage / means / cites (**required** as of 3.27.0):
      - Missing or mismatched `logic_label` (`effectual`|`causal`|`mixed`) when opportunity/product/zero-option CLEAR expects it → fail (Gate LOGIC)
      - Opportunity/agentic run missing `stage` (`shape`|`test`|`scale`), or `scale` without test evidence → fail (Gate STAGE)
      - Effectual / zero-option with empty means inventory and no DataRequest / NOT_COMPUTABLE → fail (Gate BRIC)
      - arXiv/DOI/paper claim without verified fetch or operator source → fail (Gate CITE); never fabricate citations
-   - Claim graph / EviGraph ledger (warn-then-require in 3.26.x; optional `evidence_ledger` on EvidenceIntelligence + optional peer attach):
+   - Claim graph / EviGraph ledger (`evidence_ledger` **required** on EvidenceIntelligence packets as of 3.27.0; optional peer attach):
      - Material claim promotes without an **active ledger cite** (claim node + typed relation) → fail (Gate LEDGER)
      - Unresolved `Contradict` / `Invalidate` at ≥TESTABLE → fail (Gate LEDGER)
      - Invent-OBSERVED from model prior without ledger cite → fail (Gate LEDGER); fabricated paper IDs still Gate CITE
      - Final-answer fluency ≠ provenance; no invent Brier / auto-settle
-   - Also apply (registry `references/gates.yaml`): HYP, METRIC, LIVE, CSET, LEDGER
+   - Irreversible agentic graph / action without independent validation step + versioned log pointer → fail (Gate ISO); PROMETHEUS consumes `validation_isolation` — no Wayfinder/fifth bot
+   - Research ran without editable PaperPilot `research_search_dag` (keyword→cite-expand→filter→score→extract) → fail (Gate PILOT; still warn-then-require for DAG until next cycle)
+   - Also apply (registry `references/gates.yaml`): HYP, METRIC, LIVE, CSET, LEDGER, ISO, PILOT
    - CLEAR order: authority → evidence P–R → LOGIC/STAGE/BRIC/CITE/LEDGER → HYP/METRIC/LIVE/CSET → privacy S–Y → remaining anti-overclaim
 
    SEAL: run receipt must list `data_requests`, `open_blocking_requests`, and `research_attempts` (may be empty arrays). See `references/schemas/run-receipt.schema.json`.
@@ -264,9 +266,11 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - decision-critical metric without role, or guardrail breached (Gate METRIC);
     - live A/B or pricing rec without offline causal pass and without human-yes (Gate LIVE);
     - market-share / competitive OBSERVED without competitor_set_definition + metric (Gate CSET);
-    - material claim without active ledger cite, invent-OBSERVED without ledger, or unresolved Contradict/Invalidate at ≥TESTABLE (Gate LEDGER).
+    - material claim without active ledger cite, invent-OBSERVED without ledger, or unresolved Contradict/Invalidate at ≥TESTABLE (Gate LEDGER);
+    - irreversible agentic action without independent validation_isolation / validation_step (Gate ISO);
+    - research ran without research_search_dag stages (Gate PILOT).
 
-    Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET, LEDGER). Completion: CLEAR lists every failed gate or records none.
+    Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET, LEDGER, ISO, PILOT). Completion: CLEAR lists every failed gate or records none.
 
 13. **Profile loading.** Load the relevant profile markdown contracts (hub mirror files listed below, or root profiles on full install) and follow their local contracts. Profile-specific runes must remain namespaced and must not silently change core outputs. Completion: each loaded profile file exists.
 
@@ -319,9 +323,12 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/completion-proof-present.json`
 - `examples/evals/cases/completion-proof-required.json`
 - `examples/evals/cases/contradict-unresolved-testable.json`
+- `examples/evals/cases/dag-fabricated-cite.json`
 - `examples/evals/cases/effectual-missing-means.json`
 - `examples/evals/cases/fabricated-cite.json`
 - `examples/evals/cases/fictional-resource.json`
+- `examples/evals/cases/irreversible-missing-log-pointer.json`
+- `examples/evals/cases/irreversible-without-validation.json`
 - `examples/evals/cases/memetic-cannot-promote.json`
 - `examples/evals/cases/offline-no-fabricated-observed.json`
 - `examples/evals/cases/privacy-consent-purpose-bound.json`
@@ -332,6 +339,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/private-gap-silent-invent.json`
 - `examples/evals/cases/public-gap-must-attempt-research.json`
 - `examples/evals/cases/public-gap-research-attempted.json`
+- `examples/evals/cases/research-ran-without-dag.json`
 - `examples/evals/cases/scale-without-test.json`
 - `examples/evals/cases/scorecard-cannot-override-gate.json`
 - `examples/evals/cases/uncited-claim.json`
@@ -406,6 +414,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `references/schemas/opportunity-packet.schema.json`
 - `references/schemas/privacy-context.schema.json`
 - `references/schemas/product-packet.schema.json`
+- `references/schemas/research-search-dag.schema.json`
 - `references/schemas/run-envelope.schema.json`
 - `references/schemas/run-receipt.schema.json`
 - `references/schemas/wayfinder-execution-packet.schema.json`

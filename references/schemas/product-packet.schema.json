@@ -12,7 +12,8 @@
     "experience_architecture",
     "validation_path",
     "completion_proof",
-    "promotion_state"
+    "promotion_state",
+    "logic_label"
   ],
   "properties": {
     "target_user": {},
@@ -37,7 +38,7 @@
         "causal",
         "mixed"
       ],
-      "description": "Dual-logic label (U1). Optional in 3.26.x (warn-then-require); required in next minor after goldens. Gate LOGIC."
+      "description": "Dual-logic label (U1). Required as of 3.27.0. Gate LOGIC."
     },
     "evidence_ledger": {
       "description": "Optional attach when evidence_intelligence co-resolves. See schemas/evidence-ledger.schema.json. Gate LEDGER.",

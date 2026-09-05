@@ -444,6 +444,45 @@ def eval_ledger_contradict_testable(inp: dict[str, Any]) -> dict[str, Any]:
     return {"status": "PASS", "gate": "LEDGER", "reason": "no unresolved contradict at TESTABLE+"}
 
 
+
+def eval_irreversible_without_validation(inp: dict[str, Any]) -> dict[str, Any]:
+    irreversible = bool(inp.get("has_irreversible_action"))
+    present = bool(inp.get("validation_step_present") or inp.get("validation_isolation_enabled"))
+    independent = bool(inp.get("validation_independent") or inp.get("independent_of_planner"))
+    log_ptr = str(inp.get("validation_log_pointer") or inp.get("log_pointer") or "").strip()
+    log_ver = str(inp.get("validation_log_version") or "").strip()
+    versioned_log = bool(log_ptr and log_ver)
+    if irreversible:
+        if not (present and independent and versioned_log):
+            # Prefer specific reason when independence present but log missing
+            if present and independent and not versioned_log:
+                return {
+                    "status": "GATE_FAIL",
+                    "gate": "ISO",
+                    "reason": "Irreversible action requires independent ∧ versioned log pointer",
+                }
+            return {
+                "status": "GATE_FAIL",
+                "gate": "ISO",
+                "reason": "Irreversible agentic action without independent validation step",
+            }
+    return {"status": "PASS", "gate": "ISO", "reason": "independent ∧ versioned log pointer"}
+
+
+
+def eval_research_ran_without_dag(inp: dict[str, Any]) -> dict[str, Any]:
+    ran = bool(inp.get("research_ran"))
+    present = bool(inp.get("dag_present"))
+    stages = inp.get("dag_stages") or []
+    if ran and (not present or not stages):
+        return {
+            "status": "GATE_FAIL",
+            "gate": "PILOT",
+            "reason": "Research ran without research_search_dag",
+        }
+    return {"status": "PASS", "gate": "PILOT", "reason": "dag present when research ran"}
+
+
 EVALUATORS: dict[str, EvalFn] = {
     "zero-option.json": eval_zero_option,
     "x402-misfit.json": eval_x402_misfit,
@@ -469,6 +508,10 @@ EVALUATORS: dict[str, EvalFn] = {
     "fabricated-cite.json": eval_fabricated_cite,
     "uncited-claim.json": eval_ledger_uncited,
     "contradict-unresolved-testable.json": eval_ledger_contradict_testable,
+    "irreversible-without-validation.json": eval_irreversible_without_validation,
+    "irreversible-missing-log-pointer.json": eval_irreversible_without_validation,
+    "research-ran-without-dag.json": eval_research_ran_without_dag,
+    "dag-fabricated-cite.json": eval_fabricated_cite,
 }
 
 

@@ -16,7 +16,8 @@
     "artifacts",
     "promotion",
     "receipt",
-    "generator"
+    "generator",
+    "stage"
   ],
   "properties": {
     "schema_id": {
@@ -305,7 +306,7 @@
         "test",
         "scale"
       ],
-      "description": "Run stage vocab (U2). Optional in 3.26.x (warn-then-require). scale needs test evidence (Gate STAGE)."
+      "description": "Required as of 3.27.0. Gate STAGE. Enum shape|test|scale. scale needs test evidence."
     }
   },
   "additionalProperties": true

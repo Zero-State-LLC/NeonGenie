@@ -10,7 +10,8 @@
     "tooling_gaps",
     "attribution_boundaries",
     "research_log",
-    "not_computable_fields"
+    "not_computable_fields",
+    "evidence_ledger"
   ],
   "properties": {
     "decision_questions": {},
@@ -26,7 +27,7 @@
     "board_or_stakeholder_map": {},
     "freshness_notes": {},
     "evidence_ledger": {
-      "description": "Optional in 3.26.x (warn-then-require). Typed EviGraph claim graph; canonical file schemas/evidence-ledger.schema.json. Gate LEDGER. Required next minor when evidence_intelligence resolves.",
+      "description": "Required as of 3.27.0 when EvidenceIntelligence packet is emitted. Typed EviGraph claim graph; see evidence-ledger.schema.json. Gate LEDGER.",
       "type": "object",
       "required": [
         "claims",
@@ -122,6 +123,119 @@
                 "description": "Required true (or Update edge) before \u2265TESTABLE when relation is Contradict/Invalidate"
               },
               "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "research_search_dag": {
+      "description": "Optional in 3.26.x (warn-then-require). Write only when research runs. Canonical: schemas/research-search-dag.schema.json. Gate PILOT.",
+      "type": "object",
+      "required": [
+        "stages",
+        "research_ran"
+      ],
+      "properties": {
+        "schema_id": {
+          "type": "string",
+          "const": "neon-genie/research-search-dag"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "research_ran": {
+          "type": "boolean",
+          "description": "True only when host research/fetch actually ran this run"
+        },
+        "stages": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Ordered DAG stages",
+          "items": {
+            "type": "object",
+            "required": [
+              "stage_id",
+              "kind"
+            ],
+            "properties": {
+              "stage_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "keyword",
+                  "cite-expand",
+                  "filter",
+                  "score",
+                  "extract"
+                ]
+              },
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "queries": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "citations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "verified_fetch": {
+                      "type": "boolean"
+                    },
+                    "operator_supplied": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              },
+              "notes": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "from_stage",
+              "to_stage"
+            ],
+            "properties": {
+              "from_stage": {
+                "type": "string"
+              },
+              "to_stage": {
                 "type": "string"
               }
             },

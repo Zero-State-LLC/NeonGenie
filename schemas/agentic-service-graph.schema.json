@@ -14,7 +14,34 @@
     "actions": {},
     "authority_gates": {},
     "exception_paths": {},
-    "completion_proof": {}
+    "completion_proof": {},
+    "validation_step": {
+      "type": "object",
+      "description": "Independent non-circular validation before irreversible actions. When has_irreversible_action is true, CLEAR requires independent=true AND a versioned log pointer (log_pointer + validation_log_version). Absence \u2192 Gate ISO fail. PROMETHEUS consumes; no fifth bot.",
+      "properties": {
+        "present": {
+          "type": "boolean",
+          "description": "True when a validation step exists. Alias of validation_isolation.enabled"
+        },
+        "independent": {
+          "type": "boolean",
+          "description": "Boolean attestation that validator is non-circular vs planner (SHADOW \u2014 no proof protocol). Alias of validation_isolation.independent_of_planner"
+        },
+        "log_pointer": {
+          "type": "string",
+          "description": "Alias of packet validation_isolation.validation_log_pointer \u2014 versioned log / receipt path or URI"
+        },
+        "validation_log_version": {
+          "type": "string",
+          "description": "Version or content-hash of the validation log at log_pointer (parity with wayfinder validation_isolation.validation_log_version)"
+        }
+      },
+      "additionalProperties": true
+    },
+    "has_irreversible_action": {
+      "type": "boolean",
+      "description": "True when any action can irreversibly affect users/spend/egress"
+    }
   },
   "additionalProperties": true
 }

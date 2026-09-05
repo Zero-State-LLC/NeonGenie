@@ -66,3 +66,5 @@ Operational roles **inside** an existing Neon Genie run or PROMETHEUS consume �
 - Multi-step `AgenticServiceGraph` with irreversible action and **no** validation step → autonomy gate fail (CLEAR). Keepers: arXiv:2510.04678, 2503.11951, 2511.03094.
 - GenAI empowerment-entrapment checklist (arXiv:2604.02567): hallucinations / overconfidence → anti-overclaim, not phenomenology.
 - Privacy S–Y still bind tool workers (egress known, offline no-send, secrets, consent).
+
+CLEAR (Gate **ISO**): `has_irreversible_action: true` requires conjunction **`validation_step.independent: true` ∧ versioned log pointer** (`log_pointer` + `validation_log_version`). Missing either → GATE_FAIL. Independence is a boolean attestation at SHADOW — no proof protocol. See alias table in `profiles/wayfinder_handoff.md`. Do not invent a fifth bot for the validator role.

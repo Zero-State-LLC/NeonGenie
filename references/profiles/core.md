@@ -92,7 +92,7 @@ On opportunity/product/zero-option runs, CLEAR also checks:
 - **Citation integrity** — never invent arXiv/DOI; Gate CITE.
 - **Bricolage** — no proposed spend/buy/build without repertoire inventory — Gate BRIC.
 
-Schema fields for `logic_label` / `stage` land after accepted intent + PROMETHEUS code-bind. Until then, emit in packet narrative / assumptions and gate_results notes.
+`logic_label` and envelope `stage` are **required** as of 3.27.0 (Gate LOGIC / STAGE).
 
 ## Reconcile 2026-09-05 (prose-only)
 
@@ -107,7 +107,7 @@ Schema/SKILL field lift **HOLD** (Danny skipped intent). Additional CLEAR prose:
 - Gate LIVE: offline/logged causal pass before live A/B or pricing recs that can hurt users; human-yes required; no auto-roll.
 - Gate CSET: competitor_set_definition + metric before share/competitive OBSERVED claims.
 
-## Claim graph / Gate LEDGER (U4 prose · intent DRAFT)
+## Claim graph / Gate LEDGER (U4 · required evidence_ledger on EvidenceIntelligence as of 3.27.0)
 
 When `evidence_intelligence` resolves (or any material external claim is promoted):
 
@@ -115,4 +115,4 @@ When `evidence_intelligence` resolves (or any material external claim is promote
 - Relations: `Support` | `Depend-on` | `Contradict` | `Invalidate` | `Update`.
 - Gate **LEDGER**: uncited material claim, or invent-OBSERVED from model prior without ledger cite → fail CLEAR.
 - Fluency of the final answer is **not** provenance. Do not invent Brier scores or auto-settle.
-- Schema/SKILL rewrite blocked until `intent/2026-09-05-evigraph-ledger.md` is ACCEPTED.
+- `evidence_ledger` required on EvidenceIntelligence packets (3.27.0).

@@ -1,0 +1,12 @@
+{
+  "input": {
+    "has_irreversible_action": true,
+    "validation_step_present": false,
+    "validation_independent": false
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "ISO",
+    "reason": "Irreversible agentic action without independent validation step"
+  }
+}

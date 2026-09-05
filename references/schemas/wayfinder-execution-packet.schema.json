@@ -20,7 +20,36 @@
     "acceptance_criteria": {},
     "workstreams": {},
     "validation_gates": {},
-    "change_control": {}
+    "change_control": {},
+    "validation_isolation": {
+      "type": "object",
+      "description": "Optional. Independent eng validation step separate from the planner that authored the packet. PROMETHEUS consumes \u2014 no Wayfinder bot. Gate ISO / P2-1.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "independent_of_planner": {
+          "type": "boolean",
+          "description": "True when validator is non-circular vs the planner that wrote the packet"
+        },
+        "validator_role": {
+          "type": "string",
+          "description": "Operational role label only (e.g. eng_validator). Not a bot identity."
+        },
+        "validation_log_pointer": {
+          "type": "string",
+          "description": "Versioned log / receipt path or URI for the validation pass"
+        },
+        "validation_log_version": {
+          "type": "string",
+          "description": "Version or content-hash of the validation log at pointer"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
   },
   "additionalProperties": true
 }

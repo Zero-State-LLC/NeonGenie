@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "neon-genie/research-search-dag/1.0.0",
+  "title": "Research Search DAG (PaperPilot)",
+  "description": "Editable search DAG written only when research runs. Stages: keyword \u2192 cite-expand \u2192 filter \u2192 score \u2192 extract. Optional in 3.26.x (warn-then-require). Never invent citations (Gate CITE). Keeper arXiv:2607.00597.",
+  "type": "object",
+  "required": [
+    "stages",
+    "research_ran"
+  ],
+  "properties": {
+    "schema_id": {
+      "type": "string",
+      "const": "neon-genie/research-search-dag"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "research_ran": {
+      "type": "boolean",
+      "description": "True only when host research/fetch actually ran this run"
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered DAG stages",
+      "items": {
+        "type": "object",
+        "required": [
+          "stage_id",
+          "kind"
+        ],
+        "properties": {
+          "stage_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "keyword",
+              "cite-expand",
+              "filter",
+              "score",
+              "extract"
+            ]
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "queries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "verified_fetch": {
+                  "type": "boolean"
+                },
+                "operator_supplied": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from_stage",
+          "to_stage"
+        ],
+        "properties": {
+          "from_stage": {
+            "type": "string"
+          },
+          "to_stage": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,12 @@
+{
+  "input": {
+    "research_ran": true,
+    "dag_present": false,
+    "dag_stages": []
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "PILOT",
+    "reason": "Research ran without research_search_dag"
+  }
+}

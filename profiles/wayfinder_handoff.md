@@ -40,9 +40,21 @@ Handoff is still **advisory**. It does not authorize spend, deploy, or repo muta
 
 ## Validation isolation (P2-1 · PROMETHEUS consumes)
 
-Optional handoff fields (prose contract; schema lift deferred unless eng asks):
+Schema: `schemas/wayfinder-execution-packet.schema.json` (`validation_isolation`, optional until a later require-bump).
 
-- `validation_isolation`: independent eng validation step separate from the planner that wrote the packet.
-- Versioned log / receipt pointer for that validation pass.
+**Irreversible conjunction (PROMETHEUS gap close):** when work can irreversibly affect users/spend/egress, CLEAR needs:
 
-PROMETHEUS consumes `validation_isolation` — **no Wayfinder bot**, no fifth growth bot. Gate H (intent rewrite) still binds. Keepers: arXiv:2503.11951, 2511.03094.
+`independent` ∧ versioned log pointer
+
+i.e. `validation_isolation.independent_of_planner: true` **and** both `validation_log_pointer` + `validation_log_version` (or graph aliases below). Schema if-then remains optional; doctrine is fail-closed in CLEAR.
+
+### Alias table (packet ↔ graph ↔ eval)
+
+| Concept | Wayfinder packet | Agentic graph | Eval fixture keys |
+|---------|------------------|---------------|-------------------|
+| Validation present | `validation_isolation.enabled` | `validation_step.present` | `validation_step_present` / `validation_isolation_enabled` |
+| Independence (boolean attestation; SHADOW — no proof protocol) | `validation_isolation.independent_of_planner` | `validation_step.independent` | `validation_independent` / `independent_of_planner` |
+| Versioned log pointer | `validation_isolation.validation_log_pointer` | `validation_step.log_pointer` | `validation_log_pointer` |
+| Log version / content-hash | `validation_isolation.validation_log_version` | `validation_step.validation_log_version` | `validation_log_version` |
+
+PROMETHEUS consumes these fields — **no Wayfinder bot**, no fifth growth bot. Gate H (intent rewrite) still binds. Gate **ISO** when irreversible work lacks the conjunction above. Keepers: arXiv:2503.11951, 2511.03094.
