@@ -1,0 +1,15 @@
+{
+  "input": {
+    "stage": "scale",
+    "test_evidence_present": false,
+    "profile_set": [
+      "opportunity_mining",
+      "agentic_services"
+    ]
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "STAGE",
+    "reason": "scale without test evidence"
+  }
+}

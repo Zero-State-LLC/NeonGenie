@@ -171,3 +171,101 @@ gates:
       - profiles/privacy.md
       - schemas/run-receipt.schema.json
       - references/PRIVACY.md
+
+  # Doctrine 2026-09-05 (arXiv keepers / Boof P0). Schema fields pending accepted intent.
+  LOGIC:
+    name: dual_logic_label_required
+    severity: blocking
+    condition: opportunity_or_product_or_zero_option_run && logic_label_missing_or_invalid
+    remediation: emit_effectual_or_causal_or_mixed_with_matching_CLEAR_inputs
+    refs:
+      - profiles/opportunity_mining.md
+      - profiles/product_architecture.md
+      - profiles/zero_option.md
+      - /workspace/neon-genie-adapt/arxiv/UPGRADE-BRIEF.md
+      - arXiv:2103.07999
+      - arXiv:1711.07045
+
+  STAGE:
+    name: stage_vocab_and_scale_gate
+    severity: blocking
+    condition: (scale_without_test_evidence) || (opportunity_or_agentic_run && stage_missing)
+    remediation: set_shape_test_or_scale_and_block_scale_without_test
+    refs:
+      - profiles/opportunity_mining.md
+      - profiles/agentic_services.md
+      - profiles/core.md
+      - arXiv:2511.09533
+
+  BRIC:
+    name: bricolage_before_buy_build
+    severity: blocking
+    condition: proposed_spend_or_buy_or_build_without_repertoire_inventory || means_inventory_empty_on_effectual_or_zero_option
+    remediation: inventory_declared_means_or_NOT_COMPUTABLE_plus_DataRequest
+    refs:
+      - profiles/zero_option.md
+      - profiles/capital_sprint.md
+      - arXiv:2108.09943
+      - arXiv:2507.02819
+
+  CITE:
+    name: never_generate_citations
+    severity: blocking
+    condition: arxiv_doi_or_paper_claim_without_verified_fetch_or_operator_source
+    remediation: drop_cite_or_fetch_then_cite_only_verified_ids
+    refs:
+      - profiles/evidence_intelligence.md
+      - profiles/core.md
+      - references/anti-overclaim-patterns.md
+      - arXiv:2605.14306
+
+  # Reconcile 2026-09-05 — prose-only (schema HOLD)
+  HYP:
+    name: hypothesis_mvp_map_before_testable
+    severity: blocking
+    condition: promotion_gte_testable && hypothesis_mvp_map_missing
+    remediation: emit_falsifiable_hypothesis_mvp_and_kill_criteria
+    refs:
+      - profiles/opportunity_mining.md
+      - profiles/product_architecture.md
+      - arXiv:1808.05630
+      - arXiv:2506.16334
+    note: Distinct from Gate H / WAYFINDER (intent-rewrite handoff).
+
+  METRIC:
+    name: metric_roles_and_guardrail
+    severity: blocking
+    condition: decision_critical_metric_without_role || guardrail_breached
+    remediation: label_success_guardrail_deterioration_or_quality_and_block_on_guardrail
+    refs:
+      - profiles/commercial.md
+      - profiles/evidence_intelligence.md
+      - arXiv:2402.11609
+      - arXiv:2210.17187
+
+  # Continue 2026-09-05 — prose-only (schema HOLD)
+  LIVE:
+    name: offline_causal_before_live_test
+    severity: blocking
+    condition: live_ab_or_pricing_rec_without_offline_pass_and_without_human_yes || significance_claimed_observed_without_source
+    remediation: require_offline_logged_causal_pass_or_human_yes_keep_recommended_test_n_speculative
+    refs:
+      - profiles/evidence_intelligence.md
+      - profiles/commercial.md
+      - profiles/capital_sprint.md
+      - arXiv:2001.05699
+      - arXiv:1710.03410
+      - arXiv:1811.00457
+
+  CSET:
+    name: competitor_set_before_share_claims
+    severity: blocking
+    condition: market_share_or_competitive_observed_without_competitor_set_definition || missing_metric_definition
+    remediation: emit_competitor_set_definition_DataRequest_when_blocks_promotion_or_relabel
+    refs:
+      - profiles/opportunity_mining.md
+      - profiles/commercial.md
+      - profiles/fragmentation.md
+      - arXiv:2212.04810
+      - arXiv:2401.17448
+

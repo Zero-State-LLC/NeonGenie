@@ -104,3 +104,16 @@ Schema: `schemas/capital-sprint-packet.schema.json`
 ## Related profiles
 
 Often co-triggered: `evidence_intelligence`, `commercial`, `memetic`, `opportunity_mining`, `agentic_services`.
+
+## Bricolage before spend (U3 · P0)
+
+Before recommending buy/build of new fundraising tooling or paid channels:
+
+1. Inventory existing rails, warm-network classes, and declared access.
+2. Fail CLEAR (Gate BRIC) if proposed spend lacks repertoire scan.
+3. Neon remains advisory — spend is always human-yes.
+
+## Offline-causal before live (P1-3 · secondary)
+
+Prefer offline/historical raise analysis before recommending live donor A/B or irreversible ask experiments. Thresholds = org policy, not OBSERVED. Live tests need human-yes (AUTHORITY). Gate LIVE.
+

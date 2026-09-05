@@ -111,7 +111,7 @@ Full submission notes: [docs/CATALOG.md](./CATALOG.md).
 
 ## Pre-submit checklist
 
-- [x] Public GitHub repo with MIT license  
+- [x] Public GitHub repo with LicenseRef-Zero-State-Proprietary-1.0 license
 - [x] `SKILL.md` with `name`, `description`, `version`, `author`, `platforms`  
 - [x] `metadata.hermes.tags` + `category` for hub indexing  
 - [x] `skills/neon-genie/` package for tap discovery  

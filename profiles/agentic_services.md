@@ -45,3 +45,24 @@ Reject x402 when subscription, account billing, or a persistent relationship is 
 - `NeonGenieRunReceipt`
 
 Schema: `schemas/agentic-service-graph.schema.json`
+
+## Stage vocab (U2 · P0)
+
+Bind agent/service graphs to envelope stage `shape` | `test` | `scale`.
+
+- Do not recommend scale automation without test evidence.
+- Autonomy gates remain advisory in Neon Genie drafts (no packet elevates execution).
+
+## Planner / worker / validator roles (P2-1 · no new bots)
+
+Operational roles **inside** an existing Neon Genie run or PROMETHEUS consume — never a fifth growth bot.
+
+| Role | Owns | Does not |
+|------|------|----------|
+| Planner | Goal decomposition, tool plan, CLEAR gate list | Mute tool noise; invent OBSERVED |
+| Worker | Tool fetch / transform; noisy output stays in worker context | Bypass privacy S–Y egress checks |
+| Validator | Independent non-circular check before irreversible action | Rewrite product intent; grant execution |
+
+- Multi-step `AgenticServiceGraph` with irreversible action and **no** validation step → autonomy gate fail (CLEAR). Keepers: arXiv:2510.04678, 2503.11951, 2511.03094.
+- GenAI empowerment-entrapment checklist (arXiv:2604.02567): hallucinations / overconfidence → anti-overclaim, not phenomenology.
+- Privacy S–Y still bind tool workers (egress known, offline no-send, secrets, consent).

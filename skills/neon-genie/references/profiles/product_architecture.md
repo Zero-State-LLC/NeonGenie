@@ -51,3 +51,16 @@ Schema: `schemas/product-packet.schema.json`
 
 - Do not invent technical feasibility; mark `NOT_COMPUTABLE` when critical access is unknown.
 - Do not silently expand product intent in handoff packets (Gate H).
+
+## Dual-logic label (U1 · P0)
+
+Emit `logic_label`: `effectual` | `causal` | `mixed` on product packets.
+
+- Effectual PD ≠ standard waterfall SE (arXiv:1711.07045). Do not force causal SE process onto means-driven builds.
+- Causal verify paths still need completion_proof + acceptance criteria.
+- Never invent technical feasibility (Gate K / NOT_COMPUTABLE).
+
+## Hypothesis↔MVP map (P0-2)
+
+Product packets promoting ≥ `TESTABLE` need the same hypothesis ↔ MVP map as opportunity_mining (Gate HYP). Validation path must name the falsifier, not only the happy path. Keepers: arXiv:1808.05630, arXiv:2506.16334.
+

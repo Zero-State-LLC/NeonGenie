@@ -165,7 +165,13 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Private decision-critical gap + no DataRequest → fail (Gate Q)
    - Private/unknown fact labeled OBSERVED from model prior without source → fail (Gate R)
    - Open DataRequests with `blocks_promotion: true` cap promotion until satisfied or waived
-   - CLEAR order: authority → evidence P–R → privacy S–Y → remaining anti-overclaim
+   - Dual-logic / stage / means / cites (warn-then-require in 3.26.x; schemas optional):
+     - Missing or mismatched `logic_label` (`effectual`|`causal`|`mixed`) when opportunity/product/zero-option CLEAR expects it → fail (Gate LOGIC)
+     - Opportunity/agentic run missing `stage` (`shape`|`test`|`scale`), or `scale` without test evidence → fail (Gate STAGE)
+     - Effectual / zero-option with empty means inventory and no DataRequest / NOT_COMPUTABLE → fail (Gate BRIC)
+     - arXiv/DOI/paper claim without verified fetch or operator source → fail (Gate CITE); never fabricate citations
+   - Also apply (prose gates already in `references/gates.yaml`): HYP (hypothesis↔MVP before ≥TESTABLE), METRIC (metric roles + guardrail), LIVE (offline causal before live A/B/pricing), CSET (competitor_set_definition before share claims)
+   - CLEAR order: authority → evidence P–R → LOGIC/STAGE/BRIC/CITE → HYP/METRIC/LIVE/CSET → privacy S–Y → remaining anti-overclaim
 
    SEAL: run receipt must list `data_requests`, `open_blocking_requests`, and `research_attempts` (may be empty arrays). See `references/schemas/run-receipt.schema.json`.
 
@@ -244,9 +250,17 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - private/operator egress without consent reference (Gate V);
     - absolute privacy claim without matching mode and evidence (Gate W);
     - telemetry status is not `disabled` (Gate X);
-    - SEAL without required privacy provenance fields (Gate Y).
+    - SEAL without required privacy provenance fields (Gate Y);
+    - opportunity/product/zero-option CLEAR without a coherent `logic_label` when dual-logic applies (Gate LOGIC);
+    - opportunity/agentic run missing `stage`, or recommending `scale` without test evidence (Gate STAGE);
+    - effectual / zero-option spend-buy-build without means inventory, or empty means without NOT_COMPUTABLE + DataRequest (Gate BRIC);
+    - fabricated or unverified paper/DOI/arXiv citation (Gate CITE);
+    - ≥TESTABLE without hypothesis↔MVP map (Gate HYP; distinct from Gate H Wayfinder);
+    - decision-critical metric without role, or guardrail breached (Gate METRIC);
+    - live A/B or pricing rec without offline causal pass and without human-yes (Gate LIVE);
+    - market-share / competitive OBSERVED without competitor_set_definition + metric (Gate CSET).
 
-    Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml`. Completion: CLEAR lists every failed gate or records none.
+    Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET). Completion: CLEAR lists every failed gate or records none.
 
 13. **Profile loading.** Load the relevant profile markdown contracts (hub mirror files listed below, or root profiles on full install) and follow their local contracts. Profile-specific runes must remain namespaced and must not silently change core outputs. Completion: each loaded profile file exists.
 
@@ -298,6 +312,8 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/buyer-beneficiary-conflation.json`
 - `examples/evals/cases/completion-proof-present.json`
 - `examples/evals/cases/completion-proof-required.json`
+- `examples/evals/cases/effectual-missing-means.json`
+- `examples/evals/cases/fabricated-cite.json`
 - `examples/evals/cases/fictional-resource.json`
 - `examples/evals/cases/memetic-cannot-promote.json`
 - `examples/evals/cases/offline-no-fabricated-observed.json`
@@ -309,6 +325,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/private-gap-silent-invent.json`
 - `examples/evals/cases/public-gap-must-attempt-research.json`
 - `examples/evals/cases/public-gap-research-attempted.json`
+- `examples/evals/cases/scale-without-test.json`
 - `examples/evals/cases/scorecard-cannot-override-gate.json`
 - `examples/evals/cases/wayfinder-change-control.json`
 - `examples/evals/cases/x402-misfit.json`

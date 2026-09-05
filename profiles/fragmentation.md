@@ -42,3 +42,8 @@ Schema: `schemas/fragmentation-packet.schema.json`
 
 - Do not propose a platform “because everything is fragmented” without a measured coordination gap.
 - Classify wrappers vs silent subsystem duplicates (Gate M).
+
+## Competitor set before share claims (P2-2)
+
+If a defrag / aggregator thesis claims market share or “everyone else is fragmented,” define `competitor_set_definition` + the share metric. Otherwise Gate CSET / Gate B. Do not invent competitor lists from model prior (Gate R).
+

@@ -36,6 +36,20 @@ Gates **A–R** apply during CLEAR (evidence + anti-overclaim). Gates **S–Y** 
 
 CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti-overclaim**.
 
+
+| **LOGIC — Dual-logic missing** | Opportunity/Product/Zero-Option run without `effectual`/`causal`/`mixed`, or effectual without means inventory | Emit label; inventory means or fail CLEAR |
+| **STAGE — Scale without test** | Envelope/stage `scale` without test evidence, or missing stage on opp/agentic run | Set `shape`/`test`/`scale`; block scale |
+| **BRIC — Buy/build without repertoire** | Proposed spend/buy/build without declared-means inventory | Inventory first; Gate G if inventing resources |
+| **CITE — Generated citation** | arXiv/DOI/title invented rather than verified fetch or operator-supplied | Drop or re-fetch; never invent OBSERVED cites |
+
+
+| **HYP — Hypothesis↔MVP missing** | ≥TESTABLE without falsifiable hypothesis ↔ MVP ↔ kill map | Emit map; distinct from Wayfinder Gate H |
+| **METRIC — Role/guardrail** | Decision metric lacks success\|guardrail\|deterioration\|quality, or guardrail breached | Label roles; guardrail blocks promotion |
+
+
+| **LIVE — Offline before live** | Live A/B or pricing rec without offline/logged causal pass + human-yes; or p-value as OBSERVED without source | Offline pass or human-yes; keep n SPECULATIVE; no auto-roll |
+| **CSET — Competitor set missing** | Share/competitive OBSERVED without competitor_set_definition + metric | Define set/metric or DataRequest; else Gate B/Q |
+
 ## Scorecard rule
 
 A composite score **never** overrides a mandatory gate failure or an anti-overclaim fail-closed outcome.

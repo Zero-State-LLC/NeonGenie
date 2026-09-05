@@ -20,10 +20,19 @@
       "description": "Observable proof of first cash/signal or honest NOT_COMPUTABLE reason"
     },
     "proof_path": {
-      "description": "Micro-loop steps: narrative → action → result → reinforcement"
+      "description": "Micro-loop steps: narrative \u2192 action \u2192 result \u2192 reinforcement"
     },
     "status": {},
-    "reason": {}
+    "reason": {},
+    "logic_label": {
+      "type": "string",
+      "enum": [
+        "effectual",
+        "causal",
+        "mixed"
+      ],
+      "description": "Dual-logic label (U1). Optional in 3.26.x (warn-then-require); required in next minor after goldens. Gate LOGIC."
+    }
   },
   "additionalProperties": true
 }

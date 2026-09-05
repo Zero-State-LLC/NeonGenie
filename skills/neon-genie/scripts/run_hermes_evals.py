@@ -346,6 +346,61 @@ def eval_privacy_consent_purpose_bound(inp: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def eval_effectual_missing_means(inp: dict[str, Any]) -> dict[str, Any]:
+    label = str(inp.get("logic_label") or "")
+    means = inp.get("means_inventory")
+    if means is None:
+        means = inp.get("means") or []
+    empty = not means
+    requested = bool(inp.get("data_request_emitted"))
+    status_nc = str(inp.get("status") or "").upper() == "NOT_COMPUTABLE"
+    if label in {"effectual", "mixed"} and empty and not requested and not status_nc:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "BRIC",
+            "reason": "Effectual/zero-option empty means without DataRequest or NOT_COMPUTABLE",
+        }
+    if label == "effectual" and empty and not requested and not status_nc:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "BRIC",
+            "reason": "Effectual/zero-option empty means without DataRequest or NOT_COMPUTABLE",
+        }
+    return {"status": "PASS", "gate": "BRIC", "reason": "means present or NC/DataRequest"}
+
+
+def eval_scale_without_test(inp: dict[str, Any]) -> dict[str, Any]:
+    stage = str(inp.get("stage") or "")
+    has_test = bool(inp.get("test_evidence_present"))
+    if stage == "scale" and not has_test:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "STAGE",
+            "reason": "scale without test evidence",
+        }
+    missing = stage == "" and bool(inp.get("require_stage"))
+    if missing:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "STAGE",
+            "reason": "stage missing on opportunity/agentic run",
+        }
+    return {"status": "PASS", "gate": "STAGE", "reason": "stage ok"}
+
+
+def eval_fabricated_cite(inp: dict[str, Any]) -> dict[str, Any]:
+    cite = inp.get("citation") or inp.get("arxiv_id") or inp.get("doi")
+    verified = bool(inp.get("verified_fetch") or inp.get("operator_source"))
+    if cite and not verified:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "CITE",
+            "reason": "Unverified paper/DOI/arXiv citation forbidden (never generate citations)",
+        }
+    return {"status": "PASS", "gate": "CITE", "reason": "cite verified or absent"}
+
+
 EVALUATORS: dict[str, EvalFn] = {
     "zero-option.json": eval_zero_option,
     "x402-misfit.json": eval_x402_misfit,
@@ -366,6 +421,9 @@ EVALUATORS: dict[str, EvalFn] = {
     "privacy-egress-local-only.json": eval_privacy_egress_local_only,
     "privacy-secret-blocks-egress.json": eval_privacy_secret_blocks_egress,
     "privacy-consent-purpose-bound.json": eval_privacy_consent_purpose_bound,
+    "effectual-missing-means.json": eval_effectual_missing_means,
+    "scale-without-test.json": eval_scale_without_test,
+    "fabricated-cite.json": eval_fabricated_cite,
 }
 
 

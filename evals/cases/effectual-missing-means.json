@@ -1,0 +1,13 @@
+{
+  "input": {
+    "logic_label": "effectual",
+    "means_inventory": [],
+    "data_request_emitted": false,
+    "proposed_action": "buy_ads"
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "BRIC",
+    "reason": "Effectual/zero-option empty means without DataRequest or NOT_COMPUTABLE"
+  }
+}

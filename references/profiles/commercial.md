@@ -46,3 +46,32 @@ Unsupported numerical projections remain `SPECULATIVE` or `NOT_COMPUTABLE` — n
 - `NeonGenieRunReceipt`
 
 Schema: `schemas/commercial-simulation.schema.json`
+
+## Metric roles (P0-3)
+
+Every scored metric in commercial / validation plans must declare a **role**:
+
+| Role | Meaning |
+|------|---------|
+| `success` | Primary outcome we want to move |
+| `guardrail` | Must not breach; **breach blocks promotion** |
+| `deterioration` | Early-warning decline signal |
+| `quality` | Evidence / sample / measurement integrity |
+
+- Guardrail breach or missing role on a decision-critical metric → fail CLEAR (Gate METRIC).
+- Never invent conversion rates or volumes (Gate B).
+- Keepers: arXiv:2402.11609, arXiv:2210.17187.
+
+## Offline-causal before live (P1-3)
+
+Do not recommend live pricing tests or user-facing A/B that can irreversibly hurt users until an offline/logged causal pass is noted (or operator human-yes waives). Thresholds are policy, not OBSERVED. `recommended_test_n` stays SPECULATIVE. Gate LIVE. Keepers: arXiv:2001.05699, 1710.03410, 1811.00457.
+
+## Competitor set before share claims (P2-2)
+
+Market-share or competitive claims require:
+
+1. Explicit `competitor_set_definition` (who is in/out).
+2. Explicit metric definition (numerator/denominator/time window).
+
+Missing set when the claim `blocks_promotion` → emit DataRequest `competitor_set_definition` (Gate Q / Gate CSET). “10% share” labeled `OBSERVED` without competitor_set → Gate B/Q/CSET. Keeper: arXiv:2212.04810.
+
