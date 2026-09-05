@@ -14,4 +14,3 @@ Load when selecting or validating a specialized output. These schemas do not gra
     - `WayfinderExecutionPacket` → `references/schemas/wayfinder-execution-packet.schema.json`
     - `CapitalSprintPacket` → `references/schemas/capital-sprint-packet.schema.json`
     - `NeonGenieRunReceipt` → `references/schemas/run-receipt.schema.json`
-

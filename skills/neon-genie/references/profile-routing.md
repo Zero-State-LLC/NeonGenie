@@ -46,4 +46,3 @@ Core and privacy always apply. Auto-load evidence intelligence when external fac
          - donor sprint
          - nonprofit capital raise
    ```
-
