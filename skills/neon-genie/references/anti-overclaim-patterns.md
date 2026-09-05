@@ -55,6 +55,10 @@ CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti
 
 | **LEDGER — Uncited claim / invent OBSERVED** | Material claim promotes without active ledger cite, or OBSERVED from model prior without ledger edge; unresolved Contradict/Invalidate at ≥TESTABLE | Emit ledger cite + typed relation (`Support`/`Depend-on`/`Contradict`/`Invalidate`/`Update`); else relabel or block |
 
+| **ISO — Missing validation isolation** | Irreversible agentic action / graph without independent validation step + log pointer | Emit validation_step / validation_isolation; PROMETHEUS consumes — no fifth bot |
+
+| **PILOT — Research DAG missing** | Research ran but `research_search_dag` missing/empty | Emit keyword→cite-expand→filter→score→extract DAG; fabricated IDs → CITE |
+
 ## Scorecard rule
 
 A composite score **never** overrides a mandatory gate failure or an anti-overclaim fail-closed outcome.

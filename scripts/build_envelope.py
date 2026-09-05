@@ -191,6 +191,7 @@ def build_envelope(
         "request_id": req_id,
         "skill": "neon-genie",
         "skill_version": skill_ver,
+        "stage": (receipt.get("stage") or summary.get("stage") or "shape"),
         "created_at": lineage.utc_now(),
         "authority": "advisory_only",
         "grants_execution": False,

@@ -284,3 +284,32 @@ gates:
       - arXiv:2607.28374
     note: Intent ACCEPTED 2026-09-05; schemas/evidence-ledger.schema.json optional in 3.26.x (warn-then-require). Relation enum Support|Depend-on|Contradict|Invalidate|Update.
 
+  # PR-A 2026-09-05 — validation_isolation (P2-1)
+  ISO:
+    name: validation_isolation_before_irreversible
+    severity: blocking
+    condition: irreversible_action_and_not_(independent_and_versioned_log_pointer)
+    remediation: emit_independent_true_and_log_pointer_plus_validation_log_version
+    refs:
+      - profiles/wayfinder_handoff.md
+      - profiles/agentic_services.md
+      - schemas/wayfinder-execution-packet.schema.json
+      - intent/2026-09-05-validation-isolation.md
+      - arXiv:2503.11951
+      - arXiv:2511.03094
+    note: Conjunction independent ∧ versioned log pointer when irreversible. Independence = boolean attestation (SHADOW, no proof). Alias table in profiles/wayfinder_handoff.md. PROMETHEUS consumes; no Wayfinder/fifth bot.
+
+  # PR-B 2026-09-05 — U7 PaperPilot search DAG
+  PILOT:
+    name: research_search_dag_when_research_runs
+    severity: blocking
+    condition: research_ran_without_search_dag || empty_dag_stages_when_research_ran
+    remediation: emit_research_search_dag_keyword_cite_expand_filter_score_extract
+    refs:
+      - profiles/evidence_intelligence.md
+      - schemas/research-search-dag.schema.json
+      - intent/2026-09-05-paperpilot-search-dag.md
+      - arXiv:2607.00597
+      - arXiv:2605.14306
+    note: Warn-then-require in 3.26.x. Fabricated cites remain Gate CITE. No invent Brier.
+

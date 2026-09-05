@@ -77,7 +77,7 @@ When `research.enabled=false` / offline: use operator + workspace only; model pr
 **Never generate** arXiv IDs, DOIs, or paper titles. Only rank / cite IDs that were verified fetched or operator-supplied.
 
 - Fabricated cite → Gate fail (Gate CITE / anti-overclaim A).
-- Prefer PaperPilot-style search DAG later (U7 · P2): keyword → cite-expand → filter → score → extract — write DAG only when research runs.
+- PaperPilot search DAG (U7): keyword → cite-expand → filter → score → extract. Emit optional `research_search_dag` **only when research runs** (`schemas/research-search-dag.schema.json`). Gate PILOT. Keeper: arXiv:2607.00597.
 - Keeper: arXiv:2605.14306 (never-generate-cites).
 
 
@@ -102,7 +102,7 @@ The **claim graph / evidence ledger** is the CLEAR control plane, not a post-hoc
 | Contradict / Invalidate without resolution | Block ≥TESTABLE until Update or explicit waive |
 | Ready(G)-style closure | SPECULATIVE until schema + goldens; do not invent Brier / auto-settle |
 
-Keepers: arXiv:2606.04990, 2608.04738, 2607.28374 (plus P1-1 2506.16383). Out of scope this draft: U7 PaperPilot DAG, phenomenology, new bots.
+Keepers: arXiv:2606.04990, 2608.04738, 2607.28374 (plus P1-1 2506.16383). No phenomenology / new bots.
 
 ## Proxy vs construct (P1-2)
 
@@ -127,3 +127,15 @@ CLEAR: live pricing or A/B recommendation with **no offline pass** and **no huma
 - **Worker**: host-tool fetches; keep raw/noisy tool output in worker context — do not promote noise to OBSERVED (arXiv:2510.04678).
 - **Validator**: independent check that claim→evidence→stance holds before promotion; no circular self-grade.
 - Roles are operational only. No phenomenology (“agent feels/wants”). No new bot names for validator.
+
+## PaperPilot search DAG (U7)
+
+When research runs, write an editable `research_search_dag`:
+
+1. `keyword` — seed queries  
+2. `cite-expand` — expand from verified cites only  
+3. `filter` — drop irrelevant / contradictory retrieval  
+4. `score` — rank candidates (no invent Brier / auto-settle)  
+5. `extract` — pull claims into evidence ledger cites  
+
+CLEAR (Gate **PILOT**): `research_ran: true` but missing/empty DAG → fail (warn-then-require in 3.26.x). Fabricated citation IDs inside DAG nodes → Gate **CITE** (arXiv:2605.14306). Do not invent OBSERVED cites.

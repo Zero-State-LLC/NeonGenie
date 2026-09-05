@@ -18,6 +18,26 @@ and this project uses semantic versioning.
 - Public install/docs paths updated for repo rename **NeonGenie**
   (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
 
+## [3.27.0] — 2026-09-05
+
+### Changed
+
+- Gate ISO: irreversible work requires conjunction `independent` ∧ versioned log pointer; alias table packet `validation_isolation.*` ↔ graph `validation_step.*`; `validation_log_version` on graph `validation_step` (PROMETHEUS gaps).
+
+- **Required fields** (fail closed): `logic_label` on opportunity/product/zero-option packets;
+  `stage` on run-envelope (`shape`|`test`|`scale`); `evidence_ledger` on EvidenceIntelligence packets.
+- Warn-then-require period for 3.26.x closed after dual-logic / U4 / U7 goldens.
+
+### Added
+
+- PR-A: optional `validation_isolation` on WayfinderExecutionPacket; Gate ISO.
+- PR-B: PaperPilot `research-search-dag` schema + Gate PILOT (optional attach; write when research runs).
+
+### Changed
+
+- Public install/docs paths updated for repo rename **NeonGenie**
+  (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
+
 ## [3.26.1] — 2026-09-01
 
 ### Fixed

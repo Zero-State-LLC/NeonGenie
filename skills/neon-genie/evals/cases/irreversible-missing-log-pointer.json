@@ -1,0 +1,14 @@
+{
+  "input": {
+    "has_irreversible_action": true,
+    "validation_step_present": true,
+    "validation_independent": true,
+    "validation_log_pointer": "",
+    "validation_log_version": ""
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "ISO",
+    "reason": "Irreversible action requires independent \u2227 versioned log pointer"
+  }
+}

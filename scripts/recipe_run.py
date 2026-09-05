@@ -59,6 +59,7 @@ def recipe_product_audit(out: Path) -> int:
         "experience_architecture": "operator CLI + Hermes skill prose",
         "validation_path": ["do check", "do eval", "human review"],
         "completion_proof": "Operator accepts product packet + handoff stub in review without intent rewrite",
+        "logic_label": "causal",
         "proof_path": [
             "human reviews product-packet.stub.json",
             "confirm open DataRequests listed",
@@ -130,6 +131,7 @@ def recipe_zero_option(out: Path) -> int:
         "status": "NOT_COMPUTABLE",
         "reason": "No executable capabilities or access supplied",
         "completion_proof": "NOT_COMPUTABLE: no skills/access to prove first cash",
+        "logic_label": "effectual",
         "proof_path": [
             "declare skills and access",
             "re-run zero-option-executable recipe or Hermes zero_option profile",
@@ -690,6 +692,25 @@ def recipe_evidence(out: Path) -> int:
             },
         ],
         "evidence_items": [],
+        "evidence_ledger": {
+            "claims": [
+                {
+                    "claim_id": "c-evidence-stub-1",
+                    "text": "Public comps require host fetch + cite for OBSERVED",
+                    "label": "SPECULATIVE",
+                    "active": True,
+                }
+            ],
+            "relations": [
+                {
+                    "relation_id": "r-evidence-stub-1",
+                    "from_id": "c-evidence-stub-1",
+                    "to_id": "evidence-pending",
+                    "relation": "Depend-on",
+                    "resolved": True,
+                }
+            ],
+        },
         "claim_ledger": [
             {
                 "claim": "Public comps require host fetch + cite for OBSERVED",
@@ -792,6 +813,7 @@ def recipe_opportunity(out: Path) -> int:
             "track invoice or no",
         ],
         "completion_proof": "first paid diagnostic invoice or signed SOW within 14 days",
+        "logic_label": "mixed",
         "proof_path": [
             "satisfy DataRequest for skills/access/buyer",
             "send bounded offer to declared warm contacts only",
