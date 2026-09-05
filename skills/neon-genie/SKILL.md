@@ -184,50 +184,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
 
 7. **Router.** Determine the smallest sufficient profile set. Additionally auto-load `evidence_intelligence` whenever external facts would change the recommendation, scorecard, or handoff quality — even if the operator did not name that profile.
 
-   ```yaml
-   profile_router:
-     core: always
-     privacy:
-       triggers: [always]
-       default_when: always_with_core
-     product_architecture:
-       triggers: [product audit, app design, game design, system design, feature coherence]
-     opportunity_mining:
-       triggers: [new venture, unmet need, market opportunity, blocked transition, roadmap, business idea, go into business, side project, app idea, product idea, what should I build, where do I start, next steps]
-     fragmentation:
-       triggers: [many portals, repeated handoffs, incompatible systems, coordination problem]
-     zero_option:
-       triggers: [zero capital, first cash, immediate executable opportunity, constrained launch, limited money, limited resources, limited capital, between jobs, bootstrapped, no budget, first revenue]
-     agentic_services:
-       triggers: [agent workflow, delegated outcome, automation, x402, machine services]
-     commercial:
-       triggers: [pricing, buyer, revenue, costs, market pressure, business model]
-     evidence_intelligence:
-       triggers:
-         - grants
-         - boards
-         - philanthropy
-         - competitive research
-         - current external facts
-         - auto: any material external gap that research can close
-       default_when: improves_result
-     memetic:
-       triggers: [name, hook, pitch language, public framing, shareability]
-     audit_delivery:
-       triggers: [client audit, cost of inaction, diagnostic package, implementation offer]
-     wayfinder_handoff:
-       triggers: [build plan, engineering readiness, execution packet]
-     capital_sprint:
-       triggers:
-         - capital sprint
-         - annual fund
-         - donation drive
-         - membership drive
-         - fundraising deadline
-         - impact object
-         - donor sprint
-         - nonprofit capital raise
-   ```
+   Load `references/profile-routing.md` when selecting specialized profiles; it preserves the full trigger registry. Core/privacy always apply, and evidence intelligence loads whenever external facts change the result.
 
    Do not activate a specialized product/commercial profile merely because it exists. Do activate research when usefulness requires it. Completion: selected profiles match triggers; unused specialized profiles stay unloaded.
 
@@ -258,18 +215,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
 
 10. **Output selection.** A run emits one or more of:
 
-    - `NeonGenieOpportunityPacket` → `references/schemas/opportunity-packet.schema.json`
-    - `NeonGenieProductPacket` → `references/schemas/product-packet.schema.json`
-    - `FragmentationOpportunityPacket` → `references/schemas/fragmentation-packet.schema.json`
-    - `ZeroOptionPacket` → `references/schemas/zero-option-packet.schema.json`
-    - `AgenticServiceGraph` → `references/schemas/agentic-service-graph.schema.json`
-    - `CommercialSimulationPacket` → `references/schemas/commercial-simulation.schema.json`
-    - `EvidenceIntelligencePacket` → `references/schemas/evidence-intelligence-packet.schema.json`
-    - `MemeticPressurePacket` → `references/schemas/memetic-pressure-packet.schema.json`
-    - `AuditDeliveryPacket` → `references/schemas/audit-delivery-packet.schema.json`
-    - `WayfinderExecutionPacket` → `references/schemas/wayfinder-execution-packet.schema.json`
-    - `CapitalSprintPacket` → `references/schemas/capital-sprint-packet.schema.json`
-    - `NeonGenieRunReceipt` → `references/schemas/run-receipt.schema.json`
+    Load `references/output-selection.md` for packet-to-schema mapping. Every run still emits a receipt and validates each emitted packet against its schema.
 
     Anti-overclaim gates: `references/anti-overclaim-patterns.md`. Privacy: `PRIVACY.md`, `references/PRIVACY.md`, `profiles/privacy.md`. Completion: emitted packets validate against the named schema.
 
@@ -404,8 +350,10 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `references/gates.yaml`
 - `references/hermes-runtime-contract.md`
 - `references/manifest.json`
+- `references/output-selection.md`
 - `references/post-seal-verification.md`
 - `references/privacy-contract.md`
+- `references/profile-routing.md`
 - `references/profiles/agentic_services.md`
 - `references/profiles/audit_delivery.md`
 - `references/profiles/capital_sprint.md`
@@ -504,3 +452,5 @@ Pass when:
 - VERSION matches frontmatter and `manifest.json`.
 - `do check`, `do eval`, and `do doctor` exit 0.
 - Advisory authority is unchanged: no spend, publish, contact, or repo mutation.
+
+Source, profile, and migration rules: `references/source-and-upgrades.md`.

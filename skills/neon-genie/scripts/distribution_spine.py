@@ -382,6 +382,23 @@ def verify_skill_md_support(root: Path, dist: dict[str, Any]) -> list[str]:
     return errors
 
 
+def package_content(root: Path, relative: str, dist: dict[str, Any]) -> bytes:
+    """Expected payload, allowing the existing hub's distinct license metadata."""
+    content = (root / relative).read_bytes()
+    license_id = (dist.get("hub_package") or {}).get("license")
+    if license_id and relative in {"SKILL.md", "manifest.json", "references/manifest.json"}:
+        # Only metadata changes; never rewrite a LICENSE grant.
+        text = content.decode("utf-8")
+        if relative == "SKILL.md":
+            text = re.sub(r"^license: .*$", f"license: {license_id}", text, count=1, flags=re.MULTILINE)
+        else:
+            data = json.loads(text)
+            data["license"] = str(license_id)
+            text = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+        return text.encode("utf-8")
+    return content
+
+
 def sync_hub_package(root: Path, dist: dict[str, Any]) -> Path:
     pkg = dist.get("hub_package") or {}
     dest = root / str(pkg.get("root") or "skills/neon-genie")
@@ -445,6 +462,9 @@ def sync_hub_package(root: Path, dist: dict[str, Any]) -> Path:
         "out/\n__pycache__/\n*.pyc\n.superpowers/\n.hallmark/\n.venv/\nvenv/\n",
         encoding="utf-8",
     )
+    for relative in ("SKILL.md", "manifest.json", "references/manifest.json"):
+        if (root / relative).is_file():
+            (dest / relative).write_bytes(package_content(root, relative, dist))
     return dest
 
 
@@ -471,7 +491,7 @@ def verify_package_parity(root: Path, dist: dict[str, Any]) -> list[str]:
         if not dst.is_file():
             errors.append(f"NG-PKG-014: package missing {rel}")
             continue
-        if file_sha256(src) != file_sha256(dst):
+        if package_content(root, rel, dist) != dst.read_bytes():
             errors.append(f"NG-PKG-015: package drift {rel}")
     return errors
 

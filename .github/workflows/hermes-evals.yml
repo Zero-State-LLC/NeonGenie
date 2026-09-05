@@ -1,0 +1,36 @@
+name: Hermes Skill Evals
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Runtime and repository contracts
+        run: |
+          python scripts/validate_hermes_skill.py --repository
+          python scripts/distribution_spine.py verify
+          python scripts/neon_genie.py do check
+      - name: Golden and behavioral evaluations
+        run: |
+          python scripts/neon_genie.py do eval
+          python scripts/neon_genie.py do transcripts
+          python scripts/run_fixture_invariants.py
+          python scripts/neon_genie.py do behavioral --suite --out out/neon-genie/behavioral.json
+      - name: Full and actual thin runtime
+        run: |
+          python scripts/neon_genie.py do doctor
+          python scripts/neon_genie.py do runtime --out out/neon-genie/runtime-smoke
+          python -m unittest discover -s tests_audit -p 'test_*.py'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-genie-evals
+          path: out/neon-genie/

@@ -128,7 +128,6 @@ FULL_ONLY: list[str] = [
     "docs/PREMIERE.md",
     "docs/DEMO.md",
     "install.sh",
-    ".github/workflows/hermes-evals.yml",
     "examples/gallery/README.md",
     "distribution.yaml",
 ]
@@ -287,11 +286,18 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if any(a in {"-h", "--help"} for a in argv):
         print("Validate Neon Genie as a portable Hermes skill (stdlib only).")
-        print("Usage: python scripts/validate_hermes_skill.py")
+        print("Usage: python scripts/validate_hermes_skill.py [--repository]")
         print("Exit 0 on PASS; non-zero on FAIL with reasons on stderr.")
         return 0
 
+    if any(a != "--repository" for a in argv):
+        print("Unknown option; use --repository for CI validation", file=sys.stderr)
+        return 2
     errors: list[str] = []
+    if "--repository" in argv:
+        workflow = SKILL_ROOT / ".github/workflows/hermes-evals.yml"
+        if not workflow.is_file():
+            errors.append("Repository CI workflow missing: .github/workflows/hermes-evals.yml")
     hub = ng_paths.is_hub_layout()
 
     if not SKILL_FILE.is_file():
