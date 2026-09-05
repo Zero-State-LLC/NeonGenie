@@ -34,6 +34,115 @@
         "mixed"
       ],
       "description": "Dual-logic label (U1). Optional in 3.26.x (warn-then-require); required in next minor after goldens. Gate LOGIC."
+    },
+    "evidence_ledger": {
+      "description": "Optional attach when evidence_intelligence co-resolves. See schemas/evidence-ledger.schema.json. Gate LEDGER.",
+      "type": "object",
+      "required": [
+        "claims",
+        "relations"
+      ],
+      "properties": {
+        "schema_id": {
+          "type": "string",
+          "const": "neon-genie/evidence-ledger"
+        },
+        "schema_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "claims": {
+          "type": "array",
+          "description": "Claim nodes. Every material promoting claim needs an active cite into this set.",
+          "items": {
+            "type": "object",
+            "required": [
+              "claim_id",
+              "text",
+              "label"
+            ],
+            "properties": {
+              "claim_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "enum": [
+                  "OBSERVED",
+                  "INFERRED",
+                  "SPECULATIVE",
+                  "NOT_COMPUTABLE"
+                ]
+              },
+              "active": {
+                "type": "boolean",
+                "description": "False = retired/superseded; inactive cites do not satisfy Gate LEDGER"
+              },
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "relations": {
+          "type": "array",
+          "description": "Typed edges between claims and/or evidence items",
+          "items": {
+            "type": "object",
+            "required": [
+              "relation_id",
+              "from_id",
+              "to_id",
+              "relation"
+            ],
+            "properties": {
+              "relation_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "relation": {
+                "type": "string",
+                "enum": [
+                  "Support",
+                  "Depend-on",
+                  "Contradict",
+                  "Invalidate",
+                  "Update"
+                ]
+              },
+              "resolved": {
+                "type": "boolean",
+                "description": "Required true (or Update edge) before \u2265TESTABLE when relation is Contradict/Invalidate"
+              },
+              "note": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": true

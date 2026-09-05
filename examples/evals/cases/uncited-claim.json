@@ -1,0 +1,13 @@
+{
+  "input": {
+    "material_claim": true,
+    "active_ledger_cite": false,
+    "promotion_state": "CONCEPTUAL",
+    "claim_label": "OBSERVED"
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "LEDGER",
+    "reason": "Material claim without active ledger cite"
+  }
+}

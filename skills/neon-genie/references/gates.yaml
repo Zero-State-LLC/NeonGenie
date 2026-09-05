@@ -269,3 +269,18 @@ gates:
       - arXiv:2212.04810
       - arXiv:2401.17448
 
+  # U4 EviGraph — prose scaffolding (intent DRAFT; no SKILL/schema rewrite yet)
+  LEDGER:
+    name: claim_graph_ledger_cite_required
+    severity: blocking
+    condition: material_claim_without_active_ledger_cite || invent_observed_from_model_prior_without_ledger || unresolved_contradict_at_testable
+    remediation: emit_ledger_cite_with_typed_relation_or_relabel_or_block_promotion
+    refs:
+      - profiles/evidence_intelligence.md
+      - profiles/core.md
+      - intent/2026-09-05-evigraph-ledger.md
+      - arXiv:2606.04990
+      - arXiv:2608.04738
+      - arXiv:2607.28374
+    note: Intent ACCEPTED 2026-09-05; schemas/evidence-ledger.schema.json optional in 3.26.x (warn-then-require). Relation enum Support|Depend-on|Contradict|Invalidate|Update.
+

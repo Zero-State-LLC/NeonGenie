@@ -38,3 +38,5 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `effectual-missing-means.json` | Gate BRIC — effectual empty means without DataRequest → GATE_FAIL |
 | `scale-without-test.json` | Gate STAGE — scale without test evidence → GATE_FAIL |
 | `fabricated-cite.json` | Gate CITE — unverified arXiv/DOI → GATE_FAIL |
+| `uncited-claim.json` | Gate LEDGER — material claim without active ledger cite → GATE_FAIL |
+| `contradict-unresolved-testable.json` | Gate LEDGER — unresolved Contradict/Invalidate at ≥TESTABLE → GATE_FAIL |

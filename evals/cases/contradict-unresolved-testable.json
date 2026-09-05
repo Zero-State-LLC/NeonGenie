@@ -1,0 +1,12 @@
+{
+  "input": {
+    "promotion_state": "TESTABLE",
+    "unresolved_contradict_or_invalidate": true,
+    "active_ledger_cite": true
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "LEDGER",
+    "reason": "Unresolved Contradict/Invalidate blocks \u2265TESTABLE"
+  }
+}

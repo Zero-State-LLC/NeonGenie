@@ -107,3 +107,12 @@ Schema/SKILL field lift **HOLD** (Danny skipped intent). Additional CLEAR prose:
 - Gate LIVE: offline/logged causal pass before live A/B or pricing recs that can hurt users; human-yes required; no auto-roll.
 - Gate CSET: competitor_set_definition + metric before share/competitive OBSERVED claims.
 
+## Claim graph / Gate LEDGER (U4 prose · intent DRAFT)
+
+When `evidence_intelligence` resolves (or any material external claim is promoted):
+
+- Treat the claim graph as CLEAR **control plane**: every promoting claim needs an active ledger cite.
+- Relations: `Support` | `Depend-on` | `Contradict` | `Invalidate` | `Update`.
+- Gate **LEDGER**: uncited material claim, or invent-OBSERVED from model prior without ledger cite → fail CLEAR.
+- Fluency of the final answer is **not** provenance. Do not invent Brier scores or auto-settle.
+- Schema/SKILL rewrite blocked until `intent/2026-09-05-evigraph-ledger.md` is ACCEPTED.

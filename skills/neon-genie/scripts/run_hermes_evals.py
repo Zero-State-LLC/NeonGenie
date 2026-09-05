@@ -401,6 +401,49 @@ def eval_fabricated_cite(inp: dict[str, Any]) -> dict[str, Any]:
     return {"status": "PASS", "gate": "CITE", "reason": "cite verified or absent"}
 
 
+
+def eval_ledger_uncited(inp: dict[str, Any]) -> dict[str, Any]:
+    material = bool(inp.get("material_claim"))
+    cited = bool(inp.get("active_ledger_cite"))
+    invent = str(inp.get("claim_label") or "") == "OBSERVED" and str(
+        inp.get("claim_source") or ""
+    ) in {"model_prior_only", "model_prior", ""}
+    if material and not cited:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "LEDGER",
+            "reason": "Material claim without active ledger cite",
+        }
+    if invent and not cited and material:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "LEDGER",
+            "reason": "Material claim without active ledger cite",
+        }
+    return {"status": "PASS", "gate": "LEDGER", "reason": "ledger cite present"}
+
+
+def eval_ledger_contradict_testable(inp: dict[str, Any]) -> dict[str, Any]:
+    promo = str(inp.get("promotion_state") or "RAW_SIGNAL")
+    high = promo in {
+        "TESTABLE",
+        "SERVICE_FIRST",
+        "SERVICE_PROVEN",
+        "SPEC_COMPLETE",
+        "WAYFINDER_READY",
+        "BUILD_READY",
+        "CANON_CANDIDATE",
+    }
+    unresolved = bool(inp.get("unresolved_contradict_or_invalidate"))
+    if high and unresolved:
+        return {
+            "status": "GATE_FAIL",
+            "gate": "LEDGER",
+            "reason": "Unresolved Contradict/Invalidate blocks ≥TESTABLE",
+        }
+    return {"status": "PASS", "gate": "LEDGER", "reason": "no unresolved contradict at TESTABLE+"}
+
+
 EVALUATORS: dict[str, EvalFn] = {
     "zero-option.json": eval_zero_option,
     "x402-misfit.json": eval_x402_misfit,
@@ -424,6 +467,8 @@ EVALUATORS: dict[str, EvalFn] = {
     "effectual-missing-means.json": eval_effectual_missing_means,
     "scale-without-test.json": eval_scale_without_test,
     "fabricated-cite.json": eval_fabricated_cite,
+    "uncited-claim.json": eval_ledger_uncited,
+    "contradict-unresolved-testable.json": eval_ledger_contradict_testable,
 }
 
 
