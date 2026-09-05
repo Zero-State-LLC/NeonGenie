@@ -71,3 +71,45 @@ Schema: `schemas/evidence-intelligence-packet.schema.json`
 ## Offline
 
 When `research.enabled=false` / offline: use operator + workspace only; model prior ≤ `SPECULATIVE` (Gate N).
+
+## Citation policy (U8 · P2 lock-now)
+
+**Never generate** arXiv IDs, DOIs, or paper titles. Only rank / cite IDs that were verified fetched or operator-supplied.
+
+- Fabricated cite → Gate fail (Gate CITE / anti-overclaim A).
+- Prefer PaperPilot-style search DAG later (U7 · P2): keyword → cite-expand → filter → score → extract — write DAG only when research runs.
+- Keeper: arXiv:2605.14306 (never-generate-cites).
+
+P1 ledger (U4) is deferred: claims will cite only active ledger entries once EviGraph-style Ready(G) lands.
+
+## Metric roles (P0-3)
+
+When this profile scores or recommends metrics, label each as `success` | `guardrail` | `deterioration` | `quality`. Guardrail breach blocks promotion (Gate METRIC). Keepers: arXiv:2402.11609, arXiv:2210.17187.
+
+## Claim → evidence → stance (P1-1 prose)
+
+For material claims, prefer the spine **claim → evidence item → stance** (`Support` | `Contradict` | `Invalidate` | `Unknown`). Feeds deferred U4 EviGraph ledger; do not invent ledger IDs. Keeper: arXiv:2506.16383.
+
+## Proxy vs construct (P1-2)
+
+When a metric is a **proxy** for a latent construct, say so. Do not treat proxy movement as construct proof. Keeper: arXiv:2507.02819.
+
+## Offline-causal before live (P1-3)
+
+Prefer an **offline / logged-data causal pass** before recommending live A/B, pricing, or other irreversible user-harming tests.
+
+| Rule | Label / gate |
+|------|----------------|
+| Offline causal / logged analysis first | Keeper arXiv:2001.05699 |
+| Decision thresholds = operator policy | `SPECULATIVE` / policy — not `OBSERVED` (arXiv:1710.03410) |
+| `recommended_test_n` | Always `SPECULATIVE` advisory; AUTHORITY forbids auto-roll (arXiv:1811.00457) |
+| `p<0.05` (or any significance) as OBSERVED truth without source | Fail CLEAR (Gate B / Gate LIVE) |
+
+CLEAR: live pricing or A/B recommendation with **no offline pass** and **no human-yes** → blocked (Gate LIVE).
+
+## Planner / worker / validator in research loop (P2-1)
+
+- **Planner** (GAP run): gap list, query plan, which CLEAR gates apply.
+- **Worker**: host-tool fetches; keep raw/noisy tool output in worker context — do not promote noise to OBSERVED (arXiv:2510.04678).
+- **Validator**: independent check that claim→evidence→stance holds before promotion; no circular self-grade.
+- Roles are operational only. No phenomenology (“agent feels/wants”). No new bot names for validator.

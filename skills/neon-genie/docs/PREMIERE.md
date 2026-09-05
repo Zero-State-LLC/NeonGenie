@@ -103,4 +103,4 @@ Sanitized packaging exemplars: **[examples/gallery/README.md](../examples/galler
 
 ---
 
-*Applied Alchemy Labs / Zero State · MIT · advisory only*
+*Applied Alchemy Labs / Zero State · LicenseRef-Zero-State-Proprietary-1.0 · advisory only*

@@ -35,3 +35,6 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `private-gap-must-request.json` | Gate Q — private decision-critical gap without DataRequest → GATE_FAIL |
 | `private-gap-request-open.json` | Gate Q — DataRequest open + blocks_promotion → PASS, promotion_capped |
 | `private-gap-silent-invent.json` | Gate R — private OBSERVED without DataRequest → GATE_FAIL |
+| `effectual-missing-means.json` | Gate BRIC — effectual empty means without DataRequest → GATE_FAIL |
+| `scale-without-test.json` | Gate STAGE — scale without test evidence → GATE_FAIL |
+| `fabricated-cite.json` | Gate CITE — unverified arXiv/DOI → GATE_FAIL |

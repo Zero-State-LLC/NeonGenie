@@ -29,6 +29,15 @@
     "promotion_state": {},
     "proof_path": {
       "description": "Ordered eng/operator steps to obtain completion_proof"
+    },
+    "logic_label": {
+      "type": "string",
+      "enum": [
+        "effectual",
+        "causal",
+        "mixed"
+      ],
+      "description": "Dual-logic label (U1). Optional in 3.26.x (warn-then-require); required in next minor after goldens. Gate LOGIC."
     }
   },
   "additionalProperties": true

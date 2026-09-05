@@ -8,7 +8,7 @@
 [![Hermes Skill Evals](https://img.shields.io/github/actions/workflow/status/scrimshawlife-ctrl/NeonGenie/hermes-evals.yml?branch=main&label=hermes-evals&style=for-the-badge)](./.github/workflows/hermes-evals.yml)
 [![Authority](https://img.shields.io/badge/authority-advisory%20only-0ea5e9?style=for-the-badge)](#what-it-will-not-do)
 [![Privacy](https://img.shields.io/badge/privacy-by%20construction-a855f7?style=for-the-badge)](./PRIVACY.md)
-[![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](./LICENSE)
+[![License](https://img.shields.io/badge/license-LicenseRef-Zero-State-Proprietary-1.0-22c55e?style=for-the-badge)](./LICENSE)
 
 <img src="docs/assets/hero.jpg" alt="Neon Genie — luminous lamp on a dark network grid" width="920" />
 
@@ -217,10 +217,19 @@ python scripts/neon_genie.py do run --recipe commercial --out out/neon-genie/aud
 | [CHANGELOG.md](./CHANGELOG.md) | What’s new |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Development |
 
-**Version:** 3.26.1 · **License:** MIT · **Maintainers:** [Applied Alchemy Labs / @scrimshawlife-ctrl](https://github.com/scrimshawlife-ctrl) · [Zero-State-LLC](https://github.com/Zero-State-LLC)
+**Version:** 3.26.1 · **License:** LicenseRef-Zero-State-Proprietary-1.0 · **Maintainers:** [Applied Alchemy Labs / @scrimshawlife-ctrl](https://github.com/scrimshawlife-ctrl) · [Zero-State-LLC](https://github.com/Zero-State-LLC)
 
 ---
 
 <div align="center">
 <sub>Neon Genie v3.26.1 · advice only · evidence before invention</sub>
 </div>
+
+
+## License
+
+Copyright © 2026 Zero State LLC. All Rights Reserved. Licensed under the Zero State Proprietary License v1.0. See [`LICENSE`](LICENSE).
+
+Third-party components remain subject to their respective licenses.
+
+Source, profile, and migration rules: `references/source-and-upgrades.md`.

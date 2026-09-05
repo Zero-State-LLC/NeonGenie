@@ -82,3 +82,28 @@ Composite score never overrides a mandatory gate failure.
 ## Outputs
 
 Always consider `NeonGenieRunReceipt`. Other packets by profile selection.
+
+## Dual-logic + stage + cite (doctrine 2026-09-05)
+
+On opportunity/product/zero-option runs, CLEAR also checks:
+
+- **logic_label** present (`effectual` | `causal` | `mixed`) — Gate LOGIC.
+- **stage** on envelope when opportunity/agentic profiles resolve (`shape` | `test` | `scale`) — Gate STAGE; `scale` needs test evidence.
+- **Citation integrity** — never invent arXiv/DOI; Gate CITE.
+- **Bricolage** — no proposed spend/buy/build without repertoire inventory — Gate BRIC.
+
+Schema fields for `logic_label` / `stage` land after accepted intent + PROMETHEUS code-bind. Until then, emit in packet narrative / assumptions and gate_results notes.
+
+## Reconcile 2026-09-05 (prose-only)
+
+Schema/SKILL field lift **HOLD** (Danny skipped intent). Additional CLEAR prose:
+
+- Empty means → `NOT_COMPUTABLE` + DataRequest (P0-1).
+- Hypothesis↔MVP map before ≥TESTABLE — Gate HYP (P0-2; not Wayfinder Gate H).
+- Metric roles; guardrail blocks promotion — Gate METRIC (P0-3).
+
+## Continue 2026-09-05 (LIVE + CSET)
+
+- Gate LIVE: offline/logged causal pass before live A/B or pricing recs that can hurt users; human-yes required; no auto-roll.
+- Gate CSET: competitor_set_definition + metric before share/competitive OBSERVED claims.
+

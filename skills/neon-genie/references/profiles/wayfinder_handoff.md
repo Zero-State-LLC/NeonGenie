@@ -37,3 +37,12 @@ Schema: `schemas/wayfinder-execution-packet.schema.json`
 ## Authority
 
 Handoff is still **advisory**. It does not authorize spend, deploy, or repo mutation. Wayfinder runtime is optional; absence never blocks emitting a local packet.
+
+## Validation isolation (P2-1 · PROMETHEUS consumes)
+
+Optional handoff fields (prose contract; schema lift deferred unless eng asks):
+
+- `validation_isolation`: independent eng validation step separate from the planner that wrote the packet.
+- Versioned log / receipt pointer for that validation pass.
+
+PROMETHEUS consumes `validation_isolation` — **no Wayfinder bot**, no fifth growth bot. Gate H (intent rewrite) still binds. Keepers: arXiv:2503.11951, 2511.03094.

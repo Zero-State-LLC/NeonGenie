@@ -36,3 +36,10 @@ Schema: `schemas/memetic-pressure-packet.schema.json`
 
 - Reject candidates that force untrue claims.
 - Route approved public language downstream; Neon does not publish.
+
+## Imitation evidence (P1-4)
+
+Gate D still holds: memetic strength cannot raise promotion past failed evidence/feasibility.
+
+When claiming imitation / share pressure, cite **imitation evidence** (observed copies, quotes, remixes) — not vibes. Public language execution stays with **SIGNAL** (or Level 99 when present); Neon only drafts candidates. Keeper: arXiv:2407.11861.
+
