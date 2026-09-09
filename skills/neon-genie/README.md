@@ -231,3 +231,5 @@ python scripts/neon_genie.py do run --recipe commercial --out out/neon-genie/aud
 This repository now uses the MIT License for original Zero State materials going forward. See [LICENSE](LICENSE). Earlier grants in repository history are not rewritten.
 
 Third-party components remain subject to their respective licenses.
+
+Source, profile, and migration rules: `references/source-and-upgrades.md`.

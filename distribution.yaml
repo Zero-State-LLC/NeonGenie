@@ -41,7 +41,7 @@ mirrors:
 
 hub_package:
   root: skills/neon-genie
-  license: MIT  # Existing bundled LICENSE grants are preserved; root is proprietary.
+  license: MIT  # Hub package and root LICENSE grants are MIT going forward.
   # Files/dirs excluded when rsyncing root → hub package
   exclude:
     - .git

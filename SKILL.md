@@ -3,7 +3,7 @@ name: neon-genie
 description: Audit products and opportunities with labeled evidence.
 version: 3.27.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
-license: LicenseRef-Zero-State-Proprietary-1.0
+license: MIT
 platforms: [linux, macos, windows]
 metadata:
   author: Applied Alchemy Labs / Zero State <scrimshawlife@gmail.com>

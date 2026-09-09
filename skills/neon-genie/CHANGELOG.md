@@ -11,7 +11,7 @@ and this project uses semantic versioning.
 
 - SkillEvaluator `metadata.author` in frontmatter (`Name <email>` shape)
 - Root license and SPDX guidance are MIT going forward (Copyright 2026 Zero State LLC)
-- GitHub Actions `checkout` / `setup-python` majors moved to v7
+- Hermes Skill Evals stay ubuntu-only (`skill` job); hosted `macos-latest` smoke runners are not used
 - Hub-safe doc links: ADR and superpowers paths are path text on a full clone; curated hub docs include `GOVERNANCE.md`
 
 ## [3.26.1] — 2026-09-01
