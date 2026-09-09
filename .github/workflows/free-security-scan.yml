@@ -1,0 +1,38 @@
+name: security
+
+# Free replacement for CodeQL, which is licensed for open source only unless
+# you hold GitHub Code Security.
+#
+# This workflow deliberately contains no scanning logic — it just calls
+# scripts/security-scan.sh, the same script you run locally:
+#
+#     ./scripts/security-scan.sh
+#
+# so local and CI results are identical by construction, and neither of you is
+# ever blocked waiting on a runner to find out whether your code is clean.
+#
+# Hosted ubuntu only. Do not add macos-latest — GitHub-hosted macOS minutes
+# are the spend this stack is meant to avoid. Linux minutes fit in the
+# included tier now that billing is healthy.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks scans history, not just the tip
+          fetch-depth: 0
+
+      - name: Run security scan
+        run: ./scripts/security-scan.sh
