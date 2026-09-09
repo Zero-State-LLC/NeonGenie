@@ -224,3 +224,12 @@ python scripts/neon_genie.py do run --recipe commercial --out out/neon-genie/aud
 <div align="center">
 <sub>Neon Genie v3.27.0 · advice only · evidence before invention</sub>
 </div>
+
+
+## License
+
+This repository now uses the MIT License for original Zero State materials going forward. See [LICENSE](LICENSE). Earlier grants in repository history are not rewritten.
+
+Third-party components remain subject to their respective licenses.
+
+Source, profile, and migration rules: `references/source-and-upgrades.md`.

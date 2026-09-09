@@ -86,6 +86,7 @@ Public entry points:
 | **3.23.0** | Release automation, branch protection, gates.yaml registry, CONTRIBUTING |
 | **3.24.0** | Privacy-by-construction spine + runtime (issues #15 + #17); tagged `v3.24.0` |
 | **3.25.0** | Founder cold-start: founder-language routing, capital_sprint recipe, default transitional-builder job shape, hub list after doctrine, judgment honesty |
+| **3.26.0** | Hermes packaging wizard (`do wizard`), presets, `references/wizard.md` |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
 
@@ -113,7 +114,7 @@ Also on main around this line: **capital_sprint** profile/protocol and **externa
 
 **Program next (optional waves):** W2 Outcomes ∥ W3 Judgment in parallel, then W4 distribution/announce polish. Interfaces: privacy fields on receipt/envelope, `do privacy`, Wayfinder remains optional handoff only.
 
-Design/plan: [privacy spine design](./superpowers/specs/2026-08-06-neon-genie-privacy-spine-design.md) · [implementation plan](./superpowers/plans/2026-08-06-neon-genie-privacy-spine.md)
+Design/plan: `docs/superpowers/specs/2026-08-06-neon-genie-privacy-spine-design.md` · `docs/superpowers/plans/2026-08-06-neon-genie-privacy-spine.md` (full clone)
 
 Public entry: [README](../README.md) · [DEMO](./DEMO.md) · [PRIVACY](../PRIVACY.md) · [HERMES_DISTRIBUTION](./HERMES_DISTRIBUTION.md) · [GOVERNANCE](./GOVERNANCE.md)
 

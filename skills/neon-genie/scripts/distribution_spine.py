@@ -452,7 +452,15 @@ def sync_hub_package(root: Path, dist: dict[str, Any]) -> Path:
     if docs_dest.exists():
         shutil.rmtree(docs_dest)
     docs_dest.mkdir(parents=True, exist_ok=True)
-    for f in ("PREMIERE.md", "DEMO.md", "ROADMAP.md", "HERMES_DISTRIBUTION.md", "CATALOG.md", "README.md"):
+    for f in (
+        "PREMIERE.md",
+        "DEMO.md",
+        "ROADMAP.md",
+        "HERMES_DISTRIBUTION.md",
+        "CATALOG.md",
+        "GOVERNANCE.md",
+        "README.md",
+    ):
         src = root / "docs" / f
         if src.is_file():
             shutil.copy2(src, docs_dest / f)

@@ -41,7 +41,7 @@ mirrors:
 
 hub_package:
   root: skills/neon-genie
-  license: MIT  # Existing bundled LICENSE grants are preserved; root is proprietary.
+  license: MIT  # Hub package and root LICENSE grants are MIT going forward.
   # Files/dirs excluded when rsyncing root → hub package
   exclude:
     - .git
@@ -66,6 +66,10 @@ hub_package:
     - "*.pyc"
     - .venv
     - venv
+    - .github/CODEOWNERS
+    - .github/pull_request_template.md
+    - .github/workflows/codeql.yml
+    - .github/workflows/project-collaboration.yml
 
 # Globs (relative to skill root) that must appear as file-level refs in SKILL.md
 # for Hermes Hub install selection. Regenerated into the marked section.

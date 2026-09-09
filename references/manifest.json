@@ -46,5 +46,5 @@
     ],
     "auto_load_evidence_intelligence": "when_improves_result"
   },
-  "license": "LicenseRef-Zero-State-Proprietary-1.0"
+  "license": "MIT"
 }

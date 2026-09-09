@@ -15,8 +15,10 @@ and this project uses semantic versioning.
 
 ### Changed
 
-- Public install/docs paths updated for repo rename **NeonGenie**
-  (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
+- SkillEvaluator `metadata.author` in frontmatter (`Name <email>` shape)
+- Root license and SPDX guidance are MIT going forward (Copyright 2026 Zero State LLC)
+- Hermes Skill Evals stay ubuntu-only (`skill` job); hosted `macos-latest` smoke runners are not used
+- Hub-safe doc links: ADR and superpowers paths are path text on a full clone; curated hub docs include `GOVERNANCE.md`
 
 ## [3.27.0] — 2026-09-05
 
@@ -86,6 +88,8 @@ and this project uses semantic versioning.
 - `do run --brief` auto-recipe prefers `capital-sprint` over commercial when both match
 - Hub package no longer ships Pages assets, hallmark, or monorepo ADR/checklist bulk
 - Public docs/README aligned to **3.25.0** (site link, founder prompts, capital-sprint CLI)
+- Public install/docs paths updated for repo rename **NeonGenie**
+  (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
 
 ## [3.25.0] — 2026-08-06
 
