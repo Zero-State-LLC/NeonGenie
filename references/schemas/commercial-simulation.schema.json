@@ -1,6 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "neon-genie/commercial-simulation/1.1.0",
   "title": "Commercial Simulation",
+  "description": "Hermes-native commercial simulation. Additive typing 1.1.0: required keys stay required and remain objects/arrays as emitted by recipes. Do not invent buyers, CAC, LTV, or revenue as OBSERVED. Gate B / NG-COMM-001: unit-econ OBSERVED needs evidence_refs. engine_tag stays PRISM-sidecar-only.",
   "type": "object",
   "required": [
     "buyer_map",
@@ -11,12 +13,157 @@
     "risks"
   ],
   "properties": {
-    "buyer_map": {},
-    "pricing_model": {},
-    "cost_scenarios": {},
-    "revenue_scenarios": {},
-    "distribution": {},
-    "risks": {}
+    "schema_id": {
+      "type": "string",
+      "const": "neon-genie/commercial-simulation"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "buyer_map": {
+      "type": "object",
+      "description": "Gate C: separate economic_buyer from beneficiary. Additional role keys (user, payer, authorizer, risk_bearer) remain allowed.",
+      "properties": {
+        "economic_buyer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who pays or authorizes. Use NOT_COMPUTABLE_until_declared when unknown; never invent a named buyer."
+        },
+        "beneficiary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Who receives the value. Must not be silently collapsed into economic_buyer."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "description": "Workspace or operator cites that separate roles. Empty when roles are still NOT_COMPUTABLE.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "pricing_model": {
+      "type": "object",
+      "description": "Packaging shape and assumptions. Assumptions are SPECULATIVE unless evidence_refs support a stronger label. CAC/LTV labeled OBSERVED without evidence_refs fail packaging (NG-COMM-001).",
+      "properties": {
+        "model_type": {
+          "type": "string",
+          "enum": [
+            "fixed_fee",
+            "subscription",
+            "usage",
+            "hybrid",
+            "donation",
+            "not_computable"
+          ],
+          "description": "Optional typed packaging class. Recipes may still use free-text shape until a type is known."
+        },
+        "assumptions": {
+          "type": "string",
+          "description": "Model assumptions. Label SPECULATIVE unless evidenced."
+        },
+        "claim_label": {
+          "type": "string",
+          "enum": [
+            "OBSERVED",
+            "INFERRED",
+            "SPECULATIVE",
+            "NOT_COMPUTABLE"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cac": {
+          "description": "Customer acquisition cost. OBSERVED only with evidence_refs."
+        },
+        "ltv": {
+          "description": "Lifetime value. OBSERVED only with evidence_refs."
+        }
+      },
+      "additionalProperties": true
+    },
+    "cost_scenarios": {
+      "type": [
+        "object",
+        "array"
+      ],
+      "description": "Cost ranges with provenance. Object form (conservative/balanced/aggressive) remains valid; prefer scenarios[] when emitting labeled rows."
+    },
+    "revenue_scenarios": {
+      "type": [
+        "object",
+        "array"
+      ],
+      "description": "Revenue ranges with provenance. Never invent firm revenue as OBSERVED."
+    },
+    "scenarios": {
+      "type": "array",
+      "description": "Optional labeled scenario rows (cost, revenue, or mixed). Each row needs a claim_label.",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "claim_label"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_label": {
+            "type": "string",
+            "enum": [
+              "OBSERVED",
+              "INFERRED",
+              "SPECULATIVE",
+              "NOT_COMPUTABLE"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "cost",
+              "revenue",
+              "mixed"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "distribution": {
+      "type": [
+        "object",
+        "string"
+      ],
+      "description": "How the offer reaches a buyer. Object form used by recipes; string form allowed."
+    },
+    "risks": {
+      "type": "array",
+      "description": "Commercial failure modes, including buyer/beneficiary conflation and fabricated market size",
+      "items": {
+        "type": [
+          "string",
+          "object"
+        ]
+      }
+    }
   },
   "additionalProperties": true
 }

@@ -35,5 +35,13 @@
   },
   "promotion_state": "TESTABLE",
   "authority": "advisory_only",
-  "logic_label": "mixed"
+  "logic_label": "mixed",
+  "affected_user": "operator who cannot book a first paid diagnostic",
+  "economic_buyer": "NOT_COMPUTABLE_until_named",
+  "transition_market": "idea without buyer → testable service wedge",
+  "coordination_gap": "warm-network access and offer not yet evidenced",
+  "service_first_wedge": "bounded micro-audit offer to warm contacts",
+  "distribution": "warm network / existing relationships",
+  "failure_modes": "silence, invented pipeline, or buyer/beneficiary conflation",
+  "jtbd": "book a first paid diagnostic"
 }

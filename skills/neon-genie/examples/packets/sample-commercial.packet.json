@@ -1,0 +1,54 @@
+{
+  "schema_id": "neon-genie/commercial-simulation",
+  "schema_version": "1.1.0",
+  "buyer_map": {
+    "economic_buyer": "NOT_COMPUTABLE_until_declared",
+    "beneficiary": "NOT_COMPUTABLE_until_declared",
+    "user": "NOT_COMPUTABLE_until_declared",
+    "payer": "NOT_COMPUTABLE_until_declared",
+    "authorizer": "NOT_COMPUTABLE_until_declared",
+    "risk_bearer": "NOT_COMPUTABLE_until_declared",
+    "evidence_refs": [],
+    "note": "Gate C: do not collapse roles without evidence"
+  },
+  "pricing_model": {
+    "model_type": "not_computable",
+    "assumptions": "No cited public price or operator invoice yet",
+    "claim_label": "NOT_COMPUTABLE",
+    "evidence_refs": [],
+    "firm_price": "NOT_COMPUTABLE"
+  },
+  "cost_scenarios": {
+    "conservative": "NOT_COMPUTABLE",
+    "balanced": "NOT_COMPUTABLE",
+    "aggressive": "NOT_COMPUTABLE"
+  },
+  "revenue_scenarios": {
+    "conservative": "NOT_COMPUTABLE",
+    "balanced": "NOT_COMPUTABLE",
+    "aggressive": "NOT_COMPUTABLE"
+  },
+  "scenarios": [
+    {
+      "label": "conservative_cost",
+      "kind": "cost",
+      "claim_label": "NOT_COMPUTABLE"
+    },
+    {
+      "label": "conservative_revenue",
+      "kind": "revenue",
+      "claim_label": "NOT_COMPUTABLE"
+    }
+  ],
+  "distribution": {
+    "primary": "warm network / existing relationships",
+    "claim_label": "SPECULATIVE"
+  },
+  "risks": [
+    "buyer/beneficiary conflation",
+    "fabricated market size",
+    "CAC/LTV labeled OBSERVED without evidence_refs"
+  ],
+  "authority": "advisory_only",
+  "grants_execution": false
+}

@@ -96,6 +96,7 @@ REQUIRED_ANY: list[list[str]] = [
     ["examples/fragmentation.brief.yaml"],
     ["examples/zero-option-with-skills.brief.yaml"],
     ["examples/packets/sample-opportunity.packet.json"],
+    ["examples/packets/sample-commercial.packet.json"],
     ["evals/transcripts/README.md", "examples/evals/transcripts/README.md"],
     ["evals/transcripts/rubric.md", "examples/evals/transcripts/rubric.md"],
     ["examples/commercial.brief.yaml"],

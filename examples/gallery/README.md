@@ -22,6 +22,7 @@ Packaging and brief exemplars safe for demos. **Not** live customer data. **Not*
 | Path | Story |
 |------|--------|
 | [`../packets/sample-opportunity.packet.json`](../packets/sample-opportunity.packet.json) | Opportunity with completion_proof |
+| [`../packets/sample-commercial.packet.json`](../packets/sample-commercial.packet.json) | Commercial scaffold; no invented CAC/LTV |
 | [`../packets/sample-receipt.packet.json`](../packets/sample-receipt.packet.json) | Advisory run receipt |
 | [`../packets/sample-data-request.json`](../packets/sample-data-request.json) | Private DataRequest |
 | [`../packets/sample-receipt-with-requests.json`](../packets/sample-receipt-with-requests.json) | Receipt + open blocking requests |

@@ -35,4 +35,5 @@ python scripts/hermes_runtime_smoke.py   # isolated install + doctor when possib
 ```
 
 Live multi-turn Hermes chat is optional (`HERMES_BEHAVIORAL_LIVE=1`) and not
-required for release gates.
+required for release gates. See `evals/LIVE_EVALS.md` for PaperPilot / key
+presence. Grok-host without Hermes is fixture-only.

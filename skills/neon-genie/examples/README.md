@@ -30,6 +30,7 @@ They are **not** execution authority.
 | File | Validate |
 |------|----------|
 | `packets/sample-opportunity.packet.json` | `do validate --type opportunity` |
+| `packets/sample-commercial.packet.json` | `do validate --type commercial` |
 | `packets/sample-receipt.packet.json` | `do validate --type receipt --strict-authority` |
 | `packets/sample-privacy-context.json` | `do validate --type privacy` |
 | `packets/sample-external-action.json` | Schema: external action required fields |

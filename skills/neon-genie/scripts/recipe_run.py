@@ -324,16 +324,22 @@ def recipe_commercial(out: Path) -> int:
         "buyer_map": {
             "user": "NOT_COMPUTABLE_until_declared",
             "beneficiary": "NOT_COMPUTABLE_until_declared",
+            "economic_buyer": "NOT_COMPUTABLE_until_declared",
             "buyer": "NOT_COMPUTABLE_until_declared",
             "payer": "NOT_COMPUTABLE_until_declared",
             "authorizer": "NOT_COMPUTABLE_until_declared",
             "risk_bearer": "NOT_COMPUTABLE_until_declared",
+            "evidence_refs": [],
             "note": "Gate C: do not collapse roles without evidence",
         },
         "pricing_model": {
             "status": "PROPOSED_SCAFFOLD",
             "shape": "fixed diagnostic fee + optional follow-on",
+            "model_type": "not_computable",
             "firm_price": "NOT_COMPUTABLE",
+            "assumptions": "Fee band unknown until buyer and cite exist",
+            "claim_label": "NOT_COMPUTABLE",
+            "evidence_refs": [],
             "label": "SPECULATIVE without buyer + cite",
         },
         "cost_scenarios": {
@@ -827,6 +833,14 @@ def recipe_opportunity(out: Path) -> int:
         "promotion_state": "TESTABLE",
         "authority": "advisory_only",
         "grants_execution": False,
+        "affected_user": "NOT_COMPUTABLE_until_declared",
+        "economic_buyer": "NOT_COMPUTABLE_until_declared",
+        "transition_market": "idea without buyer → testable paid diagnostic booked",
+        "coordination_gap": "skills, access, and who pays are undeclared",
+        "service_first_wedge": "one bounded diagnostic offer after DataRequest",
+        "distribution": "declared warm contacts only — do not invent network",
+        "failure_modes": "silence, invented pipeline, or buyer/beneficiary conflation",
+        "jtbd": "book a first paid diagnostic or record an evidenced refusal",
     }
     packet_path = out / "opportunity-packet.stub.json"
     rc.write_json(packet_path, packet)

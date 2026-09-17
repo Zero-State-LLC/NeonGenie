@@ -308,6 +308,9 @@ gates:
     refs:
       - profiles/evidence_intelligence.md
       - schemas/research-search-dag.schema.json
+      - evals/cases/paperpilot-invent-cite.json
+      - evals/cases/paperpilot-incomplete-not-computable.json
+      - evals/LIVE_EVALS.md
       - intent/2026-09-05-paperpilot-search-dag.md
       - arXiv:2607.00597
       - arXiv:2605.14306

@@ -21,7 +21,8 @@ Artifact entries may include `schema_id` + `schema_version` when known.
 | Run envelope | `neon-genie/run-envelope` | `1.0.0` |
 | Run receipt | `neon-genie/run-receipt` | `1.0.0` (+ privacy provenance fields) |
 | Privacy context | `neon-genie/privacy-context` (file `privacy-context.schema.json`) | `1.0.0` |
-| Opportunity packet | `neon-genie/opportunity-packet` | `1.0.0` |
+| Opportunity packet | `neon-genie/opportunity-packet` | `1.1.0` (typed required shapes + optional mining fields; 1.0.0 packets still validate) |
+| Commercial simulation | `neon-genie/commercial-simulation` | `1.1.0` (typed buyer_map / pricing_model / optional scenarios; CAC/LTV OBSERVED needs evidence_refs) |
 | Product packet | `neon-genie/product-packet` | `1.0.0` |
 | Wayfinder handoff | `neon-genie/wayfinder-execution-packet` | `1.0.0` |
 | Capital sprint packet | `neon-genie/capital-sprint-packet` | `1.0.0` |

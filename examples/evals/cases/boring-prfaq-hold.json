@@ -1,0 +1,13 @@
+{
+  "input": {
+    "artifact": "prfaq",
+    "generic_unfalsifiable": true,
+    "evidence_density": "low",
+    "promotion_state": "CONCEPTUAL"
+  },
+  "expected": {
+    "status": "HOLD",
+    "gate": "HYP",
+    "reason": "Boring or unfalsifiable PRFAQ without evidence stays HOLD"
+  }
+}
