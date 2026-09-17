@@ -34,4 +34,8 @@ jobs:
         continue-on-error: true
         with:
           name: neon-genie-evals
-          path: out/neon-genie/
+          retention-days: 3
+          if-no-files-found: warn
+          path: |
+            out/neon-genie/behavioral.json
+            out/neon-genie/runtime-smoke/
