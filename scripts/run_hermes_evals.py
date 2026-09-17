@@ -8,12 +8,17 @@ Usage:
   python scripts/run_hermes_evals.py
   python scripts/run_hermes_evals.py --case zero-option
   python scripts/run_hermes_evals.py --json
+
+Live multi-turn Hermes LLM evals are optional and documented in
+`evals/LIVE_EVALS.md`. `--live` only reports readiness; it never calls a
+model and is not part of `do doctor`.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Callable
@@ -483,6 +488,50 @@ def eval_research_ran_without_dag(inp: dict[str, Any]) -> dict[str, Any]:
     return {"status": "PASS", "gate": "PILOT", "reason": "dag present when research ran"}
 
 
+def eval_paperpilot_incomplete(inp: dict[str, Any]) -> dict[str, Any]:
+    incomplete = bool(inp.get("labeled_incomplete") or inp.get("research_incomplete"))
+    label = str(inp.get("claim_label_emitted") or "").upper()
+    requested = bool(inp.get("data_request_emitted"))
+    status_nc = str(inp.get("status") or "").upper() == "NOT_COMPUTABLE"
+    if incomplete and label == "OBSERVED":
+        return {
+            "status": "GATE_FAIL",
+            "gate": "CITE",
+            "path": "invent-observed",
+            "reason": "Incomplete research cannot be OBSERVED",
+        }
+    if incomplete and (status_nc or requested or label == "NOT_COMPUTABLE"):
+        return {
+            "status": "NOT_COMPUTABLE",
+            "gate": "PILOT",
+            "path": "DataRequest" if requested else "NOT_COMPUTABLE",
+            "reason": "Labeled incomplete research follows NOT_COMPUTABLE or DataRequest",
+        }
+    return {
+        "status": "PASS",
+        "gate": "PILOT",
+        "path": "complete",
+        "reason": "research complete or not labeled incomplete",
+    }
+
+
+def eval_boring_prfaq_hold(inp: dict[str, Any]) -> dict[str, Any]:
+    artifact = str(inp.get("artifact") or "").lower()
+    generic = bool(inp.get("generic_unfalsifiable"))
+    density = str(inp.get("evidence_density") or "").lower()
+    if artifact == "prfaq" and generic and density in {"low", "none", ""}:
+        return {
+            "status": "HOLD",
+            "gate": "HYP",
+            "reason": "Boring or unfalsifiable PRFAQ without evidence stays HOLD",
+        }
+    return {
+        "status": "PASS",
+        "gate": "HYP",
+        "reason": "PRFAQ has falsifiable map or evidence",
+    }
+
+
 EVALUATORS: dict[str, EvalFn] = {
     "zero-option.json": eval_zero_option,
     "x402-misfit.json": eval_x402_misfit,
@@ -512,6 +561,9 @@ EVALUATORS: dict[str, EvalFn] = {
     "irreversible-missing-log-pointer.json": eval_irreversible_without_validation,
     "research-ran-without-dag.json": eval_research_ran_without_dag,
     "dag-fabricated-cite.json": eval_fabricated_cite,
+    "paperpilot-invent-cite.json": eval_fabricated_cite,
+    "paperpilot-incomplete-not-computable.json": eval_paperpilot_incomplete,
+    "boring-prfaq-hold.json": eval_boring_prfaq_hold,
 }
 
 
@@ -567,7 +619,44 @@ def main(argv: list[str] | None = None) -> int:
         help="Case stem or filename (repeatable). Default: all cases with evaluators.",
     )
     parser.add_argument("--json", action="store_true", help="Emit JSON report")
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Report live Hermes readiness only (no model call; see evals/LIVE_EVALS.md)",
+    )
     args = parser.parse_args(argv)
+
+    if args.live:
+        keys_present = any(
+            os.environ.get(name)
+            for name in (
+                "HERMES_API_KEY",
+                "OPENAI_API_KEY",
+                "ANTHROPIC_API_KEY",
+                "XAI_API_KEY",
+            )
+        )
+        hermes_cli = bool(os.environ.get("HERMES_HOME") or os.environ.get("HERMES_BEHAVIORAL_LIVE"))
+        report = {
+            "live_requested": True,
+            "model_invoked": False,
+            "keys_present": keys_present,
+            "hermes_host_hint": hermes_cli,
+            "doctor_requires_keys": False,
+            "docs": "evals/LIVE_EVALS.md",
+            "note": (
+                "Grok-host without Hermes is fixture-only. Run the deterministic "
+                "cases below; do not invent citations or OBSERVED buyers."
+            ),
+        }
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print("LIVE: readiness only — no model call")
+            print(f"  keys_present={keys_present} hermes_host_hint={hermes_cli}")
+            print("  see evals/LIVE_EVALS.md")
+            if not keys_present:
+                print("  HOLD: no Hermes/API keys in this environment (fixture-only)")
 
     try:
         cases_dir = ng_paths.evals_dir() / "cases"

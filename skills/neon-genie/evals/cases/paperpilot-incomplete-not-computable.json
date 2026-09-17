@@ -1,0 +1,15 @@
+{
+  "input": {
+    "research_ran": true,
+    "labeled_incomplete": true,
+    "claim_label_emitted": "NOT_COMPUTABLE",
+    "data_request_emitted": true,
+    "status": "NOT_COMPUTABLE"
+  },
+  "expected": {
+    "status": "NOT_COMPUTABLE",
+    "gate": "PILOT",
+    "path": "DataRequest",
+    "reason": "Labeled incomplete research follows NOT_COMPUTABLE or DataRequest"
+  }
+}

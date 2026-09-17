@@ -31,6 +31,11 @@ jobs:
           python -m unittest discover -s tests_audit -p 'test_*.py'
       - uses: actions/upload-artifact@v4
         if: always()
+        continue-on-error: true
         with:
           name: neon-genie-evals
-          path: out/neon-genie/
+          retention-days: 3
+          if-no-files-found: warn
+          path: |
+            out/neon-genie/behavioral.json
+            out/neon-genie/runtime-smoke/

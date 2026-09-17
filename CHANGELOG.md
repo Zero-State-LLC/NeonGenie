@@ -12,6 +12,12 @@ and this project uses semantic versioning.
 - Org multi-agent SDLC pack: short `AGENTS.md` (with Escalation), thin
   `CLAUDE.md` pointer, and `intent/` README + `_TEMPLATE.md`. Docs-only;
   no `SKILL.md` rewrite and no Noema deploy dumps.
+- PaperPilot / research-search-dag goldens: `paperpilot-invent-cite`,
+  `paperpilot-incomplete-not-computable`, optional `boring-prfaq-hold`.
+- `evals/LIVE_EVALS.md` — how to run live multi-turn Hermes LLM evals when
+  host keys exist; Grok-host without Hermes is fixture-only. `do eval --live`
+  reports readiness only and never calls a model. Doctor smoke stays key-free.
+- Typed sample `examples/packets/sample-commercial.packet.json`.
 
 ### Changed
 
@@ -19,26 +25,42 @@ and this project uses semantic versioning.
 - Root license and SPDX guidance are MIT going forward (Copyright 2026 Zero State LLC)
 - Hermes Skill Evals stay ubuntu-only (`skill` job); hosted `macos-latest` smoke runners are not used
 - Hub-safe doc links: ADR and superpowers paths are path text on a full clone; curated hub docs include `GOVERNANCE.md`
+- Opportunity packet schema **1.1.0**: typed required shapes plus optional
+  Hermes-native mining fields (`affected_user`, `economic_buyer`,
+  `transition_market`, `coordination_gap`, `service_first_wedge`,
+  `distribution`, `failure_modes`, `jtbd`). Existing required keys unchanged.
+- Commercial simulation schema **1.1.0**: typed `buyer_map` (economic_buyer,
+  beneficiary, evidence_refs), `pricing_model` (`model_type` + labeled
+  assumptions), optional `scenarios[]` with `claim_label`. Packaging rejects
+  CAC/LTV labeled `OBSERVED` without `evidence_refs` (NG-COMM-001 / Gate B).
+- `engine_tag` / `arbitrage_expires` stay **PRISM-sidecar-only** — not baked
+  into the Hermes MIT packet schemas.
 
 ## [3.27.0] — 2026-09-05
 
+Shipped on org SoT as `#14` (`8292a1e`). Fail-closed after the 3.26.x
+warn-then-require window.
+
 ### Changed
 
-- Gate ISO: irreversible work requires conjunction `independent` ∧ versioned log pointer; alias table packet `validation_isolation.*` ↔ graph `validation_step.*`; `validation_log_version` on graph `validation_step` (PROMETHEUS gaps).
-
-- **Required fields** (fail closed): `logic_label` on opportunity/product/zero-option packets;
-  `stage` on run-envelope (`shape`|`test`|`scale`); `evidence_ledger` on EvidenceIntelligence packets.
-- Warn-then-require period for 3.26.x closed after dual-logic / U4 / U7 goldens.
+- **Required fields:** `logic_label` (`effectual`|`causal`|`mixed`) on
+  opportunity / product / zero-option packets (Gate LOGIC); `stage`
+  (`shape`|`test`|`scale`) on run-envelope (Gate STAGE); `evidence_ledger`
+  on EvidenceIntelligence packets (Gate LEDGER).
+- Gate ISO: irreversible work requires conjunction `independent` ∧ versioned
+  log pointer; alias table packet `validation_isolation.*` ↔ graph
+  `validation_step.*`; `validation_log_version` on graph `validation_step`.
+- CLEAR also enforces BRIC (means inventory before buy/build), CITE (never
+  generate paper/DOI/arXiv ids), LEDGER (active cite; unresolved
+  Contradict/Invalidate blocks ≥TESTABLE), LOGIC, and STAGE.
+- Public install/docs paths updated for repo rename **NeonGenie**
+  (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
 
 ### Added
 
 - PR-A: optional `validation_isolation` on WayfinderExecutionPacket; Gate ISO.
-- PR-B: PaperPilot `research-search-dag` schema + Gate PILOT (optional attach; write when research runs).
-
-### Changed
-
-- Public install/docs paths updated for repo rename **NeonGenie**
-  (`scrimshawlife-ctrl/NeonGenie`, Pages `…/NeonGenie/`)
+- PR-B: PaperPilot `research-search-dag` schema + Gate PILOT (write the DAG
+  when research runs; fabricated DAG cites still Gate CITE).
 
 ## [3.26.1] — 2026-09-01
 

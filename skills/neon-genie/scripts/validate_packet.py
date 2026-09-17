@@ -278,6 +278,65 @@ def check_privacy_rules(data: dict[str, Any], packet_type: str) -> list[str]:
     return errors
 
 
+# Unit-econ keys that cannot be OBSERVED without evidence_refs (Gate B / NG-COMM-001).
+_UNIT_ECON_KEYS = frozenset(
+    {
+        "cac",
+        "ltv",
+        "cac_usd",
+        "ltv_usd",
+        "customer_acquisition_cost",
+        "lifetime_value",
+    }
+)
+
+
+def _claim_label_of(obj: dict[str, Any]) -> str:
+    raw = obj.get("claim_label") or obj.get("label")
+    return str(raw).upper() if raw is not None else ""
+
+
+def _evidence_refs_of(obj: dict[str, Any]) -> list[Any]:
+    refs = obj.get("evidence_refs")
+    return refs if isinstance(refs, list) else []
+
+
+def _walk_unit_econ(node: Any, path: str, errors: list[str]) -> None:
+    if isinstance(node, list):
+        for i, item in enumerate(node):
+            _walk_unit_econ(item, f"{path}[{i}]", errors)
+        return
+    if not isinstance(node, dict):
+        return
+    label = _claim_label_of(node)
+    refs = _evidence_refs_of(node)
+    for key, value in node.items():
+        if key.lower() in _UNIT_ECON_KEYS:
+            nested_label = label
+            nested_refs = refs
+            if isinstance(value, dict):
+                nested_label = _claim_label_of(value) or nested_label
+                nested_refs = _evidence_refs_of(value) or nested_refs
+            if nested_label == "OBSERVED" and not nested_refs:
+                errors.append(
+                    f"NG-COMM-001: {path}.{key} labeled OBSERVED without evidence_refs"
+                )
+        if key in {"cac", "ltv"} or isinstance(value, (dict, list)):
+            _walk_unit_econ(value, f"{path}.{key}", errors)
+
+
+def check_commercial_rules(data: dict[str, Any], packet_type: str) -> list[str]:
+    """Refuse invented CAC/LTV as OBSERVED when the packet is commercial."""
+    key = (packet_type or "").strip().lower().replace(" ", "_")
+    if key not in {"commercial"}:
+        return []
+    if not isinstance(data, dict):
+        return []
+    errors: list[str] = []
+    _walk_unit_econ(data, "$", errors)
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate Neon Genie packet JSON")
     parser.add_argument("--packet", required=True, type=Path, help="Path to packet JSON")
@@ -342,6 +401,7 @@ def main(argv: list[str] | None = None) -> int:
     # Privacy gates (NG-PRIV-001..004) for receipt/envelope when type is known
     if args.packet_type and isinstance(packet, dict):
         errors.extend(check_privacy_rules(packet, args.packet_type))
+        errors.extend(check_commercial_rules(packet, args.packet_type))
     elif not args.packet_type and isinstance(packet, dict):
         # Infer from schema filename when --schema was used alone
         name = schema_path.name.lower()
@@ -349,6 +409,8 @@ def main(argv: list[str] | None = None) -> int:
             errors.extend(check_privacy_rules(packet, "receipt"))
         elif name in {"run-envelope.schema.json"}:
             errors.extend(check_privacy_rules(packet, "envelope"))
+        elif name in {"commercial-simulation.schema.json"}:
+            errors.extend(check_commercial_rules(packet, "commercial"))
 
     if errors:
         print(f"FAIL: {args.packet} vs {schema_path.name}", file=sys.stderr)

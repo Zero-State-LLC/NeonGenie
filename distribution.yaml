@@ -128,6 +128,7 @@ hub_support_globs:
   - examples/packets/*.json
   - examples/gallery/README.md
   - examples/evals/rubric.md
+  - examples/evals/LIVE_EVALS.md
   - examples/evals/cases/*.json
   - examples/evals/transcripts/*.md
   - examples/evals/behavioral/README.md

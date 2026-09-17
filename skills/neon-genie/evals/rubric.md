@@ -43,4 +43,7 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `irreversible-without-validation.json` | Gate ISO — irreversible agentic without independent validation → GATE_FAIL |
 | `research-ran-without-dag.json` | Gate PILOT — research ran without DAG → GATE_FAIL |
 | `dag-fabricated-cite.json` | Gate CITE — fabricated cite inside DAG → GATE_FAIL |
+| `paperpilot-invent-cite.json` | Gate CITE — invented PaperPilot cite → GATE_FAIL |
+| `paperpilot-incomplete-not-computable.json` | Labeled incomplete research → NOT_COMPUTABLE / DataRequest |
+| `boring-prfaq-hold.json` | Gate HYP — boring unfalsifiable PRFAQ → HOLD |
 | `irreversible-missing-log-pointer.json` | Gate ISO — irreversible without versioned log pointer → GATE_FAIL |

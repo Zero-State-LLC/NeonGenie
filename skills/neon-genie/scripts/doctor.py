@@ -97,6 +97,17 @@ def main() -> int:
             ],
         ),
         (
+            "sample commercial validate",
+            [
+                "do",
+                "validate",
+                "--packet",
+                "examples/packets/sample-commercial.packet.json",
+                "--type",
+                "commercial",
+            ],
+        ),
+        (
             "run-envelope present after product-audit",
             [
                 "do",

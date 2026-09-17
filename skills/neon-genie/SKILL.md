@@ -294,6 +294,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/audit.brief.yaml`
 - `examples/capital-sprint.brief.yaml`
 - `examples/commercial.brief.yaml`
+- `examples/evals/LIVE_EVALS.md`
 - `examples/evals/behavioral/README.md`
 - `examples/evals/behavioral/cases/memetic-weak-proof.json`
 - `examples/evals/behavioral/cases/privacy-api-key-block.json`
@@ -320,6 +321,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/behavioral/transcripts/09-privacy-private-list-consent.md`
 - `examples/evals/behavioral/transcripts/10-privacy-unknown-retention-claim.md`
 - `examples/evals/cases/authority-leakage.json`
+- `examples/evals/cases/boring-prfaq-hold.json`
 - `examples/evals/cases/buyer-beneficiary-conflation.json`
 - `examples/evals/cases/completion-proof-present.json`
 - `examples/evals/cases/completion-proof-required.json`
@@ -332,6 +334,8 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/irreversible-without-validation.json`
 - `examples/evals/cases/memetic-cannot-promote.json`
 - `examples/evals/cases/offline-no-fabricated-observed.json`
+- `examples/evals/cases/paperpilot-incomplete-not-computable.json`
+- `examples/evals/cases/paperpilot-invent-cite.json`
 - `examples/evals/cases/privacy-consent-purpose-bound.json`
 - `examples/evals/cases/privacy-egress-local-only.json`
 - `examples/evals/cases/privacy-secret-blocks-egress.json`
@@ -364,6 +368,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/memetic.brief.yaml`
 - `examples/opportunity.brief.yaml`
 - `examples/packets/sample-capital-sprint.packet.json`
+- `examples/packets/sample-commercial.packet.json`
 - `examples/packets/sample-data-request.json`
 - `examples/packets/sample-external-action.json`
 - `examples/packets/sample-opportunity.packet.json`

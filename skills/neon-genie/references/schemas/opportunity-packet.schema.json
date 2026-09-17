@@ -1,6 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "neon-genie/opportunity-packet/1.1.0",
   "title": "Opportunity Packet",
+  "description": "Hermes-native opportunity packet. Additive typing 1.1.0: existing required keys stay required; mining fields are optional so older fixtures remain valid. Do not invent buyers or OBSERVED proof. Gate C: economic_buyer is separate from beneficiary.",
   "type": "object",
   "required": [
     "blocked_transition",
@@ -14,18 +16,80 @@
     "logic_label"
   ],
   "properties": {
-    "blocked_transition": {},
-    "outcome_model": {},
-    "system_topology": {},
-    "opportunity_thesis": {},
-    "validation_path": {},
+    "schema_id": {
+      "type": "string",
+      "const": "neon-genie/opportunity-packet"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "blocked_transition": {
+      "type": "object",
+      "description": "Current state the user cannot complete → desired state",
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "outcome_model": {
+      "type": "object",
+      "description": "Success/failure outcomes and how they are checked",
+      "additionalProperties": true
+    },
+    "system_topology": {
+      "type": "object",
+      "description": "Actors, systems, and coordination surfaces",
+      "additionalProperties": true
+    },
+    "opportunity_thesis": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why this transition is worth testing. Label claims in prose; do not invent OBSERVED demand."
+    },
+    "validation_path": {
+      "type": "array",
+      "description": "Ordered checks toward completion_proof",
+      "items": {
+        "type": [
+          "string",
+          "object"
+        ]
+      }
+    },
     "completion_proof": {
+      "type": [
+        "string",
+        "object"
+      ],
       "description": "Externally checkable success criterion (what proves the transition is done)"
     },
-    "scorecard": {},
-    "promotion_state": {},
+    "scorecard": {
+      "type": "object",
+      "description": "Evidence/outcome scores. Cannot override a failed mandatory gate.",
+      "additionalProperties": true
+    },
+    "promotion_state": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Promotion ladder state. Scorecard cannot raise this past a failed gate."
+    },
     "proof_path": {
-      "description": "Ordered steps to obtain completion_proof"
+      "type": "array",
+      "description": "Ordered steps to obtain completion_proof",
+      "items": {
+        "type": [
+          "string",
+          "object"
+        ]
+      }
     },
     "logic_label": {
       "type": "string",
@@ -35,6 +99,46 @@
         "mixed"
       ],
       "description": "Dual-logic label (U1). Required as of 3.27.0. Gate LOGIC."
+    },
+    "affected_user": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Concrete person or role who cannot complete the transition. Profile-required; schema-optional to stay additive."
+    },
+    "economic_buyer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who pays or authorizes spend. Gate C: must stay separate from beneficiary/affected_user unless evidenced as the same party."
+    },
+    "transition_market": {
+      "type": "string",
+      "description": "Current → desired state gap the wedge addresses"
+    },
+    "coordination_gap": {
+      "type": "string",
+      "description": "Why the transition has not already cleared"
+    },
+    "service_first_wedge": {
+      "type": "string",
+      "description": "Smallest testable intervention (service-first, not platform-first)"
+    },
+    "distribution": {
+      "type": [
+        "string",
+        "object"
+      ],
+      "description": "How the wedge reaches the affected user"
+    },
+    "failure_modes": {
+      "type": [
+        "string",
+        "array"
+      ],
+      "description": "How the opportunity dies"
+    },
+    "jtbd": {
+      "type": "string",
+      "description": "Optional job-to-be-done restatement. Hermes-native alias of profile language; not a PRISM-only name."
     },
     "evidence_ledger": {
       "description": "Optional attach when evidence_intelligence co-resolves. See schemas/evidence-ledger.schema.json. Gate LEDGER.",
@@ -130,7 +234,7 @@
               },
               "resolved": {
                 "type": "boolean",
-                "description": "Required true (or Update edge) before \u2265TESTABLE when relation is Contradict/Invalidate"
+                "description": "Required true (or Update edge) before ≥TESTABLE when relation is Contradict/Invalidate"
               },
               "note": {
                 "type": "string"

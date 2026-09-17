@@ -44,6 +44,9 @@ Fixtures: `evals/cases/`. Rubric skeleton: `evals/rubric.md`.
 | `evals/cases/private-gap-silent-invent.json` | Gate R — private OBSERVED without request → GATE_FAIL |
 | `evals/cases/completion-proof-required.json` | PROOF — TESTABLE+ needs completion_proof |
 | `evals/cases/completion-proof-present.json` | PROOF — pass when proof present |
+| `evals/cases/paperpilot-invent-cite.json` | Gate CITE — invented PaperPilot cite fails |
+| `evals/cases/paperpilot-incomplete-not-computable.json` | Incomplete research → NOT_COMPUTABLE / DataRequest |
+| `evals/cases/boring-prfaq-hold.json` | Unfalsifiable PRFAQ → HOLD (Gate HYP) |
 
 Anti-overclaim catalog: `references/anti-overclaim-patterns.md`.
 

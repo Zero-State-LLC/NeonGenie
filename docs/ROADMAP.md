@@ -87,8 +87,18 @@ Public entry points:
 | **3.24.0** | Privacy-by-construction spine + runtime (issues #15 + #17); tagged `v3.24.0` |
 | **3.25.0** | Founder cold-start: founder-language routing, capital_sprint recipe, default transitional-builder job shape, hub list after doctrine, judgment honesty |
 | **3.26.0** | Hermes packaging wizard (`do wizard`), presets, `references/wizard.md` |
+| **3.27.0** | Gate ISO; PaperPilot PILOT; required `logic_label` / envelope `stage` / `evidence_ledger`; CLEAR BRIC / CITE / LEDGER / LOGIC / STAGE (`#14`) |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
+
+**Schema thicken (this PR, unreleased):** opportunity-packet and
+commercial-simulation move from empty `{}` shapes to Hermes-native typed
+properties (artifact schema **1.1.0**). Optional mining fields stay
+optional. CAC/LTV cannot be `OBSERVED` without `evidence_refs`. Andrey
+`engine_tag` (`labor`|`capital`|`arbitrage`|`insurance`) plus
+`arbitrage_expires` remain a **PRISM adaptation sidecar** — not part of
+the Hermes hub packet, so MIT package consumers are not forced onto PRISM
+engine taxonomy.
 
 ## Production maturity (3.18–3.23) — complete
 
@@ -112,7 +122,7 @@ Also on main around this line: **capital_sprint** profile/protocol and **externa
 | Helpers & tests | `privacy_preflight.py`, runtime/integration unit tests, 12 behavioral cases (incl. privacy) |
 | Hub parity | Distribution spine mirrors + package under `skills/neon-genie/` |
 
-**Program next (optional waves):** W2 Outcomes ∥ W3 Judgment in parallel, then W4 distribution/announce polish. Interfaces: privacy fields on receipt/envelope, `do privacy`, Wayfinder remains optional handoff only.
+**Program next (optional waves):** W2 Outcomes ∥ W3 Judgment in parallel, then W4 distribution/announce polish. Interfaces: privacy fields on receipt/envelope, `do privacy`, Wayfinder remains optional handoff only. This schema thicken does not change that order.
 
 Design/plan: `docs/superpowers/specs/2026-08-06-neon-genie-privacy-spine-design.md` · `docs/superpowers/plans/2026-08-06-neon-genie-privacy-spine.md` (full clone)
 
@@ -120,7 +130,7 @@ Public entry: [README](../README.md) · [DEMO](./DEMO.md) · [PRIVACY](../PRIVAC
 
 ### Optional later (not blocking)
 
-- Live multi-turn Hermes LLM evals (needs API keys / host tools in CI)
+- Live multi-turn Hermes LLM evals when host keys exist (see `evals/LIVE_EVALS.md`; doctor/CI stay fixture-only)
 - Official Nous `optional-skills/` merge ([PR #75028](https://github.com/NousResearch/hermes-agent/pull/75028) — leaf refreshed for 3.25.0 authoring standards)
 - Discord/social announce with install one-liner
 - Shorter community install path (repo rename / skills monorepo)
