@@ -21,7 +21,14 @@ def test_api_key_blocks_egress() -> None:
 
 
 def test_pem_private_key_blocks() -> None:
-    text = "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Z3VS5JJcds3xfn/ygWyF6P\n-----END RSA PRIVATE KEY-----"
+    # Built at runtime so secret scanners do not match a contiguous PEM block in source.
+    text = (
+        "-----BEGIN "
+        + "RSA PRIVATE KEY-----\n"
+        + "TESTONLY_NOT_A_REAL_KEY_MATERIAL\n"
+        + "-----END "
+        + "RSA PRIVATE KEY-----"
+    )
     r = pp.preflight(text)
     assert r["safe_for_egress"] is False
     assert "secrets" in r["blocked_categories"]
@@ -29,7 +36,8 @@ def test_pem_private_key_blocks() -> None:
 
 
 def test_bearer_token_blocks() -> None:
-    text = "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.aaa.bbb"
+    # Opaque non-JWT token: still matches Bearer detector, not GitHub JWT/bearer secret rules.
+    text = "Authorization: Bearer " + "test_opaque_token_" + "abcdefghijklmnopqrstuvwxyz0123456789"
     r = pp.preflight(text)
     assert r["safe_for_egress"] is False
     print("PASS: bearer blocks egress")
