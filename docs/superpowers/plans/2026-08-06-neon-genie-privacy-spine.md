@@ -96,83 +96,9 @@ git checkout -b feat/privacy-spine-w1
 
 Create `scripts/test_privacy_preflight.py`:
 
-```python
-#!/usr/bin/env python3
-"""Unit tests for privacy_preflight (stdlib only)."""
-
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCRIPT_DIR))
-import privacy_preflight as pp  # noqa: E402
-
-
-def test_api_key_blocks_egress() -> None:
-    text = "deploy with sk-abc123DEF456ghi789jkl012mno345pqr678stu901vwx"
-    r = pp.preflight(text)
-    assert r["safe_for_egress"] is False
-    assert "credentials" in r["blocked_categories"]
-    assert "sk-abc123" not in r["redacted_text"] or "[REDACTED" in r["redacted_text"]
-    print("PASS: api key blocks egress")
-
-
-def test_pem_private_key_blocks() -> None:
-    # Built at runtime so secret scanners do not match a contiguous PEM block in source.
-    text = (
-        "-----BEGIN "
-        + "RSA PRIVATE KEY-----\n"
-        + "TESTONLY_NOT_A_REAL_KEY_MATERIAL\n"
-        + "-----END "
-        + "RSA PRIVATE KEY-----"
-    )
-    r = pp.preflight(text)
-    assert r["safe_for_egress"] is False
-    assert "secrets" in r["blocked_categories"]
-    print("PASS: pem blocks egress")
-
-
-def test_bearer_token_blocks() -> None:
-    # Opaque non-JWT token: still matches Bearer detector, not GitHub JWT/bearer secret rules.
-    text = "Authorization: Bearer " + "test_opaque_token_" + "abcdefghijklmnopqrstuvwxyz0123456789"
-    r = pp.preflight(text)
-    assert r["safe_for_egress"] is False
-    print("PASS: bearer blocks egress")
-
-
-def test_benign_product_copy_safe() -> None:
-    text = (
-        "We sell an audio continuity tool for podcast editors. "
-        "Pricing is unknown. Buyer is missing. Research public competitors."
-    )
-    r = pp.preflight(text)
-    assert r["safe_for_egress"] is True
-    assert r["blocked_categories"] == []
-    print("PASS: benign product copy safe")
-
-
-def test_password_in_url_blocks() -> None:
-    text = "postgres://admin:SuperSecret99@db.example.com:5432/app"
-    r = pp.preflight(text)
-    assert r["safe_for_egress"] is False
-    assert "passwords_connection" in r["blocked_categories"] or "credentials" in r["blocked_categories"]
-    print("PASS: connection string blocks")
-
-
-def main() -> int:
-    test_api_key_blocks_egress()
-    test_pem_private_key_blocks()
-    test_bearer_token_blocks()
-    test_benign_product_copy_safe()
-    test_password_in_url_blocks()
-    print("PASS: all privacy_preflight tests")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+```text
+(Python sample omitted — see `scripts/privacy_preflight.py` and
+`scripts/test_privacy_preflight.py` for the scrubbed canonical sources.)
 ```
 
 - [ ] **Step 3: Run tests — expect FAIL (module missing)**
@@ -185,110 +111,9 @@ Expected: `ModuleNotFoundError: No module named 'privacy_preflight'` or import e
 
 - [ ] **Step 4: Implement `scripts/privacy_preflight.py`**
 
-```python
-#!/usr/bin/env python3
-"""Deterministic secret/PII preflight before external egress (stdlib only).
-
-High-precision on credentials/secrets; fail closed on API keys and private keys.
-Does not claim complete PII detection.
-"""
-
-from __future__ import annotations
-
-import argparse
-import json
-import re
-import sys
-from pathlib import Path
-from typing import Any
-
-_PATTERNS: list[tuple[str, re.Pattern[str], str]] = [
-    (
-        "secrets",
-        re.compile(
-            r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----[\s\S]*?"
-            r"-----END (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----",
-            re.I,
-        ),
-        "block",
-    ),
-    ("credentials", re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"), "block"),
-    (
-        "credentials",
-        re.compile(r"\b(?:api[_-]?key|apikey)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{16,}", re.I),
-        "block",
-    ),
-    ("credentials", re.compile(r"\bBearer\s+[A-Za-z0-9\-._~+/]+=*", re.I), "block"),
-    ("credentials", re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "block"),
-    (
-        "passwords_connection",
-        re.compile(r"(?:postgres|mysql|mongodb|redis|amqp)://[^\s:]+:[^\s@]+@", re.I),
-        "block",
-    ),
-    ("passwords_connection", re.compile(r"\bpassword\s*[:=]\s*\S+", re.I), "block"),
-    (
-        "financial",
-        re.compile(r"\b(?:4\d{12}(?:\d{3})?|5[1-5]\d{14}|3[47]\d{13})\b"),
-        "block",
-    ),
-]
-
-
-def preflight(text: str) -> dict[str, Any]:
-    if not text:
-        return {
-            "findings": [],
-            "blocked_categories": [],
-            "safe_for_egress": True,
-            "redacted_text": text or "",
-        }
-    findings: list[dict[str, str]] = []
-    blocked: set[str] = set()
-    redacted = text
-    for category, pattern, severity in _PATTERNS:
-        for m in pattern.finditer(text):
-            span = m.group(0)
-            findings.append(
-                {
-                    "category": category,
-                    "span_hint": span[:48] + ("…" if len(span) > 48 else ""),
-                    "severity": severity,
-                }
-            )
-            if severity == "block":
-                blocked.add(category)
-        if severity == "block":
-            redacted = pattern.sub(f"[REDACTED:{category}]", redacted)
-    return {
-        "findings": findings,
-        "blocked_categories": sorted(blocked),
-        "safe_for_egress": len(blocked) == 0,
-        "redacted_text": redacted,
-    }
-
-
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Neon Genie privacy preflight")
-    parser.add_argument("--text", default="")
-    parser.add_argument("--file", type=Path)
-    parser.add_argument("--json", action="store_true")
-    args = parser.parse_args(argv)
-    text = args.text
-    if args.file is not None:
-        text = args.file.read_text(encoding="utf-8")
-    result = preflight(text)
-    if args.json:
-        print(json.dumps(result, indent=2))
-    else:
-        print("safe_for_egress:", result["safe_for_egress"])
-        print("blocked_categories:", ",".join(result["blocked_categories"]) or "(none)")
-        for f in result["findings"]:
-            print(f"  [{f['severity']}] {f['category']}: {f['span_hint']}")
-    return 0 if result["safe_for_egress"] else 2
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+```text
+(Python sample omitted — see `scripts/privacy_preflight.py` and
+`scripts/test_privacy_preflight.py` for the scrubbed canonical sources.)
 ```
 
 - [ ] **Step 5: Run tests — expect PASS**
@@ -308,38 +133,9 @@ git commit -m "feat: privacy preflight for secret/credential egress blocking"
 
 ---
 
-### Task 2: Receipt privacy provenance
+## Remaining tasks
 
-**Files:**
-- Modify: `schemas/run-receipt.schema.json`
-- Modify: `scripts/build_receipt.py`
-- Create: assertions in `scripts/test_privacy_surface.py` (start file)
-
-**Interfaces:**
-- Produces receipt fields (always on packaging receipts):
-  - `privacy_mode`: `"LOCAL_ONLY"` default for packaging CLI
-  - `privacy_contract_version`: `"1.0.0"`
-  - `data_sources_used`: `["operator_input"]` default when packets/brief implied; else `["operator_input"]` for packaging
-  - `external_actions`: `[]`
-  - `artifact_paths`: `[]` (envelope builder may enrich later) or list of packet paths if provided
-  - `telemetry_status`: `"disabled"`
-  - `retention_statement`: fixed string from spec
-  - `privacy_warnings`: `[]`
-  - `deletion_instructions`: string mentioning operator-selected output paths
-  - `redaction`: `{"enabled": true, "blocked_categories": [], "events": []}`
-  - `research_policy`: `{"enabled": false, "offline": true}`
-  - `profiles_loaded` always includes `"privacy"` after `"core"`
-
-**Retention statement (exact default):**
-
-```text
-Neon-Genie-owned artifacts live only under operator-selected paths listed in artifact_paths; delete those paths to remove them. Host/provider retention is outside this skill.
-```
-
-**Deletion instructions (exact default):**
-
-```text
-Remove the directories/files listed in artifact_paths (and any explicit learning-ledger path). Uninstalling the skill does not delete prior run outputs.
-```
-
-FULL_CONTENT_CONTINUES_IN_/tmp/neon-plan.md_BYTES_FROM_HERE
+Tasks 2+ (receipt provenance, envelope, doctor, evals, release) are unchanged in intent
+from the historical plan. Implement against the live `scripts/` tree and specs under
+`docs/superpowers/specs/`. Secret-scanner fixtures must stay runtime-assembled as in
+`scripts/test_privacy_preflight.py`.
