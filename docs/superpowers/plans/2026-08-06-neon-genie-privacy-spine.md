@@ -1,1 +1,3 @@
-file:///home/ubuntu/.cursor/projects/workspace/agent-tools/neon-plan-exact.md
+# Neon Genie Privacy-by-Construction Spine (W1) Implementation Plan
+
+PLACEHOLDER_SEE_DISK_/tmp/neon-plan.md
