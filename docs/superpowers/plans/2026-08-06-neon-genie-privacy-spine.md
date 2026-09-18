@@ -1,1 +1,1 @@
-{{INCLUDE_FROM:/tmp/neon-plan.md}}
+@file:///tmp/neon-plan.md
