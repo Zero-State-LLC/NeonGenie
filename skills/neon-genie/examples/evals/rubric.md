@@ -61,3 +61,4 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `observed-placeholder-date.json` | Placeholder OBSERVED dates fail |
 | `observed-quote-polarity.json` | A quote that only covers the opposite polarity fails |
 | `robots-disallow.json` | robots.txt Disallow is honored without a network call |
+| `correctness-judge-off.json` | Optional Jev correctness diagnostic stays off and does not call the network |

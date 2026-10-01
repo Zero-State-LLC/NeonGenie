@@ -1,0 +1,429 @@
+{
+ "blocked_transition": {
+  "from": "SKU list prices set from a floor table with a seat error and SPECULATIVE token bands",
+  "to": "one floor formula and a measured token band"
+ },
+ "outcome_model": {
+  "success": "a realistic workflow lands in a band where SKU 1 clears its floor",
+  "failure": "measured tokens put SKU 1 below floor, or the Heavy seat cannot serve tenants"
+ },
+ "system_topology": {
+  "actors": [
+   "tenant org (type NOT_COMPUTABLE)",
+   "Danny",
+   "Acquire (economics)"
+  ],
+  "systems": [
+   "Autogive.app workbench",
+   "grok-4.6 API",
+   "SuperGrok Heavy seat",
+   "CF Workers",
+   "Supabase",
+   "Stripe (SaaS invoice only)"
+  ]
+ },
+ "opportunity_thesis": "The unit-economics method is sound, but the per-tenant Heavy table counts an operator seat at N=1 and not at N=10/50: either the fail-closed N=1 floor is $300 too high or the N=10 floor is $30 too low (INFERRED from source arithmetic). Token bands are SPECULATIVE. The Heavy seat 'does not include API' while token costs are API-priced, so its tenant role is unclear.",
+ "affected_user": "Tenant organizations on the workbench; tenant type NOT_COMPUTABLE (source names none).",
+ "economic_buyer": "Tenant budget holder: NOT_COMPUTABLE. Donors never pay (OBSERVED).",
+ "service_first_wedge": "Corrected floor table plus one metered fixture week on SKU 0.",
+ "validation_path": [
+  "V1: one floor formula; re-derive SKU 1 and 2.",
+  "V2: Danny states the Heavy seat's role and terms.",
+  "V3: one realistic workflow on SKU 0 for 7 days with token metering (grok-4.6 at $2/$6 per 1M below 200k prompt tokens, $4/$12 at or above: OBSERVED, xAI pricing).",
+  "V4 (Danny yes): quote the re-derived SKU to named prospects."
+ ],
+ "completion_proof": "Floor calculator passing its unit test, plus a 7-day token export placing the workflow in one band.",
+ "failure_modes": "mixed seat rule; high-band or 200k-cliff usage; seat terms; no named tenant",
+ "scorecard": {
+  "evidence_density": 0.65,
+  "outcome_clarity": 0.75,
+  "affected_user_clarity": 0.3,
+  "completion_proof_quality": 0.8,
+  "integration_feasibility": 0.85,
+  "reversibility": 0.95,
+  "auditability": 0.9,
+  "scope_boundedness": 0.9
+ },
+ "promotion_state": "TESTABLE",
+ "logic_label": "causal",
+ "authority": "advisory_only",
+ "grants_execution": false,
+ "data_requests": [
+  {
+   "request_id": "dr-heavy-seat",
+   "field": "what the Heavy seat does for tenants and whether its terms allow it",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  },
+  {
+   "request_id": "dr-stripe-rate",
+   "field": "confirm the card rate Autogive pays on SKU invoices (2.9% + $0.30 assumed)",
+   "sensitivity": "operator",
+   "blocks_promotion": false,
+   "status": "open"
+  }
+ ],
+ "schema_id": "neon-genie/opportunity-packet",
+ "schema_version": "1.3.0",
+ "input_contradictions": {
+  "checked": true,
+  "findings": [
+   {
+    "kind": "arithmetic_error",
+    "summary": "Per-tenant Heavy N=1 floors ($636/$694/$886) include an operator seat; N=10/50 rows do not. Without it N=1 is $336/$394/$586; with it N=10 is $339/$397/$589.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-1"
+   },
+   {
+    "kind": "inconsistent_figure",
+    "summary": "Fail-closed N=1 pricing uses the operator-seat row, so SKU 2 at $800 sits under the $886 high floor; without the operator seat it clears $586.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-2"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "The Heavy seat 'does not include API', yet tenant token costs are priced at API rates; the seat's tenant role is unstated.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-3"
+   },
+   {
+    "kind": "inconsistent_figure",
+    "summary": "'high+cliff x2 = $512' is listed but used in no floor row.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-4"
+   }
+  ]
+ },
+ "research": {
+  "enabled": true,
+  "offline": false,
+  "adapter": "robots_http",
+  "research_ran": true,
+  "items": [
+   {
+    "url": "https://docs.x.ai/developers/pricing.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://docs.x.ai/developers/pricing.md"
+   },
+   {
+    "url": "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://developers.cloudflare.com/workers/platform/pricing/index.md"
+   },
+   {
+    "url": "https://stripe.com/pricing",
+    "complete": false,
+    "reason": "body_cap",
+    "query": "https://stripe.com/pricing"
+   }
+  ],
+  "observed_claims": [
+   {
+    "label": "OBSERVED",
+    "url": "https://docs.x.ai/developers/pricing.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-1",
+    "text_in": "appendix.research_claims"
+   },
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-2",
+    "text_in": "appendix.research_claims"
+   }
+  ],
+  "rejected": [
+   {
+    "reason": "body_cap",
+    "url": "https://stripe.com/pricing"
+   }
+  ]
+ },
+ "research_search_dag": {
+  "schema_id": "neon-genie/research-search-dag",
+  "schema_version": "1.0.0",
+  "research_ran": true,
+  "stages": [
+   {
+    "stage_id": "s1",
+    "kind": "keyword",
+    "queries": [
+     "https://docs.x.ai/developers/pricing.md",
+     "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+     "https://stripe.com/pricing"
+    ]
+   },
+   {
+    "stage_id": "s2",
+    "kind": "cite-expand",
+    "inputs": [
+     "s1"
+    ]
+   },
+   {
+    "stage_id": "s3",
+    "kind": "filter",
+    "inputs": [
+     "s2"
+    ]
+   },
+   {
+    "stage_id": "s4",
+    "kind": "score",
+    "inputs": [
+     "s3"
+    ]
+   },
+   {
+    "stage_id": "s5",
+    "kind": "extract",
+    "inputs": [
+     "s4"
+    ],
+    "citations": [
+     {
+      "id": "https://docs.x.ai/developers/pricing.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     },
+     {
+      "id": "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     }
+    ]
+   }
+  ],
+  "edges": [
+   {
+    "from_stage": "s1",
+    "to_stage": "s2"
+   },
+   {
+    "from_stage": "s2",
+    "to_stage": "s3"
+   },
+   {
+    "from_stage": "s3",
+    "to_stage": "s4"
+   },
+   {
+    "from_stage": "s4",
+    "to_stage": "s5"
+   }
+  ],
+  "notes": "Citations are fetched URLs only. No generated paper ids."
+ },
+ "build_handoff": {
+  "summary": "Replace the hand table with one tested formula before any quote.",
+  "steps": [
+   "floor = tenant_seats×300 + (operator_seats×300 + 30)/N + tokens.",
+   "Meter SKU 0 for 7 days; scale ×30/7."
+  ],
+  "first_commit": {
+   "touch": [
+    "floor calculator module",
+    "unit test seeded with the source table"
+   ],
+   "done_when": "Calculator reproduces all 9 shared-Heavy cells to $1 and every per-tenant cell under one declared operator-seat rule.",
+   "test_to_write": "Assert operator_seats is required; per-tenant N=1 low = 636.40 only when operator_seats=1, else 336.40; shared N=10 med = 97.00; kill threshold = min(500,650)×(1−0.029)−0.30 = 485.20.",
+   "owner_role": "Acquire analyst or engineer"
+  }
+ },
+ "kill_criteria": [
+  {
+   "criterion_id": "kc-floor-vs-net",
+   "metric": "sku1_n1_shared_monthly_cost_floor_usd",
+   "comparison": "gt",
+   "threshold": 485.2,
+   "check_date": "2026-10-14",
+   "data_source": "330 fixed (Heavy 300 + CF 5 + Supabase 25) + 7-day metered tokens ×30/7",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "evidence_refs": [
+    "source: SKU 1 list ESTIMATE $500 and $650 tiers; shared Heavy fixed $330"
+   ],
+   "note": "kill if cost floor exceeds the lowest SKU 1 tier net of card fees. Stripe 2.9% + $0.30 is SPECULATIVE: not in this bundle, and stripe.com/pricing was not retrievable by the free adapter (64 KB body cap)",
+   "derivation": {
+    "formula": "min_tier_net_of_fee",
+    "inputs": {
+     "tiers": [
+      500,
+      650
+     ],
+     "tier_count": 2,
+     "percent": 0.029,
+     "fixed": 0.3
+    },
+    "depends_on": [
+     "every_tier",
+     "stripe_percent",
+     "stripe_fixed"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-seat-terms",
+   "metric": "heavy_seat_allowed_for_tenant_serving",
+   "comparison": "eq",
+   "threshold": 0,
+   "check_date": "2026-10-14",
+   "data_source": "Danny answer to dr-heavy-seat (1 yes, 0 no)",
+   "claim_label": "INFERRED",
+   "role": "kill",
+   "evidence_refs": [
+    "source: Heavy seat 'Does not include API'"
+   ],
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-quote",
+   "metric": "accepted_quotes_from_named_prospects",
+   "comparison": "lt",
+   "threshold": 1,
+   "check_date": "2026-11-15",
+   "data_source": "CRM after V4",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "note": "date placeholder; quotes need Danny's yes",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 1
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  }
+ ],
+ "appendix": {
+  "research_claims": [
+   {
+    "text": "| grok-4.6 (< 200k prompt tokens) | 500k | $2.00 | $0.50 | $6.00 |\n| grok-4.6 (≥ 200k prompt tokens) | 500k | $4.00 | $1.00 | $12.00 |",
+    "label": "OBSERVED",
+    "url": "https://docs.x.ai/developers/pricing.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-1"
+   },
+   {
+    "text": "minimum charge of $5 USD per month for an account.",
+    "label": "OBSERVED",
+    "url": "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-2"
+   }
+  ],
+  "contradiction_evidence": [
+   {
+    "finding_id": "h-1",
+    "evidence": "636.40 = 300 + 330 + 6.40; 309.40 = 300 + 30/10 + 6.40; 307 = 300 + 30/50 + 6.40"
+   },
+   {
+    "finding_id": "h-2",
+    "evidence": "GAP SKU package 'price as N=1' vs per-tenant table"
+   },
+   {
+    "finding_id": "h-3",
+    "evidence": "Assumptions lines 1–2"
+   },
+   {
+    "finding_id": "h-4",
+    "evidence": "Token bands line vs floor rows"
+   }
+  ],
+  "build_spec": {
+   "inputs": {
+    "heavy_seat": "300 (INFERRED, source)",
+    "infra_fixed": "30 = CF 5 (OBSERVED, CF pricing page) + Supabase 25 (source list price; not on the fetched Supabase billing page)",
+    "token_bands": "6.40 / 64 / 256 / 512 cliff (SPECULATIVE, source)"
+   },
+   "check_table": {
+    "shared_N1": [
+     336.4,
+     394,
+     586
+    ],
+    "shared_N10": [
+     39.4,
+     97,
+     289
+    ],
+    "shared_N50": [
+     13,
+     70.6,
+     262.6
+    ],
+    "per_tenant_one_rule_N1": [
+     336.4,
+     394,
+     586
+    ],
+    "per_tenant_with_operator_seat_N10": [
+     339.4,
+     397,
+     589
+    ],
+    "per_tenant_with_operator_seat_N50": [
+     312.6,
+     370.6,
+     562.6
+    ]
+   },
+   "meter": "log prompt and completion tokens per request; flag any request ≥200k prompt tokens (whole request billed at 4/12)",
+   "kill_math": "min(500, 650) × (1 − 0.029) − 0.30 = 485.20; floor = 330 + tokens, so the kill fires when metered tokens exceed about $155/month at N=1 shared"
+  }
+ },
+ "page_budget": {
+  "word_budget": 450,
+  "char_budget": 3200,
+  "main_word_count": 387,
+  "main_char_count": 2550,
+  "appendix_word_count": 173,
+  "fits_one_page": true,
+  "truncated": false
+ },
+ "claims": [
+  {
+   "claim_id": "c-grok46",
+   "text": "grok-4.6 costs $2 input and $6 output per 1M tokens below 200k prompt tokens, $4 and $12 at or above.",
+   "quote": "Input / 1M tokens | Cached input / 1M tokens | Output / 1M tokens |\n| --- | --- | --- | --- | --- |\n| grok-4.7 (< 200k prompt tokens) | 500k | $2.00 | $0.50 | $6.00 |\n| grok-4.7 (≥ 200k prompt tokens) | 500k | $4.00 | $1.00 | $12.00 |\n| grok-4.6 (< 200k prompt tokens) | 500k | $2.00 | $0.50 | $6.00 |\n| grok-4.6 (≥ 200k prompt tokens) | 500k | $4.00 | $1.00 | $12.00 |",
+   "url": "https://docs.x.ai/developers/pricing.md",
+   "retrieved_at": "2026-10-01",
+   "claim_label": "OBSERVED"
+  },
+  {
+   "claim_id": "c-cf",
+   "text": "Cloudflare Workers Paid has a $5 per month minimum.",
+   "quote": "minimum charge of $5 USD per month for an account.",
+   "url": "https://developers.cloudflare.com/workers/platform/pricing/index.md",
+   "retrieved_at": "2026-10-01",
+   "claim_label": "OBSERVED"
+  }
+ ],
+ "decision": "FIX THE FLOOR TABLE, THEN METER ONE FIXTURE WEEK. Publish no price."
+}

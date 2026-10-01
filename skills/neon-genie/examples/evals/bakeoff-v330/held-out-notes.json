@@ -1,0 +1,125 @@
+{
+  "note": "Synthetic held-out notes written before the round-3 scan detectors were extended. Numbers, names, and wording are not taken from the 16 raw-note issues. expect=finding means a contradiction of a mechanical class is planted. expect=clean means the same class stated consistently.",
+  "notes": [
+    {
+      "id": "p-label",
+      "expect": "finding",
+      "text": "Booth traffic of 4.4 million is UNVERIFIED until the vendor file arrives.\nBooth traffic of 4.4 million is OBSERVED in the vendor file."
+    },
+    {
+      "id": "c-label",
+      "expect": "clean",
+      "text": "Booth traffic of 4.4 million is UNVERIFIED until the vendor file arrives.\nA separate gate count of 90 thousand is OBSERVED in the vendor file."
+    },
+    {
+      "id": "p-series",
+      "expect": "finding",
+      "text": "Lane fee per booth: 1: $140; 8: $28; 40: $20."
+    },
+    {
+      "id": "c-series",
+      "expect": "clean",
+      "text": "Lane fee per booth: 1: $98; 8: $28; 40: $20."
+    },
+    {
+      "id": "p-floor",
+      "expect": "finding",
+      "text": "Fail closed: price as N=1. Lane fee per booth: 1: $98; 8: $28; 40: $20. Catalog list ESTIMATE $70."
+    },
+    {
+      "id": "c-floor",
+      "expect": "clean",
+      "text": "Fail closed: price as N=1. Lane fee per booth: 1: $98; 8: $28; 40: $20. Catalog list ESTIMATE $120."
+    },
+    {
+      "id": "p-sum",
+      "expect": "finding",
+      "text": "The parts are $12 + $7 + $5 = $30."
+    },
+    {
+      "id": "c-sum",
+      "expect": "clean",
+      "text": "The parts are $12 + $7 + $5 = $24."
+    },
+    {
+      "id": "p-percent",
+      "expect": "finding",
+      "text": "15% of $200 is $40."
+    },
+    {
+      "id": "c-percent",
+      "expect": "clean",
+      "text": "15% of $200 is $30."
+    },
+    {
+      "id": "p-units",
+      "expect": "finding",
+      "text": "6 crates at $8 totals $60."
+    },
+    {
+      "id": "c-units",
+      "expect": "clean",
+      "text": "6 crates at $8 totals $48."
+    },
+    {
+      "id": "p-dates",
+      "expect": "finding",
+      "text": "The window runs from 2026-11-02 to 2026-08-02."
+    },
+    {
+      "id": "c-dates",
+      "expect": "clean",
+      "text": "The window runs from 2026-08-02 to 2026-11-02."
+    },
+    {
+      "id": "p-option",
+      "expect": "finding",
+      "text": "| Option | Yield |\n| --- | --- |\n| A | Lowest |\n| B | Highest |\n\nLOCKED Option A.\nRationale: maximizes yield for the early cohort."
+    },
+    {
+      "id": "c-option",
+      "expect": "clean",
+      "text": "| Option | Yield |\n| --- | --- |\n| A | Highest |\n| B | Lowest |\n\nLOCKED Option A.\nRationale: maximizes yield for the early cohort."
+    },
+    {
+      "id": "p-credit",
+      "expect": "finding",
+      "text": "The stipend credits $2,400 toward monthly dues of $100 and $800."
+    },
+    {
+      "id": "c-credit",
+      "expect": "clean",
+      "text": "The stipend credits $2,400 toward monthly dues of $200."
+    },
+    {
+      "id": "p-default",
+      "expect": "finding",
+      "text": "If the score is high, force review. Default for unclear = archive, not review."
+    },
+    {
+      "id": "c-default",
+      "expect": "clean",
+      "text": "If the score is high, force review. Default for unclear = review."
+    },
+    {
+      "id": "p-scope",
+      "expect": "finding",
+      "text": "## Queue (OBSERVED)\n1. latency 30-90ms\n2. a demo clip — unverified result\n\n## Later\nThe gate uses 30-90ms as the bound.\n"
+    },
+    {
+      "id": "c-scope",
+      "expect": "clean",
+      "text": "## Queue (OBSERVED)\n1. latency 30-90ms\n\n## Later\nThe gate uses 30-90ms as the bound.\n"
+    },
+    {
+      "id": "p-double",
+      "expect": "finding",
+      "text": "Base load = $18; surge x2 = $36.\nShift totals: 1: $18; 8: $18; 40: $18."
+    },
+    {
+      "id": "c-double",
+      "expect": "clean",
+      "text": "Base load = $18; surge x2 = $36.\nShift totals: 1: $36; 8: $36; 40: $36."
+    }
+  ]
+}

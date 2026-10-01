@@ -1,0 +1,14 @@
+{
+  "input": {
+    "enabled": false,
+    "document": "The threshold is $170.",
+    "source_notes": "Tiers are $500 and $650. Card fee is 2.9% + $0.30."
+  },
+  "expected": {
+    "status": "PASS",
+    "model_invoked": false,
+    "enabled": false,
+    "invoked": false,
+    "gate": "JUDGE"
+  }
+}
