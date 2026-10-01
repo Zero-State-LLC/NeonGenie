@@ -141,7 +141,7 @@ def recipe_zero_option(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "zero-option-packet.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "zero_option")
 
     receipt_path = out / "run-receipt.json"
@@ -206,7 +206,7 @@ def recipe_zero_option_executable(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "zero-option-packet.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "zero_option")
 
     receipt_path = out / "run-receipt.json"
@@ -276,7 +276,7 @@ def recipe_fragmentation(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "fragmentation-packet.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "fragmentation")
 
     receipt_path = out / "run-receipt.json"
@@ -405,7 +405,7 @@ def recipe_commercial(out: Path) -> int:
         ],
     )
     packet_path = out / "commercial-simulation.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "commercial")
 
     receipt_path = out / "run-receipt.json"
@@ -507,7 +507,7 @@ def recipe_audit(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "audit-delivery.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "audit")
 
     receipt_path = out / "run-receipt.json"
@@ -593,7 +593,7 @@ def recipe_agentic(out: Path) -> int:
         "promotion_state": "CONCEPTUAL",
     }
     packet_path = out / "agentic-service-graph.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "agentic")
 
     receipt_path = out / "run-receipt.json"
@@ -667,7 +667,7 @@ def recipe_memetic(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "memetic-pressure.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "memetic")
 
     receipt_path = out / "run-receipt.json"
@@ -780,7 +780,7 @@ def recipe_evidence(out: Path) -> int:
         "grants_execution": False,
     }
     packet_path = out / "evidence-intelligence.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "evidence")
 
     receipt_path = out / "run-receipt.json"
@@ -906,7 +906,7 @@ def recipe_opportunity(out: Path) -> int:
         ],
     )
     packet_path = out / "opportunity-packet.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     rc.validate_packet(packet_path, "opportunity")
 
     receipt_path = out / "run-receipt.json"
@@ -978,7 +978,7 @@ def recipe_capital_sprint(out: Path) -> int:
         ],
     }
     packet_path = out / "capital-sprint-packet.stub.json"
-    rc.write_json(packet_path, packet)
+    packet_compose.write_packet(packet_path, packet)
     # Typed validate skipped: validate_packet has no capital_sprint type yet
 
     receipt_path = out / "run-receipt.json"
