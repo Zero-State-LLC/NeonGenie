@@ -352,6 +352,15 @@ gates:
     refs:
       - scripts/packet_compose.py
 
+  TEST:
+    name: cheapest_test_one_action
+    severity: blocking
+    condition: cheapest_test_is_a_list_or_lacks_dated_numeric_threshold
+    remediation: one_action_with_threshold_comparison_and_check_date
+    refs:
+      - scripts/packet_compose.py
+    note: Optional field. When absent, this gate does not fail. build_handoff.first_commit is unchanged.
+
   RESEARCH_OBS:
     name: observed_claim_needs_source
     severity: blocking
