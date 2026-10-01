@@ -11,6 +11,7 @@ date, and a complete source body. No source means no OBSERVED label.
 
 from __future__ import annotations
 
+import os
 import re
 import urllib.error
 import urllib.parse
@@ -24,7 +25,13 @@ import privacy_preflight
 # Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
 # (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
 MAX_BODY_BYTES = 2 * 1024 * 1024
-RESEARCH_UA = "neon-genie-research/3.30"
+RESEARCH_UA = "neon-genie-research/3.31"
+DEFAULT_MAX_CALLS_PER_IDEA = 5
+DEFAULT_DOLLAR_CAP_PER_IDEA = 0.20
+DEFAULT_DOLLAR_CAP_PER_RUN = 1.00
+DEFAULT_PAID_PRICE = 0.08
+PAID_KEY_ENV = "NEON_GENIE_SEARCH_API_KEY"
+PAID_FLAG_ENV = "NEON_GENIE_RESEARCH_PAID"
 _LA = ZoneInfo("America/Los_Angeles")
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _KINDS = frozenset({"web_page", "paper", "social_post"})
@@ -434,6 +441,182 @@ def run_research(
         "observed_claims": observed,
         "rejected": rejected,
     }
+
+
+class ResearchLedger:
+    """Run-level dollar cap shared across ideas. Fail closed before a call."""
+
+    def __init__(self, run_cap: float = DEFAULT_DOLLAR_CAP_PER_RUN) -> None:
+        self.run_cap = float(run_cap)
+        self.spent = 0.0
+
+    def allows(self, price: float) -> bool:
+        return self.spent + float(price) <= self.run_cap + 1e-9
+
+    def commit(self, price: float) -> None:
+        self.spent += float(price)
+
+
+def _paid_ready(policy: dict[str, Any]) -> tuple[bool, str]:
+    """Paid search stays off unless a flag is set and a key or injected provider exists."""
+    flagged = policy.get("allow_paid") is True or os.environ.get(PAID_FLAG_ENV) == "1"
+    if not flagged:
+        return False, "paid_off"
+    if policy.get("search_provider") is not None:
+        return True, ""
+    if not os.environ.get(PAID_KEY_ENV, "").strip():
+        return False, "no_key"
+    return False, "no_key"
+
+
+def _can_search(adapter: ResearchAdapter) -> bool:
+    return getattr(adapter, "name", "") not in {"robots_http", "stdlib_http", "null"}
+
+
+def _not_fetched(query: str, reason: str) -> dict[str, Any]:
+    return {"query": query, "status": "NOT_FETCHED", "reason": reason}
+
+
+def run_idea_research(
+    policy: dict[str, Any] | None,
+    queries: list[str] | None = None,
+    adapter: ResearchAdapter | None = None,
+    ledger: ResearchLedger | None = None,
+) -> dict[str, Any]:
+    """Capped research for one idea.
+
+    Free fetches run first. A paid search provider is pluggable and stays off
+    unless ``NEON_GENIE_RESEARCH_PAID=1`` (or ``allow_paid``) and a key or an
+    injected provider is present. Over the call cap, the per-idea dollar cap,
+    or the run cap, remaining queries are ``NOT_FETCHED``. No URL is invented.
+    Offline and disabled runs do not call an adapter.
+    """
+    policy = dict(policy or {})
+    queries = [q for q in (queries or []) if isinstance(q, str)]
+    enabled = policy.get("enabled") is True
+    offline = policy.get("offline") is True or not enabled
+    if offline:
+        return _empty_research()
+
+    max_calls = int(policy.get("max_calls_per_idea") or DEFAULT_MAX_CALLS_PER_IDEA)
+    dollar_cap = float(policy.get("dollar_cap_per_idea") or DEFAULT_DOLLAR_CAP_PER_IDEA)
+    run_cap = float(policy.get("dollar_cap_per_run") or DEFAULT_DOLLAR_CAP_PER_RUN)
+    if ledger is None:
+        ledger = ResearchLedger(run_cap)
+    paid_price = float(policy.get("paid_price_per_call") or DEFAULT_PAID_PRICE)
+
+    requested = str(policy.get("adapter") or "null").strip().lower()
+    options = policy.get("adapter_options")
+    if not isinstance(options, dict):
+        options = {}
+    free_adapter = adapter
+    if free_adapter is None and requested not in _PAID_ADAPTERS and requested != "paid_search":
+        try:
+            free_adapter = get_adapter(requested, **options)
+        except KeyError:
+            free_adapter = None
+    url_queries = [query for query in queries if query.startswith(("http://", "https://"))]
+    if url_queries and (free_adapter is None or not _can_search(free_adapter)):
+        if free_adapter is None or getattr(free_adapter, "name", "") in _PAID_ADAPTERS:
+            free_adapter = RobotsHttpAdapter(opener=options.get("opener"))
+
+    allowed: list[str] = []
+    skipped: list[dict[str, Any]] = []
+    calls = 0
+    spent = 0.0
+    paid_ok, paid_reason = _paid_ready(policy)
+    provider = policy.get("search_provider") if paid_ok else None
+
+    def room(price: float) -> bool:
+        if calls >= max_calls:
+            return False
+        if spent + price > dollar_cap + 1e-9:
+            return False
+        return ledger.allows(price)
+
+    for query in queries:
+        is_url = query.startswith(("http://", "https://"))
+        use_free = free_adapter is not None and (is_url or _can_search(free_adapter))
+        price = 0.0 if use_free else paid_price
+        if use_free or provider is not None:
+            if not room(price):
+                skipped.append(_not_fetched(query, "over_cap"))
+                continue
+            allowed.append(query)
+            calls += 1
+            spent += price
+            ledger.commit(price)
+            continue
+        reason = paid_reason if paid_reason in {"no_key", "paid_off"} else "no_key"
+        if not is_url:
+            skipped.append(_not_fetched(query, reason))
+            continue
+        skipped.append(_not_fetched(query, "over_cap" if calls >= max_calls else reason))
+
+    if free_adapter is not None and allowed:
+        free_queries = [
+            query
+            for query in allowed
+            if query.startswith(("http://", "https://")) or _can_search(free_adapter)
+        ]
+        paid_queries = [query for query in allowed if query not in free_queries]
+        result = run_research(policy, free_queries, adapter=free_adapter)
+    else:
+        paid_queries = list(allowed)
+        result = _empty_research()
+        result["enabled"] = True
+        result["offline"] = False
+        result["adapter"] = requested or "null"
+        result["research_ran"] = False
+
+    if provider is not None and paid_queries:
+        search = getattr(provider, "search", None)
+        observed = list(result.get("observed_claims") or [])
+        rejected = list(result.get("rejected") or [])
+        items = list(result.get("items") or [])
+        if callable(search):
+            for query in paid_queries:
+                try:
+                    rows = search(query)
+                except Exception:  # noqa: BLE001 — fail closed, invent nothing
+                    rejected.append({"reason": "search_failed", "url": None, "query": query})
+                    continue
+                if not isinstance(rows, list):
+                    rejected.append({"reason": "search_failed", "url": None, "query": query})
+                    continue
+                for row in rows:
+                    if not isinstance(row, dict):
+                        rejected.append({"reason": "not_an_object", "url": None})
+                        continue
+                    item = dict(row)
+                    item.setdefault("query", query)
+                    if "retrieved_at" not in item:
+                        item["retrieved_at"] = _today()
+                    items.append(_index_item(item))
+                    claim, reason = label_item(item)
+                    if claim is None:
+                        rejected.append({"reason": reason, "url": item.get("url"), "query": query})
+                        continue
+                    claim["claim_id"] = f"obs-{len(observed) + 1}"
+                    observed.append(claim)
+            result["observed_claims"] = observed
+            result["rejected"] = rejected
+            result["items"] = items
+            result["research_ran"] = True
+            result["adapter"] = str(getattr(provider, "name", "paid_search"))
+            result["enabled"] = True
+            result["offline"] = False
+
+    if skipped:
+        result["not_fetched"] = skipped
+        result["caps"] = {
+            "max_calls_per_idea": max_calls,
+            "dollar_cap_per_idea": dollar_cap,
+            "dollar_cap_per_run": ledger.run_cap,
+            "calls_used": calls,
+            "dollars_used": round(spent, 4),
+        }
+    return result
 
 
 def research_search_dag(

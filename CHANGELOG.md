@@ -5,6 +5,48 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.31.0] — 2026-10-01
+
+Round-4 bake-off fixes on v3.30.0. Honesty stays: no invented buyers,
+revenue, prices, or sources. Artifact schema stays **1.3.0**. New fields
+are optional. Older packets still validate. The build handoff is unchanged.
+
+### Fixed
+
+- A numeric note-scan flag reaches the main packet only when its operands
+  are re-parsed from the cited lines and the recomputed value still
+  disagrees. The false flag `Double of 64 is 128, not 512` (the notes mean
+  $256 × 2 = $512) is not stated as fact.
+- Other unconfirmed flags, including a credit compared across two price
+  tiers and a list price compared to a different series' floor, move to
+  `appendix.unverified_scanner_notes`. Each note is labeled not confirmed
+  and `NOT_COMPUTABLE`.
+- Money-table rows recompute. A mismatch is `notes say X, recomputed Y`.
+  The Alta notes say burn 35000 per month; rent at 10k sf × $5.50/sf/mo
+  recomputes to 55000. The Autogive Heavy per-tenant row says 636; the
+  seat, infra, and low token band recompute to 336.4.
+
+### Added
+
+- Optional capped research per idea (`scripts/research_mode.py`
+  `run_idea_research`). Free robots-aware fetch runs first. A paid search
+  provider is pluggable and off unless `NEON_GENIE_RESEARCH_PAID=1` and
+  `NEON_GENIE_SEARCH_API_KEY` is set, or a test injects the provider.
+  Defaults: 5 calls and $0.20 per idea, $1.00 per run. Over cap, or no
+  key, the query is skipped and marked `NOT_FETCHED`. OBSERVED claims
+  still require a URL and an America/Los_Angeles retrieval date. Tests
+  mock the provider. No source is invented.
+- Optional `cheapest_test`: one action, a numeric threshold, a binary
+  comparison, and a `check_date`. A multi-step list or a test without
+  that dated pass/fail fails (NG-TEST-001). Model: one prepaid pilot at
+  the floor price; kill if no one pays by the date.
+
+### Changed
+
+- VERSION **3.31.0**. Research user agent `neon-genie-research/3.31`.
+- What the round-4 judge could not score from these fixtures is marked
+  `NOT_COMPUTABLE` in the unverified appendix, not promoted to OBSERVED.
+
 ## [3.30.0] — 2026-10-01
 
 Round-3 bake-off fixes on v3.29.0. Honesty stays: no invented buyers,
