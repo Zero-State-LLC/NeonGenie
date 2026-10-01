@@ -13,8 +13,6 @@
   ],
   "off_main": [
     "Double of 64 is 128, not 512",
-    "331.5",
-    "The rationale for locked Option A agrees with Option B.",
-    "Computed 512 does not appear in a later total."
+    "331.5"
   ]
 }

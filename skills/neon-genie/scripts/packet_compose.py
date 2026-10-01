@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 import judge_eval
@@ -28,6 +29,11 @@ BAKEOFF_VERSION = "1.2.0"
 WORD_BUDGET = 450
 CHAR_BUDGET = 3200
 _RESEARCH_APPENDIX_LABEL = "Research (unreviewed, needs a person's review)"
+_RESEARCH_HOLD = "_research_unreviewed"
+_SOURCE_REVIEWED = "reviewed"
+_SOURCE_V329 = "v329"
+_SOURCE_SCANNER = "scanner"
+_REVIEWED_SOURCES = frozenset({_SOURCE_REVIEWED, _SOURCE_V329})
 
 _COMPARISONS = frozenset({"lt", "lte", "gt", "gte", "eq", "neq"})
 _LABELS = frozenset({"OBSERVED", "INFERRED", "SPECULATIVE", "NOT_COMPUTABLE"})
@@ -286,16 +292,24 @@ def _finding(
     summary: str,
     evidence: str,
     recompute: dict[str, Any] | None = None,
+    source: str = _SOURCE_SCANNER,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {
         "kind": kind,
         "summary": summary,
         "claim_label": "OBSERVED",
         "evidence": evidence.strip(),
+        "source": source,
     }
     if recompute is not None:
         row["recompute"] = recompute
     return row
+
+
+def _tag(rows: list[dict[str, Any]], source: str) -> list[dict[str, Any]]:
+    for row in rows:
+        row["source"] = source
+    return rows
 
 
 def _scan_equalities(text: str) -> list[dict[str, Any]]:
@@ -1357,24 +1371,54 @@ def _money_summary(summary: str) -> bool:
     return text.startswith("notes say ") and ", recomputed " in text
 
 
-def _reviewed_main(summary: str) -> bool:
-    """Main-page lines: named money recomputes and the reviewed contradictions.
+def _line_source(row: dict[str, Any]) -> str:
+    raw = row.get("source")
+    if not isinstance(raw, str) or not raw.strip():
+        raw = row.get("provenance")
+    return str(raw or "").strip()
 
-    The reviewed classes are a dual option lock, a monthly rate that is not
-    the yearly band, and an action that is both required and excluded.
+
+def _keep_main(row: dict[str, Any]) -> bool:
+    """Reviewed contradiction-pass lines stay. Unreviewed scanner lines do not.
+
+    Provenance is set where the line is created. A line with no provenance is
+    a packet written before that field (the v3.29 pass). Named money recomputes
+    stay either way.
     """
-    text = summary.strip()
-    if _money_summary(text):
+    source = _line_source(row)
+    if source == _SOURCE_SCANNER:
+        return False
+    if source in _REVIEWED_SOURCES or _money_summary(str(row.get("summary") or "")):
         return True
-    if text.startswith("Input notes lock both Option"):
-        return True
-    if "/sf/mo implies " in text and "/sf/yr" in text:
-        return True
-    if text.startswith("The action ") and " is both required and excluded." in text:
-        return True
-    if "ask_human" in text and "skip" in text:
-        return True
-    return False
+    return source == ""
+
+
+def _main_key(summary: str) -> str:
+    """Stable key for one main-page line. The same action conflict is one line."""
+    folded = " ".join(summary.split()).casefold()
+    match = re.search(
+        r"the action ([a-z0-9_]+) is both required and excluded",
+        folded,
+    )
+    if match:
+        return "action:" + match.group(1)
+    if "ask_human" in folded and "skip" in folded:
+        return "action:ask_human"
+    return folded
+
+
+def _dedupe_main(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[str] = set()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        key = _main_key(str(row.get("summary") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+    return out
 
 
 def _not_observed(row: dict[str, Any]) -> dict[str, Any]:
@@ -1386,42 +1430,105 @@ def _not_observed(row: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _park_unreviewed(
-    appendix: dict[str, Any],
-    *,
+def _research_key(bucket: str, row: dict[str, Any]) -> str:
+    if bucket == "search_hits":
+        return "hit:" + str(row.get("url") or row.get("text") or "")
+    if bucket == "reconcile":
+        return "jev:" + str(row.get("sentence") or row.get("verdict") or "")
+    return "note:" + " ".join(str(row.get("summary") or "").split())
+
+
+def _merge_research_rows(
+    bucket: str, *groups: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    seen: set[str] = set()
+    out: list[dict[str, Any]] = []
+    for group in groups:
+        for row in group:
+            if not isinstance(row, dict):
+                continue
+            cleaned = _not_observed(row)
+            key = _research_key(bucket, cleaned)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(cleaned)
+    return out
+
+
+def _research_doc(
     notes: list[dict[str, Any]],
     hits: list[dict[str, Any]],
     reconcile: list[dict[str, Any]],
-) -> None:
-    """Paid and automatic research. Not OBSERVED. Not on the main page."""
-    prior = appendix.get("research_unreviewed")
-    if not isinstance(prior, dict):
-        prior = {}
-
-    def rows(key: str, extra: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        kept = [
-            _not_observed(row)
-            for row in (prior.get(key) or [])
-            if isinstance(row, dict)
-        ]
-        kept.extend(_not_observed(row) for row in extra)
-        return kept
-
-    notes_out = rows("scanner_notes", notes)
-    hits_out = rows("search_hits", hits)
-    reconcile_out = rows("reconcile", reconcile)
-    if not notes_out and not hits_out and not reconcile_out:
-        return
-    appendix.pop("unverified_scanner_notes", None)
-    appendix.pop("search_hits_not_used", None)
-    appendix.pop("fact_reconcile", None)
-    appendix["research_unreviewed"] = {
+) -> dict[str, Any] | None:
+    if not notes and not hits and not reconcile:
+        return None
+    return {
         "label": _RESEARCH_APPENDIX_LABEL,
         "statement": "Unreviewed. Not labeled OBSERVED. Needs a person's review.",
-        "scanner_notes": notes_out,
-        "search_hits": hits_out,
-        "reconcile": reconcile_out,
+        "scanner_notes": notes,
+        "search_hits": hits,
+        "reconcile": reconcile,
     }
+
+
+def unreviewed_research(packet: dict[str, Any]) -> dict[str, Any] | None:
+    """In-memory research body. `write_packet` moves it to the sidecar file."""
+    doc = packet.get(_RESEARCH_HOLD)
+    return doc if isinstance(doc, dict) else None
+
+
+def render_research_markdown(doc: dict[str, Any]) -> str:
+    """Sidecar next to the packet. Nothing in it is labeled OBSERVED."""
+    lines = [
+        f"# {_RESEARCH_APPENDIX_LABEL}",
+        "",
+        str(doc.get("statement") or "Unreviewed. Not labeled OBSERVED. Needs a person's review."),
+        "",
+    ]
+
+    def section(title: str, rows: list[dict[str, Any]]) -> None:
+        lines.append(f"## {title}")
+        lines.append("")
+        if not rows:
+            lines.append("(none)")
+            lines.append("")
+            return
+        for row in rows:
+            summary = str(row.get("summary") or row.get("sentence") or row.get("text") or "").strip()
+            url = str(row.get("url") or "").strip()
+            if url and summary:
+                lines.append(f"- {url}")
+                lines.append(f"  {summary}")
+            elif url:
+                lines.append(f"- {url}")
+            elif summary:
+                lines.append(f"- {summary}")
+        lines.append("")
+
+    section("Scanner notes", list(doc.get("scanner_notes") or []))
+    section("Search hits", list(doc.get("search_hits") or []))
+    section("Reconcile", list(doc.get("reconcile") or []))
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def research_sidecar_path(packet_path: Path) -> Path:
+    return Path(str(packet_path) + ".research.md")
+
+
+def write_packet(path: Path, packet: dict[str, Any]) -> dict[str, Any]:
+    """Write the packet JSON. Research body goes to `<packet>.research.md`."""
+    out = dict(packet)
+    doc = out.pop(_RESEARCH_HOLD, None)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if isinstance(doc, dict) and (
+        doc.get("scanner_notes") or doc.get("search_hits") or doc.get("reconcile")
+    ):
+        side = research_sidecar_path(path)
+        side.write_text(render_research_markdown(doc), encoding="utf-8")
+        out["research_sidecar"] = side.name
+    path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    return out
 
 
 def _stated_amount(row: dict[str, Any]) -> float | None:
@@ -1731,6 +1838,7 @@ def _as_unverified(row: dict[str, Any]) -> dict[str, Any]:
         "summary": summary,
         "claim_label": "NOT_COMPUTABLE",
         "status": "unverified",
+        "source": _SOURCE_SCANNER,
         "evidence": str(row.get("evidence") or "").strip(),
     }
 
@@ -1743,6 +1851,52 @@ def _public_finding(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _scan_paid_funnel(text: str) -> list[dict[str, Any]]:
+    """A ban on upsells next to a free surface that is also the paid path."""
+    ban = re.search(
+        r"not allowed\b[^.\n]{0,180}\bupsells?\b"
+        r"|\bupsells?\b[^.\n]{0,80}\bnot allowed\b"
+        r"|\bno paid\b[^.\n]{0,80}\bupsells?\b",
+        text,
+        re.IGNORECASE,
+    )
+    funnel = re.search(
+        r"\bfree\b[^.\n]{0,48}\bfunnel\b.{0,80}?\bpaid\b",
+        text,
+        re.IGNORECASE,
+    )
+    if not ban or not funnel:
+        return []
+    return [
+        _finding(
+            "contradiction",
+            "Notes ban upsells and also propose a paid funnel from the free surface.",
+            f"{ban.group(0).strip()} {funnel.group(0).strip()}",
+            source=_SOURCE_REVIEWED,
+        )
+    ]
+
+
+def _scan_surface_runtime(text: str) -> list[dict[str, Any]]:
+    """One build for every named surface, and a single required runtime."""
+    serves = re.search(
+        r"one build serves all\s+(two|three|four|five|\d+)",
+        text,
+        re.IGNORECASE,
+    )
+    runtime = re.search(r"must run on\b[^.\n]{0,80}", text, re.IGNORECASE)
+    if not serves or not runtime:
+        return []
+    return [
+        _finding(
+            "contradiction",
+            "Notes say one build serves every listed surface and also require one runtime.",
+            f"{serves.group(0).strip()} {runtime.group(0).strip()}",
+            source=_SOURCE_REVIEWED,
+        )
+    ]
+
+
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
     """Mandatory pass. Empty findings are valid. Skipping the pass is not.
 
@@ -1752,31 +1906,39 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     """
     text = notes if isinstance(notes, str) else ""
     raw: list[dict[str, Any]] = []
-    raw.extend(_scan_equalities(text))
-    raw.extend(_scan_sums(text))
-    raw.extend(_scan_percent_of(text))
-    raw.extend(_scan_unit_totals(text))
-    raw.extend(_scan_fee_totals(text))
-    raw.extend(_scan_seat_sentences(text))
-    raw.extend(_scan_included_at_n(text))
-    raw.extend(_scan_per_unit_floors(text))
-    raw.extend(_scan_tables(text))
-    raw.extend(_scan_count_series(text))
-    raw.extend(_scan_price_below_floor(text))
-    raw.extend(_scan_doubled_unused(text))
-    raw.extend(_scan_money_tables(text))
-    raw.extend(_scan_option_locks(text))
-    raw.extend(_scan_option_overlap(text))
-    raw.extend(_scan_option_polarity(text))
-    raw.extend(_scan_period_mismatch(text))
-    raw.extend(_scan_credit_periods(text))
-    raw.extend(_scan_repeated_labels(text))
-    raw.extend(_scan_verification_clash(text))
-    raw.extend(_scan_label_clash(text))
-    raw.extend(_scan_label_scope(text))
-    raw.extend(_scan_directive_clash(text))
-    raw.extend(_scan_count_clash(text))
-    raw.extend(_scan_date_order(text))
+    for fn in (
+        _scan_option_locks,
+        _scan_option_overlap,
+        _scan_option_polarity,
+        _scan_period_mismatch,
+        _scan_directive_clash,
+        _scan_label_clash,
+        _scan_label_scope,
+        _scan_verification_clash,
+        _scan_doubled_unused,
+        _scan_money_tables,
+        _scan_paid_funnel,
+        _scan_surface_runtime,
+    ):
+        raw.extend(_tag(fn(text), _SOURCE_REVIEWED))
+    for fn in (
+        _scan_equalities,
+        _scan_sums,
+        _scan_percent_of,
+        _scan_unit_totals,
+        _scan_fee_totals,
+        _scan_seat_sentences,
+        _scan_included_at_n,
+        _scan_per_unit_floors,
+        _scan_tables,
+        _scan_count_series,
+        _scan_price_below_floor,
+        _scan_credit_periods,
+        _scan_repeated_labels,
+        _scan_count_clash,
+        _scan_date_order,
+    ):
+        raw.extend(_tag(fn(text), _SOURCE_SCANNER))
     kept_main: list[dict[str, Any]] = []
     kept_unverified: list[dict[str, Any]] = []
     for row in raw:
@@ -1788,6 +1950,7 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
         else:
             kept_main.append(row)
     kept_main, kept_unverified = _drop_same_quantity(kept_main, kept_unverified)
+    kept_main = _dedupe_main(kept_main)
     verified = [_public_finding(row) for row in kept_main]
     unverified = [_as_unverified(row) for row in kept_unverified]
     findings = []
@@ -1946,7 +2109,7 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
         for finding in contradictions.get("findings") or []:
             if not isinstance(finding, dict):
                 continue
-            if not _reviewed_main(str(finding.get("summary") or "")):
+            if not _keep_main(finding):
                 relocated.append(_as_unverified(finding))
                 continue
             evidence = finding.get("evidence")
@@ -1964,7 +2127,7 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
                 )
             else:
                 slim_findings.append(dict(finding))
-        contradictions["findings"] = slim_findings
+        contradictions["findings"] = _dedupe_main(slim_findings)
         relocated.extend(
             dict(row)
             for row in (contradictions.get("unverified_notes") or [])
@@ -1988,12 +2151,41 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
                 for row in (reconcile.get("items") or [])
                 if isinstance(row, dict)
             ]
-    _park_unreviewed(
-        appendix,
-        notes=relocated,
-        hits=hits,
-        reconcile=reconcile_rows,
+    prior_doc = out.get(_RESEARCH_HOLD) if isinstance(out.get(_RESEARCH_HOLD), dict) else {}
+    old_doc = appendix.get("research_unreviewed")
+    if not isinstance(old_doc, dict):
+        old_doc = {}
+    notes_out = _merge_research_rows(
+        "scanner_notes",
+        list(prior_doc.get("scanner_notes") or []),
+        list(old_doc.get("scanner_notes") or []),
+        relocated,
     )
+    hits_out = _merge_research_rows(
+        "search_hits",
+        list(prior_doc.get("search_hits") or []),
+        list(old_doc.get("search_hits") or []),
+        hits,
+    )
+    reconcile_out = _merge_research_rows(
+        "reconcile",
+        list(prior_doc.get("reconcile") or []),
+        list(old_doc.get("reconcile") or []),
+        reconcile_rows,
+    )
+    appendix.pop("research_unreviewed", None)
+    appendix.pop("unverified_scanner_notes", None)
+    appendix.pop("search_hits_not_used", None)
+    appendix.pop("fact_reconcile", None)
+    research.pop("unverified_hits", None)
+    research.pop("reconcile", None)
+    out["research"] = research
+    doc = _research_doc(notes_out, hits_out, reconcile_out)
+    if doc is not None:
+        out[_RESEARCH_HOLD] = doc
+        out["research_sidecar"] = "<packet>.research.md"
+    else:
+        out.pop(_RESEARCH_HOLD, None)
 
     appendix["research_claims"] = appendix_claims
     appendix["contradiction_evidence"] = evidence_rows
@@ -2762,7 +2954,7 @@ def seat_option_example_packet() -> dict[str, Any]:
         "failure_modes": "invented buyer, invented price, or a truncated finding",
         "jtbd": "see the contradictions before deciding",
     }
-    return attach_v12(
+    packet = attach_v12(
         base,
         notes=SEAT_OPTION_NOTES,
         research_policy={
@@ -2806,6 +2998,8 @@ def seat_option_example_packet() -> dict[str, Any]:
             }
         ],
     )
+    packet.pop(_RESEARCH_HOLD, None)
+    return packet
 
 
 def attach_offline(

@@ -30,7 +30,7 @@ import privacy_preflight
 # Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
 # (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
 MAX_BODY_BYTES = 2 * 1024 * 1024
-RESEARCH_UA = "neon-genie-research/3.34"
+RESEARCH_UA = "neon-genie-research/3.35"
 MIN_SEARCH_WORDS = 20
 DEFAULT_MAX_CALLS_PER_IDEA = 5
 DEFAULT_DOLLAR_CAP_PER_IDEA = 0.20
