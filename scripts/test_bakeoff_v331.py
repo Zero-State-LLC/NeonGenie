@@ -220,6 +220,7 @@ class _Provider:
 def _quiet_env() -> None:
     os.environ.pop(research_mode.PAID_KEY_ENV, None)
     os.environ.pop(research_mode.PAID_FLAG_ENV, None)
+    os.environ.pop(research_mode.FIRECRAWL_KEY_ENV, None)
 
 
 def test_capped_research_is_offline_safe() -> None:

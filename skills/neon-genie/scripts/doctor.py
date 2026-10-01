@@ -145,6 +145,7 @@ def main() -> int:
         "test_bakeoff_round2.py",
         "test_bakeoff_v330.py",
         "test_bakeoff_v331.py",
+        "test_firecrawl_research.py",
     ):
         bakeoff_test = SCRIPT_DIR / test_name
         if bakeoff_test.is_file():

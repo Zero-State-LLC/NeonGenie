@@ -20,18 +20,20 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Protocol
 from zoneinfo import ZoneInfo
 
+import firecrawl_client
 import privacy_preflight
 
 # Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
 # (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
 MAX_BODY_BYTES = 2 * 1024 * 1024
-RESEARCH_UA = "neon-genie-research/3.31"
+RESEARCH_UA = "neon-genie-research/3.32"
 DEFAULT_MAX_CALLS_PER_IDEA = 5
 DEFAULT_DOLLAR_CAP_PER_IDEA = 0.20
 DEFAULT_DOLLAR_CAP_PER_RUN = 1.00
 DEFAULT_PAID_PRICE = 0.08
 PAID_KEY_ENV = "NEON_GENIE_SEARCH_API_KEY"
 PAID_FLAG_ENV = "NEON_GENIE_RESEARCH_PAID"
+FIRECRAWL_KEY_ENV = firecrawl_client.FIRECRAWL_KEY_ENV
 _LA = ZoneInfo("America/Los_Angeles")
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _KINDS = frozenset({"web_page", "paper", "social_post"})
@@ -456,17 +458,71 @@ class ResearchLedger:
     def commit(self, price: float) -> None:
         self.spent += float(price)
 
+    def release(self, price: float) -> None:
+        self.spent = max(0.0, self.spent - float(price))
+
+
+def _firecrawl_key() -> str:
+    return os.environ.get(FIRECRAWL_KEY_ENV, "").strip()
+
 
 def _paid_ready(policy: dict[str, Any]) -> tuple[bool, str]:
-    """Paid search stays off unless a flag is set and a key or injected provider exists."""
+    """Paid search stays off unless the flag is on and Firecrawl or a test provider is set.
+
+    ``NEON_GENIE_SEARCH_API_KEY`` alone does not enable a provider. Firecrawl
+    runs only when ``FIRECRAWL_API_KEY`` is set as well as the flag.
+    """
     flagged = policy.get("allow_paid") is True or os.environ.get(PAID_FLAG_ENV) == "1"
     if not flagged:
         return False, "paid_off"
     if policy.get("search_provider") is not None:
         return True, ""
-    if not os.environ.get(PAID_KEY_ENV, "").strip():
-        return False, "no_key"
+    if _firecrawl_key():
+        return True, ""
     return False, "no_key"
+
+
+def _positive_float(value: Any, default: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return default
+    if number <= 0:
+        return default
+    return number
+
+
+def build_firecrawl_provider(policy: dict[str, Any]) -> firecrawl_client.FirecrawlClient:
+    """Build the bundled client from the env key. Tests pass ``firecrawl_transport``."""
+    scrape = policy.get("firecrawl_scrape")
+    if scrape is None:
+        scrape = os.environ.get(firecrawl_client.SCRAPE_FLAG_ENV) == "1"
+    if "firecrawl_dollars_per_credit" in policy:
+        rate = policy.get("firecrawl_dollars_per_credit")
+    else:
+        rate = os.environ.get(firecrawl_client.DOLLARS_PER_CREDIT_ENV, "").strip() or None
+    if rate in (None, ""):
+        dollars = firecrawl_client.DOLLARS_PER_CREDIT
+    else:
+        dollars = _positive_float(rate, firecrawl_client.DOLLARS_PER_CREDIT)
+    try:
+        limit = int(policy.get("firecrawl_limit", firecrawl_client.DEFAULT_LIMIT))
+    except (TypeError, ValueError):
+        limit = firecrawl_client.DEFAULT_LIMIT
+    sleep = policy.get("firecrawl_sleep")
+    return firecrawl_client.FirecrawlClient(
+        api_key=_firecrawl_key(),
+        base_url=str(policy.get("firecrawl_base_url") or firecrawl_client.DEFAULT_API_BASE),
+        scrape=bool(scrape),
+        limit=int(limit),
+        dollars_per_credit=dollars,
+        transport=policy.get("firecrawl_transport"),
+        sleep=sleep if callable(sleep) else None,
+        user_agent=RESEARCH_UA,
+        timeout=_positive_float(
+            policy.get("firecrawl_timeout"), firecrawl_client.DEFAULT_TIMEOUT_S
+        ),
+    )
 
 
 def _can_search(adapter: ResearchAdapter) -> bool:
@@ -485,11 +541,12 @@ def run_idea_research(
 ) -> dict[str, Any]:
     """Capped research for one idea.
 
-    Free fetches run first. A paid search provider is pluggable and stays off
-    unless ``NEON_GENIE_RESEARCH_PAID=1`` (or ``allow_paid``) and a key or an
-    injected provider is present. Over the call cap, the per-idea dollar cap,
-    or the run cap, remaining queries are ``NOT_FETCHED``. No URL is invented.
-    Offline and disabled runs do not call an adapter.
+    Free fetches run first. Firecrawl search runs only when
+    ``NEON_GENIE_RESEARCH_PAID=1`` (or ``allow_paid``) and ``FIRECRAWL_API_KEY``
+    are both set, or a test injects ``search_provider``. Over the call cap,
+    the per-idea dollar cap, or the run cap, the query is ``NOT_FETCHED`` and
+    the provider is not called. No URL is invented. Offline and disabled runs
+    do not call an adapter.
     """
     policy = dict(policy or {})
     queries = [q for q in (queries or []) if isinstance(q, str)]
@@ -503,7 +560,6 @@ def run_idea_research(
     run_cap = float(policy.get("dollar_cap_per_run") or DEFAULT_DOLLAR_CAP_PER_RUN)
     if ledger is None:
         ledger = ResearchLedger(run_cap)
-    paid_price = float(policy.get("paid_price_per_call") or DEFAULT_PAID_PRICE)
 
     requested = str(policy.get("adapter") or "null").strip().lower()
     options = policy.get("adapter_options")
@@ -526,6 +582,17 @@ def run_idea_research(
     spent = 0.0
     paid_ok, paid_reason = _paid_ready(policy)
     provider = policy.get("search_provider") if paid_ok else None
+    if provider is None and paid_ok and _firecrawl_key():
+        try:
+            provider = build_firecrawl_provider(policy)
+        except firecrawl_client.FirecrawlError as exc:
+            provider = None
+            paid_reason = exc.reason
+    if "paid_price_per_call" in policy:
+        paid_price = float(policy["paid_price_per_call"])
+    else:
+        quoted = getattr(provider, "price_per_call", None) if provider is not None else None
+        paid_price = float(quoted) if isinstance(quoted, (int, float)) and float(quoted) > 0 else DEFAULT_PAID_PRICE
 
     def room(price: float) -> bool:
         if calls >= max_calls:
@@ -547,7 +614,7 @@ def run_idea_research(
             spent += price
             ledger.commit(price)
             continue
-        reason = paid_reason if paid_reason in {"no_key", "paid_off"} else "no_key"
+        reason = paid_reason or "no_key"
         if not is_url:
             skipped.append(_not_fetched(query, reason))
             continue
@@ -576,13 +643,30 @@ def run_idea_research(
         items = list(result.get("items") or [])
         if callable(search):
             for query in paid_queries:
+                if spent > dollar_cap + 1e-9 or ledger.spent > ledger.run_cap + 1e-9:
+                    spent -= paid_price
+                    ledger.release(paid_price)
+                    calls -= 1
+                    skipped.append(_not_fetched(query, "over_cap"))
+                    continue
                 try:
                     rows = search(query)
+                except firecrawl_client.FirecrawlError as exc:
+                    skipped.append(_not_fetched(query, exc.reason))
+                    continue
                 except Exception:  # noqa: BLE001 — fail closed, invent nothing
                     rejected.append({"reason": "search_failed", "url": None, "query": query})
                     continue
                 if not isinstance(rows, list):
                     rejected.append({"reason": "search_failed", "url": None, "query": query})
+                    continue
+                actual = getattr(provider, "last_price", None)
+                if isinstance(actual, (int, float)) and float(actual) > paid_price:
+                    extra = float(actual) - paid_price
+                    spent += extra
+                    ledger.commit(extra)
+                if not rows and getattr(provider, "name", "") == "firecrawl":
+                    skipped.append(_not_fetched(query, "empty"))
                     continue
                 for row in rows:
                     if not isinstance(row, dict):
@@ -609,13 +693,20 @@ def run_idea_research(
 
     if skipped:
         result["not_fetched"] = skipped
-        result["caps"] = {
+        caps: dict[str, Any] = {
             "max_calls_per_idea": max_calls,
             "dollar_cap_per_idea": dollar_cap,
             "dollar_cap_per_run": ledger.run_cap,
             "calls_used": calls,
             "dollars_used": round(spent, 4),
         }
+        credits = getattr(provider, "credits_per_call", None) if provider is not None else None
+        rate = getattr(provider, "dollars_per_credit", None) if provider is not None else None
+        if isinstance(credits, int) and isinstance(rate, (int, float)):
+            caps["credits_per_call"] = credits
+            caps["dollars_per_credit"] = rate
+            caps["paid_price_per_call"] = round(paid_price, 6)
+        result["caps"] = caps
     return result
 
 
