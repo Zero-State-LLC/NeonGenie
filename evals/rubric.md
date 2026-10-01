@@ -55,3 +55,9 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `page-budget-no-truncation.json` | Over-budget thesis fails and is not sliced |
 | `dual-judge-blind.json` | Two fixture judges, neutral criteria, A/B swap, no model call |
 | `paid-judge-rejected.json` | Paid/network judge kinds are rejected |
+| `tie-breaker-judge.json` | Third fixture judge runs only when the first two disagree |
+| `kill-recompute-mismatch.json` | Schema 1.3.0 threshold must equal the recomputed inputs |
+| `kill-recompute-missing.json` | Missing fee or tier inputs fail closed |
+| `observed-placeholder-date.json` | Placeholder OBSERVED dates fail |
+| `observed-quote-polarity.json` | A quote that only covers the opposite polarity fails |
+| `robots-disallow.json` | robots.txt Disallow is honored without a network call |

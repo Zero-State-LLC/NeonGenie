@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Score packets with two or more independent judges.
+"""Score packets with two independent judges and an optional tie-breaker.
 
 Neutral criteria sit beside Neon Genie's own criteria. Order is shuffled and
-pairwise choices run in both A/B directions. This module does not call a
-model or the network. CI uses fixture judges only.
+pairwise choices run in both A/B directions. A third judge runs only when the
+first two disagree on the pairwise winner. This module does not call a model
+or the network. CI uses fixture judges only.
 """
 
 from __future__ import annotations
@@ -141,17 +142,64 @@ def _preferred_id(choice: str, left_id: str, right_id: str) -> str:
     raise JudgeRejected("NG-JUDGE-003: prefer must return left or right")
 
 
+def _pairwise_row(
+    judge: Judge, left: dict[str, str], right: dict[str, str], *, tie_breaker: bool
+) -> dict[str, Any]:
+    prefer_ab = judge.prefer(left["body"], right["body"])
+    prefer_ba = judge.prefer(right["body"], left["body"])
+    return {
+        "judge": judge.name,
+        "tie_breaker": tie_breaker,
+        "order_ab": {
+            "left": left["blind_id"],
+            "right": right["blind_id"],
+            "prefer": prefer_ab,
+            "preferred_blind_id": _preferred_id(
+                prefer_ab, left["blind_id"], right["blind_id"]
+            ),
+        },
+        "order_ba": {
+            "left": right["blind_id"],
+            "right": left["blind_id"],
+            "prefer": prefer_ba,
+            "preferred_blind_id": _preferred_id(
+                prefer_ba, right["blind_id"], left["blind_id"]
+            ),
+        },
+    }
+
+
+def _stable_source(pair: dict[str, Any], source_by_blind: dict[str, str]) -> str | None:
+    winners: set[str] = set()
+    for order_name in ("order_ab", "order_ba"):
+        blind_id = (pair.get(order_name) or {}).get("preferred_blind_id")
+        if blind_id not in source_by_blind:
+            return None
+        winners.add(source_by_blind[blind_id])
+    if len(winners) == 1:
+        return next(iter(winners))
+    return None
+
+
 def run_panel(
     packets: list[dict[str, Any]],
     judges: list[Judge],
     *,
     seed: int,
     criteria: tuple[str, ...] = ALL_CRITERIA,
+    tie_breaker: Judge | None = None,
 ) -> dict[str, Any]:
-    """Score independently, then pairwise in both orders. No model call."""
+    """Score independently, then pairwise in both orders. No model call.
+
+    ``tie_breaker`` is asked only when the first two judges do not name the
+    same pairwise winner. It is not one of the scoring judges.
+    """
     if len(judges) < 2:
         raise JudgeRejected("NG-JUDGE-004: panel needs two independent judges")
-    if len({judge.name for judge in judges}) != len(judges):
+    names = [judge.name for judge in judges]
+    if tie_breaker is not None:
+        names.append(tie_breaker.name)
+    if len(set(names)) != len(names):
         raise JudgeRejected("NG-JUDGE-004: judge names must be distinct")
     blinded = _blind_packets(packets, seed)
     scores: list[dict[str, Any]] = []
@@ -165,59 +213,56 @@ def run_panel(
                 }
             )
     pairwise: list[dict[str, Any]] = []
+    source_by_blind = {row["blind_id"]: row["source_id"] for row in blinded}
+    disagreement = False
+    tie_breaker_invoked = False
     if len(blinded) >= 2:
         left, right = blinded[0], blinded[1]
-        for judge in judges:
-            prefer_ab = judge.prefer(left["body"], right["body"])
-            prefer_ba = judge.prefer(right["body"], left["body"])
-            pairwise.append(
-                {
-                    "judge": judge.name,
-                    "order_ab": {
-                        "left": left["blind_id"],
-                        "right": right["blind_id"],
-                        "prefer": prefer_ab,
-                        "preferred_blind_id": _preferred_id(
-                            prefer_ab, left["blind_id"], right["blind_id"]
-                        ),
-                    },
-                    "order_ba": {
-                        "left": right["blind_id"],
-                        "right": left["blind_id"],
-                        "prefer": prefer_ba,
-                        "preferred_blind_id": _preferred_id(
-                            prefer_ba, right["blind_id"], left["blind_id"]
-                        ),
-                    },
-                }
-            )
+        for judge in judges[:2]:
+            pairwise.append(_pairwise_row(judge, left, right, tie_breaker=False))
+        primary_winners = {
+            _stable_source(pair, source_by_blind) for pair in pairwise
+        }
+        disagreement = None in primary_winners or len(primary_winners) != 1
+        if disagreement and tie_breaker is not None:
+            tie_breaker_invoked = True
+            pairwise.append(_pairwise_row(tie_breaker, left, right, tie_breaker=True))
     return {
         "model_invoked": False,
         "judge_count": len(judges),
         "criteria": list(criteria),
         "neutral_criteria": list(NEUTRAL_CRITERIA),
         "blind_order": [row["blind_id"] for row in blinded],
-        "source_by_blind": {row["blind_id"]: row["source_id"] for row in blinded},
+        "source_by_blind": source_by_blind,
         "scores": scores,
         "pairwise": pairwise,
         "debranded_bodies": {row["blind_id"]: row["body"] for row in blinded},
+        "disagreement": disagreement,
+        "tie_breaker_invoked": tie_breaker_invoked,
     }
 
 
 def agreed_source(result: dict[str, Any]) -> str | None:
-    """Source id when every swapped pairwise choice names the same packet."""
+    """Source id when the decisive pairwise choices name the same packet.
+
+    When the first two judges disagree, only the tie-breaker's two orders count.
+    """
     source_by_blind = result.get("source_by_blind") or {}
-    winners: set[str] = set()
     pairs = result.get("pairwise") or []
     if not pairs:
         return None
-    for pair in pairs:
-        for order_name in ("order_ab", "order_ba"):
-            order = pair.get(order_name) or {}
-            blind_id = order.get("preferred_blind_id")
-            if blind_id not in source_by_blind:
-                return None
-            winners.add(source_by_blind[blind_id])
+    if result.get("disagreement"):
+        decisive = [pair for pair in pairs if pair.get("tie_breaker")]
+        if not decisive:
+            return None
+    else:
+        decisive = [pair for pair in pairs if not pair.get("tie_breaker")]
+    winners: set[str] = set()
+    for pair in decisive:
+        chosen = _stable_source(pair, source_by_blind)
+        if chosen is None:
+            return None
+        winners.add(chosen)
     if len(winners) == 1:
         return next(iter(winners))
     return None

@@ -1,0 +1,22 @@
+{
+  "input": {
+    "packet_type": "opportunity",
+    "code": "NG-LABEL-002",
+    "packet": {
+      "schema_version": "1.1.0",
+      "claims": [
+        {
+          "label": "OBSERVED",
+          "text": "The notes record 3 negative test cases.",
+          "quote": "The notes record 3 positive test cases that passed.",
+          "retrieved_at": "2026-10-01"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "LABEL",
+    "code": "NG-LABEL-002"
+  }
+}

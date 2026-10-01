@@ -1,0 +1,78 @@
+{
+  "input": {
+    "seed": 7,
+    "expect_winner": "left-arm",
+    "expect_tie_breaker": true,
+    "packets": [
+      {
+        "id": "left-arm",
+        "body": "The buyer is NOT_COMPUTABLE and no price is set."
+      },
+      {
+        "id": "right-arm",
+        "body": "An illustrative hosted tier is proposed."
+      }
+    ],
+    "judges": [
+      {
+        "kind": "fixture",
+        "name": "judge-one",
+        "winner_excerpt": "NOT_COMPUTABLE",
+        "rows": [],
+        "default_scores": {
+          "founder_usefulness": 1.5,
+          "correctness": 1.5,
+          "actionability": 1.5,
+          "labeled_claims": 1.5,
+          "no_invented_buyers_or_prices": 1.5,
+          "kill_criteria_testable": 1.5,
+          "cheapest_falsifying_test": 1.5,
+          "build_handoff": 1.5,
+          "evidence_from_sources": 1.5
+        }
+      },
+      {
+        "kind": "fixture",
+        "name": "judge-two",
+        "winner_excerpt": "hosted tier",
+        "rows": [],
+        "default_scores": {
+          "founder_usefulness": 1.2,
+          "correctness": 1.2,
+          "actionability": 1.2,
+          "labeled_claims": 1.2,
+          "no_invented_buyers_or_prices": 1.2,
+          "kill_criteria_testable": 1.2,
+          "cheapest_falsifying_test": 1.2,
+          "build_handoff": 1.2,
+          "evidence_from_sources": 1.2
+        }
+      }
+    ],
+    "tie_breaker": {
+      "kind": "fixture",
+      "name": "judge-three",
+      "winner_excerpt": "NOT_COMPUTABLE",
+      "rows": [],
+      "default_scores": {
+        "founder_usefulness": 1.0,
+        "correctness": 1.0,
+        "actionability": 1.0,
+        "labeled_claims": 1.0,
+        "no_invented_buyers_or_prices": 1.0,
+        "kill_criteria_testable": 1.0,
+        "cheapest_falsifying_test": 1.0,
+        "build_handoff": 1.0,
+        "evidence_from_sources": 1.0
+      }
+    }
+  },
+  "expected": {
+    "status": "PASS",
+    "judge_count": 2,
+    "model_invoked": false,
+    "tie_breaker_invoked": true,
+    "agreed_winner": "left-arm",
+    "gate": "JUDGE"
+  }
+}

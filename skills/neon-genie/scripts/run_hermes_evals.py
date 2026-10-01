@@ -596,10 +596,13 @@ def eval_page_budget(inp: dict[str, Any]) -> dict[str, Any]:
 
 def eval_dual_judge(inp: dict[str, Any]) -> dict[str, Any]:
     judges = [judge_eval.load_judge(spec) for spec in (inp.get("judges") or [])]
+    tie = inp.get("tie_breaker")
+    tie_breaker = judge_eval.load_judge(tie) if isinstance(tie, dict) else None
     result = judge_eval.run_panel(
         inp.get("packets") or [],
         judges,
         seed=int(inp.get("seed") or 0),
+        tie_breaker=tie_breaker,
     )
     neutral = all(name in result["criteria"] for name in judge_eval.NEUTRAL_CRITERIA)
     swapped = bool(result["pairwise"]) and all(
@@ -612,6 +615,7 @@ def eval_dual_judge(inp: dict[str, Any]) -> dict[str, Any]:
         and neutral
         and swapped
         and winner == inp.get("expect_winner")
+        and result["tie_breaker_invoked"] is bool(inp.get("expect_tie_breaker"))
     )
     return {
         "status": "PASS" if ok else "FAIL",
@@ -620,7 +624,49 @@ def eval_dual_judge(inp: dict[str, Any]) -> dict[str, Any]:
         "neutral_criteria": neutral,
         "ab_swap": swapped,
         "agreed_winner": winner,
+        "tie_breaker_invoked": result["tie_breaker_invoked"],
         "gate": "JUDGE",
+    }
+
+
+def eval_kill_recompute(inp: dict[str, Any]) -> dict[str, Any]:
+    errors = packet_compose.packaging_errors(
+        inp.get("packet") or {}, inp.get("packet_type") or "opportunity"
+    )
+    code = str(inp.get("code") or "")
+    hit = any(line.startswith(code) for line in errors)
+    return {
+        "status": "GATE_FAIL" if hit else "PASS",
+        "gate": "KILL",
+        "code": code if hit else "",
+    }
+
+
+def eval_quote_support(inp: dict[str, Any]) -> dict[str, Any]:
+    errors = packet_compose.packaging_errors(
+        inp.get("packet") or {}, inp.get("packet_type") or "opportunity"
+    )
+    code = str(inp.get("code") or "NG-LABEL-002")
+    hit = any(line.startswith(code) for line in errors)
+    return {
+        "status": "GATE_FAIL" if hit else "PASS",
+        "gate": "LABEL",
+        "code": code if hit else "",
+    }
+
+
+def eval_robots_rule(inp: dict[str, Any]) -> dict[str, Any]:
+    allowed = research_mode.robots_allows(
+        str(inp.get("robots") or ""),
+        str(inp.get("user_agent") or research_mode.RESEARCH_UA),
+        str(inp.get("path") or "/"),
+    )
+    ok = allowed is bool(inp.get("expect_allowed"))
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "allowed": allowed,
+        "gate": "RESEARCH",
+        "model_invoked": False,
     }
 
 
@@ -694,6 +740,12 @@ EVALUATORS: dict[str, EvalFn] = {
     "page-budget-no-truncation.json": eval_page_budget,
     "dual-judge-blind.json": eval_dual_judge,
     "paid-judge-rejected.json": eval_paid_judge_rejected,
+    "tie-breaker-judge.json": eval_dual_judge,
+    "kill-recompute-mismatch.json": eval_kill_recompute,
+    "kill-recompute-missing.json": eval_kill_recompute,
+    "observed-placeholder-date.json": eval_quote_support,
+    "observed-quote-polarity.json": eval_quote_support,
+    "robots-disallow.json": eval_robots_rule,
 }
 
 

@@ -12,6 +12,7 @@ date, and a complete source body. No source means no OBSERVED label.
 from __future__ import annotations
 
 import re
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Callable, Protocol
@@ -19,8 +20,19 @@ from typing import Any, Callable, Protocol
 import privacy_preflight
 
 MAX_BODY_BYTES = 65536
+RESEARCH_UA = "neon-genie-research/3.29"
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _KINDS = frozenset({"web_page", "paper", "social_post"})
+_PAID_ADAPTERS = frozenset(
+    {"paid", "openrouter", "anthropic", "openai", "serper", "tavily"}
+)
+_PLACEHOLDER_DATES = frozenset(
+    {"0000-00-00", "0001-01-01", "1900-01-01", "1970-01-01", "9999-12-31"}
+)
+_PLACEHOLDER_WORD = re.compile(
+    r"\b(placeholder|tbd|todo|unspecified|unknown)\b",
+    re.IGNORECASE,
+)
 
 
 class ResearchAdapter(Protocol):
@@ -90,7 +102,7 @@ def fetch_url(url: str, opener: Callable[..., Any] | None = None) -> dict[str, A
         req = urllib.request.Request(
             url,
             method="GET",
-            headers={"User-Agent": "neon-genie-research/3.28"},
+            headers={"User-Agent": RESEARCH_UA},
         )
         with open_fn(req, timeout=10) as resp:
             raw = resp.read(MAX_BODY_BYTES + 1)
@@ -154,7 +166,148 @@ def get_adapter(name: str, **opts: Any) -> ResearchAdapter:
         return FixtureAdapter(items if isinstance(items, list) else [])
     if key == "stdlib_http":
         return StdlibHttpAdapter(opener=opts.get("opener"))
+    if key in {"robots_http", "robots", "free_http"}:
+        return RobotsHttpAdapter(
+            opener=opts.get("opener"),
+            user_agent=str(opts.get("user_agent") or RESEARCH_UA),
+        )
+    if key in _PAID_ADAPTERS:
+        raise KeyError("paid research adapter is opt-in and not bundled")
     raise KeyError(f"unknown research adapter: {name}")
+
+
+def robots_allows(body: str, user_agent: str, path: str) -> bool:
+    """Honor Allow/Disallow. An empty body allows. The longest matching rule wins."""
+    if body == "":
+        return True
+    groups: list[tuple[list[str], list[tuple[str, str]]]] = []
+    agents: list[str] = []
+    rules: list[tuple[str, str]] = []
+
+    def flush() -> None:
+        nonlocal agents, rules
+        if agents:
+            groups.append((agents, rules))
+        agents, rules = [], []
+
+    for raw in body.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip().lower()
+        value = value.strip()
+        if key == "user-agent":
+            if rules:
+                flush()
+            agents.append(value.lower())
+        elif key in {"allow", "disallow"}:
+            rules.append((key, value))
+    flush()
+    ua = user_agent.lower()
+    specific = [
+        group_rules
+        for group_agents, group_rules in groups
+        if any(agent != "*" and ua.startswith(agent) for agent in group_agents)
+    ]
+    chosen = specific[0] if specific else None
+    if chosen is None:
+        starred = [group_rules for group_agents, group_rules in groups if "*" in group_agents]
+        chosen = starred[0] if starred else []
+    best: tuple[int, bool] | None = None
+    target = path or "/"
+    for directive, rule_path in chosen:
+        if rule_path == "":
+            continue
+        if target.startswith(rule_path):
+            allow = directive == "allow"
+            length = len(rule_path)
+            if best is None or length > best[0] or (length == best[0] and allow):
+                best = (length, allow)
+    if best is None:
+        return True
+    return best[1]
+
+
+def _origin(url: str) -> str:
+    parts = urllib.parse.urlsplit(url)
+    return f"{parts.scheme}://{parts.netloc}"
+
+
+def _path(url: str) -> str:
+    path = urllib.parse.urlsplit(url).path or "/"
+    return path
+
+
+def _read_limited(resp: Any) -> tuple[int, bytes]:
+    status = getattr(resp, "status", None)
+    if status is None:
+        status = getattr(resp, "code", 200)
+    raw = resp.read(MAX_BODY_BYTES + 1)
+    return int(status or 200), raw
+
+
+class RobotsHttpAdapter:
+    """Free stdlib fetch that honors robots.txt. No third-party crawler and no paid API.
+
+    Crawl4AI is not a dependency. Tests inject ``opener``. A missing robots.txt
+    (HTTP 404) allows the fetch. Any other robots failure fails closed and does
+    not fetch the page.
+    """
+
+    name = "robots_http"
+
+    def __init__(
+        self,
+        opener: Callable[..., Any] | None = None,
+        user_agent: str = RESEARCH_UA,
+    ) -> None:
+        self.opener = opener
+        self.user_agent = user_agent
+
+    def gather(self, queries: list[str]) -> list[dict[str, Any]]:
+        found: list[dict[str, Any]] = []
+        for query in queries:
+            if not isinstance(query, str) or not query.startswith(("http://", "https://")):
+                found.append({"query": query, "complete": False, "reason": "not_a_url"})
+                continue
+            allowed, reason = self._allowed(query)
+            if not allowed:
+                found.append(
+                    {
+                        "url": query,
+                        "complete": False,
+                        "reason": reason,
+                        "query": query,
+                    }
+                )
+                continue
+            found.append(fetch_url(query, opener=self.opener))
+        return found
+
+    def _allowed(self, url: str) -> tuple[bool, str]:
+        robots_url = _origin(url) + "/robots.txt"
+        open_fn = self.opener or urllib.request.urlopen
+        try:
+            req = urllib.request.Request(
+                robots_url,
+                method="GET",
+                headers={"User-Agent": self.user_agent},
+            )
+            with open_fn(req, timeout=10) as resp:
+                status, raw = _read_limited(resp)
+        except Exception:
+            return False, "robots_unavailable"
+        if status == 404:
+            return True, ""
+        if status >= 400:
+            return False, "robots_unavailable"
+        if len(raw) > MAX_BODY_BYTES:
+            return False, "robots_unavailable"
+        body = raw.decode("utf-8", errors="replace")
+        if robots_allows(body, self.user_agent, _path(url)):
+            return True, ""
+        return False, "robots_disallow"
 
 
 def label_item(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
@@ -167,6 +320,8 @@ def label_item(item: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]
     retrieved = item.get("retrieved_at")
     if not isinstance(retrieved, str) or not _DATE.fullmatch(retrieved):
         return None, "missing_retrieved_at"
+    if retrieved.strip().lower() in _PLACEHOLDER_DATES or _PLACEHOLDER_WORD.search(retrieved):
+        return None, "placeholder_date"
     text = item.get("text")
     if text is None:
         text = item.get("excerpt")
@@ -221,11 +376,24 @@ def run_research(
     offline = policy.get("offline") is True or not enabled
     if offline:
         return _empty_research()
+    requested = str(policy.get("adapter") or "null").strip().lower()
+    if requested in _PAID_ADAPTERS:
+        rejected_reason = (
+            "paid_adapter_not_bundled"
+            if policy.get("allow_paid") is True
+            else "paid_adapter_opt_in"
+        )
+        empty = _empty_research()
+        empty["enabled"] = True
+        empty["offline"] = False
+        empty["adapter"] = requested
+        empty["rejected"] = [{"reason": rejected_reason, "url": None}]
+        return empty
     if adapter is None:
         options = policy.get("adapter_options")
         if not isinstance(options, dict):
             options = {}
-        adapter = get_adapter(str(policy.get("adapter") or "null"), **options)
+        adapter = get_adapter(requested, **options)
     raw = adapter.gather(queries)
     observed: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []

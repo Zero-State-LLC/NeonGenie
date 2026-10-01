@@ -21,8 +21,8 @@ Artifact entries may include `schema_id` + `schema_version` when known.
 | Run envelope | `neon-genie/run-envelope` | `1.0.0` |
 | Run receipt | `neon-genie/run-receipt` | `1.0.0` (+ privacy provenance fields) |
 | Privacy context | `neon-genie/privacy-context` (file `privacy-context.schema.json`) | `1.0.0` |
-| Opportunity packet | `neon-genie/opportunity-packet` | `1.2.0` (1.1.0 fields plus research, input contradictions, structured kills, first-commit handoff, page budget; packets below 1.2.0 still validate) |
-| Commercial simulation | `neon-genie/commercial-simulation` | `1.2.0` (same bake-off fields as opportunity; 1.1.0 packets still validate; CAC/LTV OBSERVED needs evidence_refs) |
+| Opportunity packet | `neon-genie/opportunity-packet` | `1.3.0` (1.2.0 fields plus kill derivation; packets below 1.3.0 still validate) |
+| Commercial simulation | `neon-genie/commercial-simulation` | `1.3.0` (same bake-off fields as opportunity, including kill derivation; older packets still validate; CAC/LTV OBSERVED needs evidence_refs) |
 | Product packet | `neon-genie/product-packet` | `1.0.0` |
 | Wayfinder handoff | `neon-genie/wayfinder-execution-packet` | `1.0.0` |
 | Capital sprint packet | `neon-genie/capital-sprint-packet` | `1.0.0` |

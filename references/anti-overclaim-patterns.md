@@ -59,9 +59,9 @@ CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti
 
 | **PILOT — Research DAG missing** | Research ran but `research_search_dag` missing/empty | Emit keyword→cite-expand→filter→score→extract DAG; fabricated IDs → CITE |
 
-| **RESEARCH_OBS — OBSERVED without source** | Research claim labeled OBSERVED without URL and retrieval date, or offline record contains OBSERVED | Drop the label. No source means no OBSERVED. |
+| **RESEARCH_OBS — OBSERVED without source** | Research claim labeled OBSERVED without URL and a real retrieval date, offline record contains OBSERVED, or the cited quote does not support the claim | Drop the label. No source means no OBSERVED. |
 
-| **KILL — Prose kill** | Kill criteria are prose, or a numeric row is missing metric, threshold, comparison, check date, or data source | Emit a structured criterion. OBSERVED thresholds need evidence_refs. |
+| **KILL — Prose or unrecomputed kill** | Kill criteria are prose, a numeric row is missing fields, or a schema 1.3.0 threshold does not recompute from its inputs | Emit a structured criterion with `derivation`. OBSERVED thresholds need evidence_refs and a real date. |
 
 | **HANDOFF — No first commit** | Schema 1.2.0 handoff lacks touch, done-when, one test, and an owner role | End the handoff with `first_commit`. |
 

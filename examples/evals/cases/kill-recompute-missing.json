@@ -1,0 +1,29 @@
+{
+  "input": {
+    "packet_type": "opportunity",
+    "code": "NG-KILL-005",
+    "packet": {
+      "schema_version": "1.3.0",
+      "kill_criteria": [
+        {
+          "metric": "token_net_of_stripe",
+          "threshold": 170,
+          "comparison": "lt",
+          "check_date": "2026-10-15",
+          "data_source": "operator tier table",
+          "claim_label": "INFERRED",
+          "derivation": {
+            "formula": "min_tier_net_of_fee",
+            "inputs": {"tiers": [170], "tier_count": 2},
+            "depends_on": ["every_tier", "stripe_percent", "stripe_fixed"]
+          }
+        }
+      ]
+    }
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "KILL",
+    "code": "NG-KILL-005"
+  }
+}

@@ -22,6 +22,7 @@
 20. Capital sprint protocol (time-bounded nonprofit capital-raise profile; optional load)
 21. Research adapters, input-contradiction pass, numeric kill criteria, first-commit handoff, one-page decision prose (schema 1.2.0)
 22. Dual fixture-judge bake-off scoring (neutral criteria, shuffled order, A/B swap; no paid calls in CI)
+23. Round-2 checks (schema 1.3.0): arithmetic and option-rationale scan, kill recomputation, OBSERVED quote and date checks, free robots.txt fetch, tie-breaker judge
 
 Packet schemas: `schemas/`. Profile contracts: `profiles/`. Gates: `references/anti-overclaim-patterns.md` · `references/gates.yaml`.
 DataRequest: `schemas/data-request.schema.json`.

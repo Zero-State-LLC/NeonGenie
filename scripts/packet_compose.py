@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Shape opportunity and commercial packets after the 2026-09-30 bake-off.
+"""Shape opportunity and commercial packets after the bake-off rounds.
 
 Before the packet is written:
 
 1. Scan input notes for contradictions, arithmetic errors, and inconsistent figures.
 2. Optionally gather sources (see research_mode). Offline adds no OBSERVED claims.
-3. Attach structured kill criteria and a first-commit handoff.
+3. Attach structured kill criteria, recompute each threshold from its inputs,
+   and attach a first-commit handoff.
 4. Keep decision prose inside one page. Evidence moves intact into ``appendix``.
 
-Schema 1.2.0 opts into these checks. Older packets stay valid.
+Schema 1.2.0 opts into the first bake-off checks. Schema 1.3.0 adds kill
+recomputation. Older packets stay valid.
 """
 
 from __future__ import annotations
@@ -18,7 +20,8 @@ from typing import Any
 
 import research_mode
 
-SCHEMA_VERSION = "1.2.0"
+SCHEMA_VERSION = "1.3.0"
+BAKEOFF_VERSION = "1.2.0"
 WORD_BUDGET = 450
 CHAR_BUDGET = 3200
 
@@ -29,7 +32,9 @@ _FINDING_KINDS = frozenset(
 )
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _EQ = re.compile(
-    r"(?P<a>\d[\d,]*(?:\.\d+)?)\s*(?:×|x|\*)\s*\$?(?P<b>\d[\d,]*(?:\.\d+)?)\s*=\s*\$?(?P<c>\d[\d,]*(?:\.\d+)?)",
+    r"(?P<a>\d[\d,]*(?:\.\d+)?)(?:\s*(?P<asuf>k|m|b))?\s*(?:seats?)?\s*(?:×|x|\*)\s*"
+    r"\$?(?P<b>\d[\d,]*(?:\.\d+)?)(?:\s*(?P<bsuf>k|m|b))?\s*=\s*"
+    r"\$?(?P<c>\d[\d,]*(?:\.\d+)?)(?:\s*(?P<csuf>k|m|b))?",
     re.IGNORECASE,
 )
 _SEAT = re.compile(
@@ -53,13 +58,111 @@ _RENT_MO = re.compile(
     re.IGNORECASE,
 )
 _RENT_YR = re.compile(
-    r"\$(\d+(?:\.\d+)?)\s*/\s*sf\s*/\s*(?:yr|year)",
+    r"\$(\d+(?:\.\d+)?)\s*(?:/\s*sf\s*/\s*(?:yr|year)|per\s+sf\s+per\s+year)",
     re.IGNORECASE,
 )
 _LABELED_NUM = re.compile(
-    r"(?P<label>price floor|weekly users|refundable deposit)\s*[:=]\s*\$?(?P<num>\d[\d,]*(?:\.\d+)?)",
+    r"(?P<label>price floor|weekly users|refundable deposit|token floor)"
+    r"\s*[:=]\s*\$?(?P<num>\d[\d,]*(?:\.\d+)?)"
+    r"(?:\s*(?P<suffix>k|m|b|thousand|million|billion))?",
     re.IGNORECASE,
 )
+_FEE_ABS = re.compile(
+    r"subtotal\s+\$?(?P<base>\d[\d,]*(?:\.\d+)?)\b"
+    r"[^.\n]{0,120}?\bfee\s+\$?(?P<fee>\d[\d,]*(?:\.\d+)?)\b"
+    r"[^.\n]{0,80}?\b(?:total|equals)\s+\$?(?P<total>\d[\d,]*(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_FEE_PCT = re.compile(
+    r"\$?(?P<base>\d[\d,]*(?:\.\d+)?)\b[^.\n]{0,40}?\bplus\s+(?:a\s+)?"
+    r"(?P<pct>\d+(?:\.\d+)?)%\s+fee(?:\s+and\s+\$?(?P<fixed>\d+(?:\.\d+)?))?"
+    r"\s+equals\s+\$?(?P<total>\d[\d,]*(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_PER_UNIT = re.compile(
+    r"N\s*=\s*(?P<n>\d+)[^.\n]{0,60}?per-unit floor\s+\$?(?P<amt>\d[\d,]*(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_PER_SEAT_N = re.compile(
+    r"N\s*=\s*(?P<n>\d+)[^.\n]{0,40}?per[- ]seat\s+\$?(?P<amt>\d[\d,]*(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_OP_SEAT = re.compile(
+    r"operator seat at N\s*=\s*(?P<yes>\d+)\b[^.\n]{0,80}?"
+    r"\bnot at N\s*=\s*(?P<rest>\d+(?:\s+or\s+N\s*=\s*\d+)*)",
+    re.IGNORECASE,
+)
+_OPTION_DEF = re.compile(
+    r"option\s+([A-Z])\s*:\s*(?P<body>[^.\n]+)",
+    re.IGNORECASE,
+)
+_OPTION_WHY = re.compile(
+    r"rationale for (?:locking\s+)?option\s+([A-Z])\s*:\s*(?P<body>[^.\n]+)",
+    re.IGNORECASE,
+)
+_AMOUNT = re.compile(
+    r"\$?(?P<num>\d[\d,]*(?:\.\d+)?)(?:\s*(?P<suffix>k|m|b|thousand|million|billion))?\b",
+    re.IGNORECASE,
+)
+_SUFFIX_VALUE = {
+    "": 1.0,
+    "k": 1_000.0,
+    "thousand": 1_000.0,
+    "m": 1_000_000.0,
+    "million": 1_000_000.0,
+    "b": 1_000_000_000.0,
+    "billion": 1_000_000_000.0,
+}
+_STOP = frozenset(
+    "the a an of to for and or is are was were with that this stays stay "
+    "into from by on as at be it its".split()
+)
+_PLACEHOLDER_DATES = frozenset(
+    {"0000-00-00", "0001-01-01", "1900-01-01", "1970-01-01", "9999-12-31"}
+)
+_PLACEHOLDER_WORD = re.compile(
+    r"\b(placeholder|tbd|todo|unspecified|unknown)\b",
+    re.IGNORECASE,
+)
+_QUOTE_POLARITY = {
+    "negative": "neg",
+    "fail": "neg",
+    "failed": "neg",
+    "failure": "neg",
+    "failures": "neg",
+    "reject": "neg",
+    "rejected": "neg",
+    "banned": "neg",
+    "absent": "neg",
+    "positive": "pos",
+    "pass": "pos",
+    "passed": "pos",
+    "passes": "pos",
+    "allowed": "pos",
+    "succeed": "pos",
+    "succeeded": "pos",
+}
+_FORMULA_REQUIRES = {
+    "identity": ("value",),
+    "sum": ("values",),
+    "min": ("values",),
+    "product": ("values",),
+    "net_of_percent_and_fixed": ("amount", "percent", "fixed"),
+    "min_tier_net_of_fee": ("tiers", "percent", "fixed"),
+}
+_DEPENDS_INPUT = {
+    "value": "value",
+    "values": "values",
+    "amount": "amount",
+    "percent": "percent",
+    "fixed": "fixed",
+    "tiers": "tiers",
+    "stripe_percent": "percent",
+    "stripe_fee": "percent",
+    "stripe_fixed": "fixed",
+    "every_tier": "tiers",
+}
+_MIN_TIER_DEPENDS = ("every_tier", "stripe_percent", "stripe_fixed")
 _WORD_NUM = {"one": 1, "two": 2, "three": 3, "four": 4}
 
 SEAT_OPTION_NOTES = """\
@@ -107,6 +210,40 @@ def _num(token: str) -> float:
     return float(token.replace(",", "").replace("$", ""))
 
 
+def _scaled(number: str, suffix: str | None) -> float:
+    key = (suffix or "").lower()
+    return _num(number) * _SUFFIX_VALUE[key]
+
+
+def _tokens(text: str) -> set[str]:
+    return {
+        tok
+        for tok in re.findall(r"[a-z0-9]+", text.lower())
+        if tok not in _STOP and len(tok) > 2
+    }
+
+
+def _sentences(text: str) -> list[str]:
+    return [part.strip() for part in re.split(r"(?<=[.])\s+|\n+", text) if part.strip()]
+
+
+def _magnitudes(text: str) -> list[float]:
+    found: list[float] = []
+    for match in _AMOUNT.finditer(text):
+        found.append(_scaled(match.group("num"), match.group("suffix")))
+    return found
+
+
+def date_is_placeholder(value: Any) -> bool:
+    """True when a date string is a sentinel or says it is not a real date."""
+    if not isinstance(value, str):
+        return False
+    text = value.strip().lower()
+    if text in _PLACEHOLDER_DATES:
+        return True
+    return _PLACEHOLDER_WORD.search(text) is not None
+
+
 def _close(left: float, right: float) -> bool:
     scale = max(1.0, abs(left), abs(right))
     return abs(left - right) <= 1e-6 * scale
@@ -124,8 +261,10 @@ def _finding(kind: str, summary: str, evidence: str) -> dict[str, Any]:
 def _scan_equalities(text: str) -> list[dict[str, Any]]:
     found: list[dict[str, Any]] = []
     for match in _EQ.finditer(text):
-        left = _num(match.group("a")) * _num(match.group("b"))
-        stated = _num(match.group("c"))
+        left = _scaled(match.group("a"), match.group("asuf")) * _scaled(
+            match.group("b"), match.group("bsuf")
+        )
+        stated = _scaled(match.group("c"), match.group("csuf"))
         if _close(left, stated):
             continue
         found.append(
@@ -295,14 +434,19 @@ def _scan_rent_bands(text: str) -> list[dict[str, Any]]:
 
 
 def _scan_repeated_labels(text: str) -> list[dict[str, Any]]:
-    grouped: dict[str, list[tuple[str, str]]] = {}
+    grouped: dict[str, list[tuple[float, str]]] = {}
     for match in _LABELED_NUM.finditer(text):
         label = match.group("label").lower()
-        grouped.setdefault(label, []).append((match.group("num"), match.group(0)))
+        amount = _scaled(match.group("num"), match.group("suffix"))
+        grouped.setdefault(label, []).append((amount, match.group(0)))
     found: list[dict[str, Any]] = []
     for label, pairs in grouped.items():
-        values = {pair[0] for pair in pairs}
-        if len(values) < 2:
+        unique: list[float] = []
+        for value, _quote in pairs:
+            if any(_close(value, seen) for seen in unique):
+                continue
+            unique.append(value)
+        if len(unique) < 2:
             continue
         found.append(
             _finding(
@@ -314,16 +458,252 @@ def _scan_repeated_labels(text: str) -> list[dict[str, Any]]:
     return found
 
 
+def _scan_fee_totals(text: str) -> list[dict[str, Any]]:
+    found: list[dict[str, Any]] = []
+    for match in _FEE_ABS.finditer(text):
+        base = _num(match.group("base"))
+        fee = _num(match.group("fee"))
+        stated = _num(match.group("total"))
+        computed = base + fee
+        if _close(computed, stated):
+            continue
+        found.append(
+            _finding(
+                "arithmetic_error",
+                f"Fee-inclusive total {stated:g} does not equal {base:g} + {fee:g}.",
+                match.group(0).strip(),
+            )
+        )
+    for match in _FEE_PCT.finditer(text):
+        base = _num(match.group("base"))
+        percent = _num(match.group("pct")) / 100.0
+        fixed = _num(match.group("fixed")) if match.group("fixed") else 0.0
+        stated = _num(match.group("total"))
+        computed = base * (1.0 + percent) + fixed
+        if _close(computed, stated):
+            continue
+        found.append(
+            _finding(
+                "arithmetic_error",
+                f"Fee-inclusive total {stated:g} does not equal {computed:g} after the stated fee.",
+                match.group(0).strip(),
+            )
+        )
+    return found
+
+
+def _scan_per_unit_floors(text: str) -> list[dict[str, Any]]:
+    flat = re.search(
+        r"\b(flat|same|constant)\b[^.\n]{0,40}?per-unit|per-unit[^.\n]{0,40}?\b(flat|same|constant)\b",
+        text,
+        re.IGNORECASE,
+    )
+    rows: list[tuple[str, float, str]] = []
+    for match in _PER_UNIT.finditer(text):
+        rows.append((match.group("n"), _num(match.group("amt")), match.group(0).strip()))
+    if flat and len({round(amt, 5) for _, amt, _ in rows}) > 1:
+        return [
+            _finding(
+                "inconsistent_figure",
+                "Notes call the per-unit floor flat, but the stated floors differ by N.",
+                " ".join(quote for _, _, quote in rows),
+            )
+        ]
+    same_rate = re.search(
+        r"\b(same|one|constant)\b[^.\n]{0,40}?per[- ]seat",
+        text,
+        re.IGNORECASE,
+    )
+    rates: list[tuple[str, float, str]] = []
+    for match in _PER_SEAT_N.finditer(text):
+        rates.append((match.group("n"), _num(match.group("amt")), match.group(0).strip()))
+    if same_rate and len({round(amt, 5) for _, amt, _ in rates}) > 1:
+        return [
+            _finding(
+                "inconsistent_figure",
+                "Notes call the per-seat rate the same, but the stated rates differ by N.",
+                " ".join(quote for _, _, quote in rates),
+            )
+        ]
+    return []
+
+
+def _scan_operator_seats(text: str) -> list[dict[str, Any]]:
+    found: list[dict[str, Any]] = []
+    for match in _OP_SEAT.finditer(text):
+        included = match.group("yes")
+        excluded = re.findall(r"\d+", match.group("rest"))
+        if not excluded:
+            continue
+        found.append(
+            _finding(
+                "inconsistent_figure",
+                (
+                    f"Operator seat is included at N={included} and omitted at N="
+                    + ", ".join(excluded)
+                    + "."
+                ),
+                match.group(0).strip(),
+            )
+        )
+    return found
+
+
+def _scan_option_overlap(text: str) -> list[dict[str, Any]]:
+    definitions: dict[str, str] = {}
+    rationales: list[tuple[str, str, str]] = []
+    for line in text.splitlines():
+        why = _OPTION_WHY.search(line)
+        if why:
+            rationales.append(
+                (why.group(1).upper(), why.group("body").strip(), line.strip())
+            )
+            continue
+        for match in _OPTION_DEF.finditer(line):
+            definitions[match.group(1).upper()] = match.group("body").strip()
+    found: list[dict[str, Any]] = []
+    for letter, body, quote in rationales:
+        rationale_tokens = _tokens(body)
+        if len(rationale_tokens) < 2 or letter not in definitions:
+            continue
+        scores: dict[str, int] = {}
+        for option, definition in definitions.items():
+            scores[option] = len(rationale_tokens & _tokens(definition))
+        own = scores.get(letter, 0)
+        others = {option: score for option, score in scores.items() if option != letter}
+        if not others:
+            continue
+        best = max(others, key=lambda option: others[option])
+        if others[best] >= 2 and others[best] > own:
+            found.append(
+                _finding(
+                    "contradiction",
+                    f"The rationale for Option {letter} describes Option {best}.",
+                    quote,
+                )
+            )
+    return found
+
+
+def _shares_topic(left: str, right: str) -> bool:
+    left_nums = {_scaled_key(value) for value in _magnitudes(left)}
+    right_nums = {_scaled_key(value) for value in _magnitudes(right)}
+    if left_nums and right_nums and left_nums & right_nums:
+        return True
+    return len(_tokens(left) & _tokens(right)) >= 2
+
+
+def _scaled_key(value: float) -> str:
+    return f"{value:.6g}"
+
+
+def _scan_verification_clash(text: str) -> list[dict[str, Any]]:
+    sentences = _sentences(text)
+    both = [
+        row
+        for row in sentences
+        if re.search(r"\bunverified\b", row, re.I) and re.search(r"\bverified\b", row, re.I)
+    ]
+    if both:
+        return [
+            _finding(
+                "contradiction",
+                "The same figure is marked both UNVERIFIED and verified.",
+                both[0],
+            )
+        ]
+    unverified = [row for row in sentences if re.search(r"\bunverified\b", row, re.I)]
+    verified = [
+        row
+        for row in sentences
+        if re.search(r"\bverified\b", row, re.I) and not re.search(r"\bunverified\b", row, re.I)
+    ]
+    for left in unverified:
+        for right in verified:
+            if not _shares_topic(left, right):
+                continue
+            return [
+                _finding(
+                    "contradiction",
+                    "The same figure is marked both UNVERIFIED and verified.",
+                    f"{left} {right}",
+                )
+            ]
+    return []
+
+
+def _scan_ban_conflict(text: str) -> list[dict[str, Any]]:
+    banned = re.search(
+        r"(upsells?|in-plugin plans).{0,40}\bbanned\b|\bbanned\b.{0,40}(upsells?|in-plugin plans)",
+        text,
+        re.IGNORECASE,
+    )
+    proposed = re.search(r"plugin-to-paid funnel|paid funnel", text, re.IGNORECASE)
+    if not banned or not proposed:
+        return []
+    return [
+        _finding(
+            "contradiction",
+            "Notes ban in-plugin plans or upsells and also propose a paid funnel.",
+            f"{banned.group(0).strip()} {proposed.group(0).strip()}",
+        )
+    ]
+
+
+def _scan_scope_conflict(text: str) -> list[dict[str, Any]]:
+    serves = re.search(r"one build serves all three", text, re.IGNORECASE)
+    restricted = re.search(
+        r"not three(?: products)?|one runtime|single runtime",
+        text,
+        re.IGNORECASE,
+    )
+    if not serves or not restricted:
+        return []
+    return [
+        _finding(
+            "contradiction",
+            "Notes say one build serves all three and also restrict the runtime to one.",
+            f"{serves.group(0).strip()} {restricted.group(0).strip()}",
+        )
+    ]
+
+
+def _scan_buyer_rail(text: str) -> list[dict[str, Any]]:
+    contracts = re.search(r"contracts or keys", text, re.IGNORECASE)
+    agents = re.search(
+        r"x402 fits agents|agent-only rail|agents only",
+        text,
+        re.IGNORECASE,
+    )
+    if not contracts or not agents:
+        return []
+    return [
+        _finding(
+            "contradiction",
+            "Notes say buyers purchase through contracts or keys while the rail is agent-only.",
+            f"{contracts.group(0).strip()} {agents.group(0).strip()}",
+        )
+    ]
+
+
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
     """Mandatory pass. Empty findings are valid. Skipping the pass is not."""
     text = notes if isinstance(notes, str) else ""
     raw: list[dict[str, Any]] = []
     raw.extend(_scan_equalities(text))
+    raw.extend(_scan_fee_totals(text))
     raw.extend(_scan_seat_sentences(text))
+    raw.extend(_scan_operator_seats(text))
+    raw.extend(_scan_per_unit_floors(text))
     raw.extend(_scan_tables(text))
     raw.extend(_scan_option_locks(text))
+    raw.extend(_scan_option_overlap(text))
     raw.extend(_scan_rent_bands(text))
     raw.extend(_scan_repeated_labels(text))
+    raw.extend(_scan_verification_clash(text))
+    raw.extend(_scan_ban_conflict(text))
+    raw.extend(_scan_scope_conflict(text))
+    raw.extend(_scan_buyer_rail(text))
     findings = []
     for index, row in enumerate(raw, start=1):
         row["finding_id"] = f"in-{index}"
@@ -519,7 +899,172 @@ def _claim_label(obj: dict[str, Any]) -> str:
     return str(raw).upper() if raw is not None else ""
 
 
-def _check_observed_claim(claim: dict[str, Any], path: str, errors: list[str]) -> None:
+def _as_float(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def _as_floats(value: Any) -> list[float] | None:
+    if not isinstance(value, list) or not value:
+        return None
+    out: list[float] = []
+    for item in value:
+        number = _as_float(item)
+        if number is None:
+            return None
+        out.append(number)
+    return out
+
+
+def _polarity(text: str) -> set[str]:
+    return {
+        _QUOTE_POLARITY[word]
+        for word in re.findall(r"[a-z]+", text.lower())
+        if word in _QUOTE_POLARITY
+    }
+
+
+def quote_support(claim: str, quote: str) -> str:
+    """Return supports, contradicts, or inconclusive. Deterministic only."""
+    if not isinstance(claim, str) or not isinstance(quote, str):
+        return "inconclusive"
+    if not claim.strip() or not quote.strip():
+        return "inconclusive"
+    claim_nums = _magnitudes(claim)
+    quote_nums = _magnitudes(quote)
+    for number in claim_nums:
+        if not any(_close(number, other) for other in quote_nums):
+            return "contradicts"
+    claim_pol = _polarity(claim)
+    quote_pol = _polarity(quote)
+    if claim_pol and not quote_pol:
+        return "contradicts"
+    if claim_pol and quote_pol and claim_pol.isdisjoint(quote_pol):
+        return "contradicts"
+    if claim_pol and claim_pol <= quote_pol:
+        return "supports"
+    if claim_nums and not claim_pol:
+        return "supports"
+    return "inconclusive"
+
+
+def recompute_kill_threshold(item: dict[str, Any]) -> tuple[float | None, list[str]]:
+    """Recompute a kill threshold from derivation inputs. Missing inputs fail closed."""
+    derivation = item.get("derivation")
+    if not isinstance(derivation, dict):
+        return None, ["missing derivation"]
+    formula = derivation.get("formula")
+    inputs = derivation.get("inputs")
+    if formula not in _FORMULA_REQUIRES:
+        return None, [f"unknown formula {formula!r}"]
+    if not isinstance(inputs, dict):
+        return None, ["missing inputs"]
+    problems: list[str] = []
+    depends = derivation.get("depends_on")
+    if not isinstance(depends, list) or not depends:
+        problems.append("missing depends_on")
+        depends = []
+    needed = list(_FORMULA_REQUIRES[str(formula)])
+    for name in depends:
+        key = _DEPENDS_INPUT.get(str(name))
+        if key is None:
+            problems.append(f"unknown dependency {name}")
+            continue
+        if key not in needed:
+            needed.append(key)
+        if inputs.get(key) is None:
+            problems.append(f"missing input for {name}")
+    for key in _FORMULA_REQUIRES[str(formula)]:
+        if inputs.get(key) is None:
+            problems.append(f"missing input {key}")
+    if formula == "min_tier_net_of_fee":
+        declared = {str(name) for name in depends}
+        for name in _MIN_TIER_DEPENDS:
+            if name not in declared:
+                problems.append(f"missing depends_on {name}")
+    if problems:
+        return None, problems
+    if formula == "identity":
+        value = _as_float(inputs.get("value"))
+        if value is None:
+            return None, ["value must be numeric"]
+        return value, []
+    if formula in {"sum", "min", "product"}:
+        values = _as_floats(inputs.get("values"))
+        if values is None:
+            return None, ["values must be a non-empty numeric list"]
+        if formula == "sum":
+            return sum(values), []
+        if formula == "min":
+            return min(values), []
+        product = 1.0
+        for number in values:
+            product *= number
+        return product, []
+    if formula == "net_of_percent_and_fixed":
+        amount = _as_float(inputs.get("amount"))
+        percent = _as_float(inputs.get("percent"))
+        fixed = _as_float(inputs.get("fixed"))
+        if amount is None or percent is None or fixed is None:
+            return None, ["amount, percent, and fixed must be numeric"]
+        return amount * (1.0 - percent) - fixed, []
+    tiers = _as_floats(inputs.get("tiers"))
+    percent = _as_float(inputs.get("percent"))
+    fixed = _as_float(inputs.get("fixed"))
+    if tiers is None or percent is None or fixed is None:
+        return None, ["tiers, percent, and fixed must be numeric"]
+    tier_count = inputs.get("tier_count", derivation.get("tier_count"))
+    if isinstance(tier_count, bool) or not isinstance(tier_count, (int, float)):
+        return None, ["tier_count is required so every tier is present"]
+    if len(tiers) != int(tier_count):
+        return None, [f"tiers has {len(tiers)} values; tier_count is {int(tier_count)}"]
+    return min(tiers) * (1.0 - percent) - fixed, []
+
+
+def identity_derivation(value: int | float) -> dict[str, Any]:
+    """Threshold that is exactly the stated test count. Not an observed price."""
+    return {
+        "formula": "identity",
+        "inputs": {"value": value},
+        "depends_on": ["value"],
+    }
+
+
+def _check_quote(
+    claim: dict[str, Any],
+    path: str,
+    errors: list[str],
+    quote_judge: Any,
+) -> None:
+    quote = claim.get("quote")
+    if not isinstance(quote, str) or not quote.strip():
+        return
+    text = claim.get("text") or claim.get("claim") or ""
+    if not isinstance(text, str):
+        text = ""
+    verdict = quote_support(text, quote)
+    if verdict == "inconclusive" and quote_judge is not None:
+        assessed = quote_judge.assess(text, quote)
+        if assessed in {"supports", "contradicts"}:
+            verdict = assessed
+        elif assessed != "abstain":
+            errors.append(f"NG-LABEL-003: {path} quote judge returned {assessed!r}")
+            return
+    if verdict == "contradicts":
+        errors.append(f"NG-LABEL-002: {path} cited quote does not support the claim")
+    elif verdict == "inconclusive":
+        errors.append(
+            f"NG-LABEL-003: {path} cited quote support is inconclusive without a judge"
+        )
+
+
+def _check_observed_claim(
+    claim: dict[str, Any],
+    path: str,
+    errors: list[str],
+    quote_judge: Any = None,
+) -> None:
     if _claim_label(claim) != "OBSERVED":
         return
     url = claim.get("url")
@@ -530,9 +1075,18 @@ def _check_observed_claim(claim: dict[str, Any], path: str, errors: list[str]) -
         errors.append(
             f"NG-RESEARCH-001: {path} OBSERVED claim missing retrieval date"
         )
+    if date_is_placeholder(retrieved):
+        errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
+    _check_quote(claim, path, errors, quote_judge)
 
 
-def _check_kill(data: dict[str, Any], is_v12: bool, errors: list[str]) -> None:
+def _check_kill(
+    data: dict[str, Any],
+    is_v12: bool,
+    is_v13: bool,
+    errors: list[str],
+    quote_judge: Any = None,
+) -> None:
     if "kill_criteria" not in data:
         if is_v12:
             errors.append("NG-KILL-002: schema 1.2.0 packet missing kill_criteria")
@@ -580,6 +1134,24 @@ def _check_kill(data: dict[str, Any], is_v12: bool, errors: list[str]) -> None:
             errors.append(
                 f"NG-KILL-003: {path} labeled OBSERVED without evidence_refs"
             )
+        if label == "OBSERVED" and date_is_placeholder(item.get("check_date")):
+            errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
+        if label == "OBSERVED" and _PLACEHOLDER_WORD.search(str(item.get("data_source") or "")):
+            errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
+        if isinstance(item.get("quote"), str):
+            _check_quote(item, path, errors, quote_judge)
+        if not is_v13:
+            continue
+        recomputed, problems = recompute_kill_threshold(item)
+        if problems or recomputed is None:
+            detail = "; ".join(problems) if problems else "not recomputed"
+            errors.append(f"NG-KILL-005: {path} {detail}")
+            continue
+        if isinstance(threshold, (int, float)) and not isinstance(threshold, bool):
+            if not _close(float(threshold), recomputed):
+                errors.append(
+                    f"NG-KILL-004: {path} threshold {threshold} != recomputed {recomputed:g}"
+                )
 
 
 def _check_handoff(data: dict[str, Any], is_v12: bool, errors: list[str]) -> None:
@@ -636,7 +1208,12 @@ def _check_contradictions(data: dict[str, Any], is_v12: bool, errors: list[str])
             errors.append(f"NG-INPUT-001: findings[{index}] claim_label is missing")
 
 
-def _check_research(data: dict[str, Any], is_v12: bool, errors: list[str]) -> None:
+def _check_research(
+    data: dict[str, Any],
+    is_v12: bool,
+    errors: list[str],
+    quote_judge: Any = None,
+) -> None:
     research = data.get("research")
     if not isinstance(research, dict):
         if is_v12:
@@ -649,13 +1226,18 @@ def _check_research(data: dict[str, Any], is_v12: bool, errors: list[str]) -> No
         if isinstance(claim, dict) and claim.get("claim_id"):
             by_id[claim["claim_id"]] = claim
             _check_observed_claim(
-                claim, f"appendix.research_claims[{claim.get('claim_id')}]", errors
+                claim,
+                f"appendix.research_claims[{claim.get('claim_id')}]",
+                errors,
+                quote_judge,
             )
     for index, claim in enumerate(research.get("observed_claims") or []):
         if not isinstance(claim, dict):
             errors.append(f"NG-RESEARCH-001: observed_claims[{index}] must be an object")
             continue
-        _check_observed_claim(claim, f"research.observed_claims[{index}]", errors)
+        _check_observed_claim(
+            claim, f"research.observed_claims[{index}]", errors, quote_judge
+        )
         if offline and _claim_label(claim) == "OBSERVED":
             errors.append(
                 "NG-RESEARCH-003: offline research record contains an OBSERVED claim"
@@ -698,7 +1280,30 @@ def _check_page(data: dict[str, Any], is_v12: bool, errors: list[str]) -> None:
         )
 
 
-def packaging_errors(data: dict[str, Any], packet_type: str) -> list[str]:
+def _check_claim_list(
+    data: dict[str, Any], errors: list[str], quote_judge: Any
+) -> None:
+    claims = data.get("claims")
+    if not isinstance(claims, list):
+        return
+    for index, claim in enumerate(claims):
+        if not isinstance(claim, dict):
+            continue
+        if _claim_label(claim) != "OBSERVED":
+            continue
+        path = f"claims[{index}]"
+        for key in ("retrieved_at", "check_date"):
+            if date_is_placeholder(claim.get(key)):
+                errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
+        if isinstance(claim.get("quote"), str):
+            _check_quote(claim, path, errors, quote_judge)
+
+
+def packaging_errors(
+    data: dict[str, Any],
+    packet_type: str,
+    quote_judge: Any = None,
+) -> list[str]:
     """Bake-off checks for opportunity and commercial packets."""
     key = (packet_type or "").strip().lower().replace(" ", "_").replace("-", "_")
     if key not in {"opportunity", "commercial"}:
@@ -706,13 +1311,15 @@ def packaging_errors(data: dict[str, Any], packet_type: str) -> list[str]:
     if not isinstance(data, dict):
         return []
     version = data.get("schema_version")
-    is_v12 = _version_ge(version, SCHEMA_VERSION)
+    is_v12 = _version_ge(version, BAKEOFF_VERSION)
+    is_v13 = _version_ge(version, SCHEMA_VERSION)
     errors: list[str] = []
-    _check_kill(data, is_v12, errors)
+    _check_kill(data, is_v12, is_v13, errors, quote_judge)
     _check_handoff(data, is_v12, errors)
     _check_contradictions(data, is_v12, errors)
-    _check_research(data, is_v12, errors)
+    _check_research(data, is_v12, errors, quote_judge)
     _check_page(data, is_v12, errors)
+    _check_claim_list(data, errors, quote_judge)
     return errors
 
 
@@ -747,7 +1354,7 @@ def attach_v12(
     kill_criteria: list[dict[str, Any]],
     adapter: research_mode.ResearchAdapter | None = None,
 ) -> dict[str, Any]:
-    """Return a schema 1.2.0 packet. Does not invent buyers, revenue, or prices."""
+    """Return a schema 1.3.0 packet. Does not invent buyers, revenue, or prices."""
     out = dict(packet)
     out["schema_id"] = schema_id
     out["schema_version"] = SCHEMA_VERSION
@@ -766,7 +1373,7 @@ def attach_v12(
 
 
 def seat_option_example_packet() -> dict[str, Any]:
-    """Synthetic seat-floor opportunity used as the 1.2.0 sample. Fixture data only."""
+    """Synthetic seat-floor opportunity used as the 1.3.0 sample. Fixture data only."""
     base = {
         "blocked_transition": {
             "from": "pricing notes that mix seat assumptions and option locks",
@@ -847,6 +1454,7 @@ def seat_option_example_packet() -> dict[str, Any]:
                 "claim_label": "INFERRED",
                 "evidence_refs": ["operator_notes"],
                 "role": "guardrail",
+                "derivation": identity_derivation(0),
             }
         ],
     )

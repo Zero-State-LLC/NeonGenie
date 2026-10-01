@@ -20,6 +20,7 @@ import research_mode  # noqa: E402
 PY = sys.executable
 VALIDATE = SCRIPT_DIR / "validate_packet.py"
 SAMPLE_V12 = ROOT / "examples" / "packets" / "sample-opportunity-v12.packet.json"
+SAMPLE_V13 = ROOT / "examples" / "packets" / "sample-opportunity-v13.packet.json"
 
 
 def _validate(packet: dict, packet_type: str) -> subprocess.CompletedProcess[str]:
@@ -277,6 +278,7 @@ def test_page_budget_moves_evidence_without_truncation() -> None:
                 "check_date": "2026-10-15",
                 "data_source": "input contradiction pass",
                 "claim_label": "SPECULATIVE",
+                "derivation": packet_compose.identity_derivation(0),
             }
         ],
     )
@@ -301,8 +303,11 @@ def test_page_budget_moves_evidence_without_truncation() -> None:
 
 
 def test_sample_v12_and_legacy_samples() -> None:
+    legacy_v12 = json.loads(SAMPLE_V12.read_text(encoding="utf-8"))
+    assert legacy_v12["schema_version"] == "1.2.0"
     packet = packet_compose.seat_option_example_packet()
-    on_disk = json.loads(SAMPLE_V12.read_text(encoding="utf-8"))
+    assert packet["schema_version"] == "1.3.0"
+    on_disk = json.loads(SAMPLE_V13.read_text(encoding="utf-8"))
     assert on_disk == packet
     result = _validate(packet, "opportunity")
     assert result.returncode == 0, result.stderr
