@@ -5,6 +5,35 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.36.0] — 2026-10-01
+
+This is the final bake-off version. Round 8 scored the v3.29 page plus the
+named money recomputes at 15.95, with correctness 1.06, level with v3.29.
+The main page uses those v3.29 contradiction lines verbatim. A later line
+that restates the same field or quantity is dropped. Honesty stays: no
+invented buyers, prices, or sources. Artifact schema stays **1.3.0**. New
+fields are optional. Older packets still validate. The research sidecar,
+the idempotent page-budget dedupe, the one-action cheapest test, and the
+build handoff are unchanged.
+
+### Fixed
+
+- The main page again shows the 16 reviewed v3.29 contradiction lines,
+  verbatim. The Jev line is `red team says unclear cases default to skip,
+  not ask_human`, not the vaguer `ask_human is both required and excluded`.
+- A later contradiction line is dropped when it concerns the same field or
+  quantity as an earlier reviewed line, so a v3.35 restatement does not
+  sit beside the v3.29 line.
+- Named money recomputes stay, and they still name both quantities. The
+  false `Double of 64 is 128, not 512` flag stays off. Autogive's second
+  line about the same seat quantity stays off.
+
+### Changed
+
+- Firecrawl and the Jev reconcile step stay opt-in behind
+  `NEON_GENIE_RESEARCH_PAID=1`.
+- VERSION **3.36.0**. Research user agent `neon-genie-research/3.36`.
+
 ## [3.35.0] — 2026-10-01
 
 The outside bake-off scored v3.34.0 last on correctness (0.87 versus 1.11

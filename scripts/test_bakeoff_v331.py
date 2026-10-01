@@ -41,7 +41,10 @@ def test_false_double_stays_off_the_main_page() -> None:
         unverified = "\n".join(row["summary"] for row in scanned["unverified_notes"])
         assert FALSE_FLAG not in unverified
         for row in scanned["findings"]:
-            assert row["claim_label"] == "OBSERVED"
+            if row.get("source") == "v329":
+                assert row["claim_label"] in {"OBSERVED", "INFERRED"}
+            else:
+                assert row["claim_label"] == "OBSERVED"
     print("false double 64/128/512 absent from main")
 
 
