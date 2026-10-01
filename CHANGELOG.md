@@ -26,9 +26,18 @@ Older packets still validate.
   The recomputed net `485.2` still passes.
 - The note scan no longer uses phrase rules fitted to round 1–2 packet
   wording. It flags the same quantity stated twice, a monthly figure that
-  does not match the yearly figure (including per-sf), and mutually
-  exclusive options both locked or one locked while another stays the
-  recommendation.
+  does not match the yearly figure (including per-sf), mutually exclusive
+  options both locked or one locked while another stays the recommendation,
+  a count series that is not the line implied by its larger counts, a list
+  price under the floor at the count the note says to use, sums and
+  percent-of and per-unit totals that do not equal the stated result, a
+  date interval that ends before it starts, a rationale whose high/low
+  words match a different option, one credit that covers inconsistent
+  months, a computed double missing from later totals, the same magnitude
+  marked both UNVERIFIED and OBSERVED, an OBSERVED section that also says
+  unverified and whose figure is reused as fact, and an action that is
+  both required and excluded. Classes that need world knowledge or
+  judgment stay NOT_COMPUTABLE for the scanner.
 - `robots_http` treats a missing robots.txt as allowed, including urllib
   `HTTPError` 404. Page bodies use a 2 MiB cap (`MAX_BODY_BYTES`); a larger
   body is still rejected whole. `retrieved_at` is the America/Los_Angeles
