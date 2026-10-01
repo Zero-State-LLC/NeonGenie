@@ -5,6 +5,60 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.30.0] — 2026-10-01
+
+Round-3 bake-off fixes on v3.29.0. Honesty stays: no invented buyers,
+revenue, or prices. Artifact schema stays **1.3.0**. `derivation.justification`
+is an optional string the packaging check reads when an identity kill would
+otherwise ignore price tiers or card fees declared elsewhere in the packet.
+Older packets still validate.
+
+### Fixed
+
+- Quote support flips polarity on not, no, never, without, and n't, and
+  matches numbers only as whole tokens. `402` inside `x402` is not the
+  number 402. An "allowed" claim cited to "not allowed" fails (NG-LABEL-002).
+- Placeholder dates and placeholder words are checked on every string field
+  of any object labeled OBSERVED, including `note` (NG-LABEL-001).
+- A cost kill whose derivation leaves out price tiers or card fees stated
+  elsewhere in the same packet fails (NG-KILL-006). An identity derivation
+  ("taken as-is") passes that check only with a written `justification`.
+  The recomputed net `485.2` still passes.
+- The note scan no longer uses phrase rules fitted to round 1–2 packet
+  wording. It flags the same quantity stated twice, a monthly figure that
+  does not match the yearly figure (including per-sf), mutually exclusive
+  options both locked or one locked while another stays the recommendation,
+  a count series that is not the line implied by its larger counts, a list
+  price under the floor at the count the note says to use, sums and
+  percent-of and per-unit totals that do not equal the stated result, a
+  date interval that ends before it starts, a rationale whose high/low
+  words match a different option, one credit that covers inconsistent
+  months, a computed double missing from later totals, the same magnitude
+  marked both UNVERIFIED and OBSERVED, an OBSERVED section that also says
+  unverified and whose figure is reused as fact, and an action that is
+  both required and excluded. Classes that need world knowledge or
+  judgment stay NOT_COMPUTABLE for the scanner.
+- `robots_http` treats a missing robots.txt as allowed, including urllib
+  `HTTPError` 404. Page bodies use a 2 MiB cap (`MAX_BODY_BYTES`); a larger
+  body is still rejected whole. `retrieved_at` is the America/Los_Angeles
+  calendar date.
+
+### Added
+
+- Optional Jev correctness diagnostic in `scripts/judge_eval.py`
+  (`judge_correctness`, off by default). Jev System One returns Choice,
+  Score, and Noul answers, not prose, so the diagnostic asks for a document
+  line id and a SOURCE_NOTES line id and quotes those lines. The key is
+  `TYPESAFE_AI_API_KEY` and is never logged. Golden evals leave the
+  diagnostic off. Tests inject a mock client.
+- `scripts/eval_note_scan.py` reports catch rate on the 16 raw-note issues
+  and false positives on clean docs and synthetic notes.
+- `scripts/jev_client.py`, a stdlib client for `POST /v1/systemone`.
+
+### Changed
+
+- VERSION **3.30.0**. Research user agent `neon-genie-research/3.30`.
+
 ## [3.29.0] — 2026-10-01
 
 Round-2 bake-off follow-up on v3.28.0. Honesty stays: no invented buyers,

@@ -683,6 +683,23 @@ def eval_paid_judge_rejected(inp: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def eval_correctness_judge(inp: dict[str, Any]) -> dict[str, Any]:
+    """Optional diagnostic. The golden case leaves it off, so no network."""
+    result = judge_eval.judge_correctness(
+        str(inp.get("document") or ""),
+        str(inp.get("source_notes") or ""),
+        enabled=bool(inp.get("enabled")),
+    )
+    ok = result["invoked"] is False and result["model_invoked"] is False
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "model_invoked": False,
+        "enabled": result["enabled"],
+        "invoked": result["invoked"],
+        "gate": "JUDGE",
+    }
+
+
 def eval_boring_prfaq_hold(inp: dict[str, Any]) -> dict[str, Any]:
     artifact = str(inp.get("artifact") or "").lower()
     generic = bool(inp.get("generic_unfalsifiable"))
@@ -746,6 +763,7 @@ EVALUATORS: dict[str, EvalFn] = {
     "observed-placeholder-date.json": eval_quote_support,
     "observed-quote-polarity.json": eval_quote_support,
     "robots-disallow.json": eval_robots_rule,
+    "correctness-judge-off.json": eval_correctness_judge,
 }
 
 

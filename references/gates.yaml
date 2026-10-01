@@ -320,7 +320,7 @@ gates:
   KILL:
     name: numeric_kill_criteria
     severity: blocking
-    condition: kill_criteria_prose || criterion_missing_metric_threshold_comparison_check_date_or_source || observed_threshold_without_evidence_refs || schema_1_3_threshold_does_not_recompute
+    condition: kill_criteria_prose || criterion_missing_metric_threshold_comparison_check_date_or_source || observed_threshold_without_evidence_refs || schema_1_3_threshold_does_not_recompute || schema_1_3_cost_threshold_ignores_declared_inputs
     remediation: emit_structured_kill_criteria_with_claim_label
     refs:
       - schemas/opportunity-packet.schema.json
@@ -355,7 +355,7 @@ gates:
   RESEARCH_OBS:
     name: observed_claim_needs_source
     severity: blocking
-    condition: observed_research_claim_missing_url_or_retrieval_date || offline_record_contains_observed || observed_placeholder_date || cited_quote_does_not_support_claim
+    condition: observed_research_claim_missing_url_or_retrieval_date || offline_record_contains_observed || observed_placeholder_date_or_word_on_any_labeled_field || cited_quote_does_not_support_claim
     remediation: drop_label_or_attach_url_retrieved_at_and_supporting_quote
     refs:
       - scripts/research_mode.py

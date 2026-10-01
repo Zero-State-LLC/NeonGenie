@@ -1,0 +1,309 @@
+{
+ "provenance": "NeonGenie bake-off rounds 2-3, 2026-09-30 PT. Raw notes are in raw-notes/. No secrets; privacy_preflight clean.",
+ "fix1_quote_cases": [
+  {
+   "claim": "Selling digital products is allowed in plugins.",
+   "quote": "Selling digital products or services—including subscriptions, digital content, tokens, or credits—is not allowed",
+   "expect": "contradicts",
+   "v329": "supports (negation-blind)"
+  },
+  {
+   "claim": "Selling digital products is not allowed in plugins.",
+   "quote": "Selling digital products or services—including subscriptions, digital content, tokens, or credits—is not allowed",
+   "expect": "supports"
+  },
+  {
+   "claim": "x402 is only for AI agents, not humans.",
+   "quote": "Whether the buyer is a human or a machine, x402 covers both",
+   "expect": "contradicts or inconclusive (must NOT be supports)",
+   "v329": "supports ('402' in x402 matched)"
+  },
+  {
+   "claim": "Submission needs five positive and three negative test cases.",
+   "quote": "**Five positive test cases.** Include the scenario, user prompt, expected tools, and expected result. Run each case using the test account before submitting.",
+   "expect": "not supports (three negative missing)",
+   "v329": "inconclusive -> NG-LABEL-003"
+  },
+  {
+   "claim": "grok-4.6 costs $2 input and $6 output per 1M tokens below 200k prompt tokens, $4 and $12 at or above.",
+   "quote": "| grok-4.6 (< 200k prompt tokens) | 500k | $2.00 | $0.50 | $6.00 |\n| grok-4.6 (≥ 200k prompt tokens) | 500k | $4.00 | $1.00 | $12.00 |",
+   "expect": "contradicts (1M not in quote)",
+   "v329": "contradicts"
+  },
+  {
+   "claim": "CDP facilitator: first 1,000 onchain transactions a month free, then $0.001 each.",
+   "quote": "The first 1,000 onchain Facilitator transactions each   month are free, then each additional onchain transaction costs \\$0.001.",
+   "expect": "supports"
+  }
+ ],
+ "fix2_alta_note_placeholder": {
+  "kill": {
+   "criterion_id": "kc-lease-gate-lois",
+   "metric": "named_price_lois",
+   "comparison": "lt",
+   "threshold": 10,
+   "check_date": "2026-12-01",
+   "data_source": "CRM LOI records",
+   "claim_label": "OBSERVED",
+   "evidence_refs": [
+    "Alta-Commons-ONE-PAGER Lease Gate: '≥10 named-price LOIs'"
+   ],
+   "note": "threshold OBSERVED; date is a placeholder",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 10
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  "expect": "NG-LABEL-001",
+  "v329": "passes"
+ },
+ "fix3_autogive_170": {
+  "context": "Autogive notes: SKU 1 list ESTIMATE $500 and $650 tiers; shared Heavy fixed $330 (300 seat + CF 5 + Supabase 25). Round-2 kill: projected_monthly_token_cost_usd gt 170 ('500-330=170 before Stripe'). Packet also states Stripe 2.9% + $0.30 card fee.",
+  "cases": [
+   {
+    "threshold": 170,
+    "derivation": {
+     "formula": "identity",
+     "inputs": {
+      "value": 170
+     },
+     "depends_on": [
+      "value"
+     ]
+    },
+    "expect": "flag (ignores $650 tier and Stripe fee present in packet; no written justification)",
+    "v329": "passes"
+   },
+   {
+    "threshold": 170,
+    "derivation": {
+     "formula": "min_tier_net_of_fee",
+     "inputs": {
+      "tiers": [
+       500,
+       650
+      ],
+      "tier_count": 2,
+      "percent": 0.029,
+      "fixed": 0.3
+     },
+     "depends_on": [
+      "every_tier",
+      "stripe_percent",
+      "stripe_fixed"
+     ]
+    },
+    "expect": "NG-KILL-004 (recomputed 485.2)",
+    "v329": "NG-KILL-004"
+   },
+   {
+    "threshold": 485.2,
+    "derivation": {
+     "formula": "min_tier_net_of_fee",
+     "inputs": {
+      "tiers": [
+       500,
+       650
+      ],
+      "tier_count": 2,
+      "percent": 0.029,
+      "fixed": 0.3
+     },
+     "depends_on": [
+      "every_tier",
+      "stripe_percent",
+      "stripe_fixed"
+     ]
+    },
+    "expect": "pass"
+   }
+  ],
+  "full_packets": "r3-packets/3-autogive-tenant-sku.opportunity.packet.json (round-3 final, passes) and r2-packets/3-autogive-tenant-sku.opportunity.packet.json (round-2)"
+ },
+ "fix4_known_issues_raw_notes": [
+  {
+   "idea": "1-hyperlex-plugin",
+   "id": "1.1",
+   "issue": "1.2B weekly users labeled UNVERIFIED in the gap packet but OBSERVED/verified in the CARD"
+  },
+  {
+   "idea": "1-hyperlex-plugin",
+   "id": "1.2",
+   "issue": "free plugin -> paid API funnel vs the plugin ban on upsells/promoting upgrades"
+  },
+  {
+   "idea": "1-hyperlex-plugin",
+   "id": "1.3",
+   "issue": "'OpenAPI or MCP manifest' vs plugins are Skills and/or an MCP server"
+  },
+  {
+   "idea": "2-x402-vernacular-api",
+   "id": "2.1",
+   "issue": "'one build serves all three' vs hackathon rule: must run on Nebius Token Factory with an NVIDIA open model at runtime"
+  },
+  {
+   "idea": "2-x402-vernacular-api",
+   "id": "2.2",
+   "issue": "hackathon requires open-source repo vs reusing the code for the paid API"
+  },
+  {
+   "idea": "2-x402-vernacular-api",
+   "id": "2.3",
+   "issue": "paid demand routed to x402 vs named payer (T&S teams) reached 'through the API'"
+  },
+  {
+   "idea": "3-autogive-tenant-sku",
+   "id": "3.1",
+   "issue": "per-tenant Heavy table counts an operator seat at N=1 but not at N=10/50"
+  },
+  {
+   "idea": "3-autogive-tenant-sku",
+   "id": "3.2",
+   "issue": "fail-closed 'price as N=1' puts SKU 2 at $800 below the $886 N=1 high floor"
+  },
+  {
+   "idea": "3-autogive-tenant-sku",
+   "id": "3.3",
+   "issue": "Heavy seat 'does not include API' yet tenant tokens priced at API rates"
+  },
+  {
+   "idea": "3-autogive-tenant-sku",
+   "id": "3.4",
+   "issue": "'high+cliff x2 = $512' listed but used in no floor row"
+  },
+  {
+   "idea": "4-alta-commons-founding100",
+   "id": "4.1",
+   "issue": "01's rationale for locked Option A describes Option B (conversion/refund book)"
+  },
+  {
+   "idea": "4-alta-commons-founding100",
+   "id": "4.2",
+   "issue": "Option B still recommended/gated in 03, 11, 19, 28, README after the A lock"
+  },
+  {
+   "idea": "4-alta-commons-founding100",
+   "id": "4.3",
+   "issue": "$3,000 credit covers ~5-9 months of one tier but ~1 month of another; 'rate lock' has no stated rate"
+  },
+  {
+   "idea": "4-alta-commons-founding100",
+   "id": "4.4",
+   "issue": "rent $5.50/sf/mo = $66/sf/yr vs a $60/sf/yr band"
+  },
+  {
+   "idea": "5-jev-crypto-arb",
+   "id": "5.1",
+   "issue": "X top-20 labeled OBSERVED but claims inside (Jev 70-500ms, PnL) unverified; S1 treats 70-500ms as fact"
+  },
+  {
+   "idea": "5-jev-crypto-arb",
+   "id": "5.2",
+   "issue": "high consequential_spend routes to ask_human vs red team 'unclear cases default to skip'"
+  }
+ ],
+ "fix4_v329_result": "2/16 on raw notes (4.2 option lock, 4.4 rent band); 0 false positives on these notes. v3.29 rules 'contracts or keys'+'x402 fits agents', 'plugin-to-paid funnel'+'banned', 'one build serves all three'+'one runtime', 'Operator seat is included at N=1' match round-1/2 PACKET wording, not raw notes.",
+ "fix5_robots": {
+  "404_repro": "RobotsHttpAdapter()._allowed('https://raw.githubusercontent.com/x/y/main/README.md') -> (False,'robots_unavailable'); raw.githubusercontent.com/robots.txt returns HTTP 404 and urllib raises HTTPError",
+  "body_cap": "10 of 14 normal HTML pages hit body_cap (MAX_BODY_BYTES=65536), e.g. https://stripe.com/pricing; see stock-robots_http-probe.json",
+  "date": "fetch_url retrieved_at was 2026-10-01 at 2026-09-30 ~22:45 PT (UTC date)"
+ },
+ "fix6_context": "Jev (TypeSafe system_one) scored NG329 correctness 1.08/2 (Autogive 0.47) but returns no reasons; ablations ruled out research/contradiction sections. Need a pass that quotes the exact wrong line.",
+ "gate_log_round3": {
+  "authoring_firings": [
+   {
+    "idea": "3-autogive-tenant-sku",
+    "draft": "claim c-grok46 quoted only the two grok-4.6 table rows",
+    "fired": [
+     "NG-LABEL-002: claims[0] cited quote does not support the claim"
+    ],
+    "cause": "claim says 'per 1M tokens'; 1M is only in the table header, so the number check failed",
+    "fix": "quote now spans header + rows; passes"
+   },
+   {
+    "idea": "all 5",
+    "draft": "round-2 packets re-stamped as schema 1.3.0",
+    "fired": "NG-KILL-005 missing derivation on all 17 kills (see r2-packets-under-v329-gates.json)",
+    "fix": "every kill now carries a derivation"
+   }
+  ],
+  "demos": [
+   {
+    "demo": "Autogive r2 threshold 170 with honest min_tier_net_of_fee derivation",
+    "errors": [
+     "NG-KILL-004: kill_criteria[0] threshold 170 != recomputed 485.2",
+     "NG-PAGE-001: main prose is 387 words / 2548 chars; budget is 450 words / 3200 chars"
+    ],
+    "expected": "NG-KILL-004"
+   },
+   {
+    "demo": "Autogive derivation missing Stripe fixed fee",
+    "errors": [
+     "NG-KILL-005: kill_criteria[0] missing input fixed; missing depends_on stripe_fixed"
+    ],
+    "expected": "NG-KILL-005"
+   },
+   {
+    "demo": "Autogive r2 threshold 170 declared as identity",
+    "errors": [
+     "NG-PAGE-001: main prose is 387 words / 2548 chars; budget is 450 words / 3200 chars"
+    ],
+    "expected": "passes: gate only checks self-consistency"
+   },
+   {
+    "demo": "Alta r2 kill: OBSERVED with placeholder date stated only in note",
+    "errors": [],
+    "expected": "passes: note text not checked"
+   },
+   {
+    "demo": "Alta kill OBSERVED with sentinel date",
+    "errors": [
+     "NG-LABEL-001: kill_criteria[0] OBSERVED date is a placeholder"
+    ],
+    "expected": "NG-LABEL-001"
+   },
+   {
+    "demo": "Alta kill OBSERVED with TBD source",
+    "errors": [
+     "NG-LABEL-001: kill_criteria[0] OBSERVED date is a placeholder",
+     "NG-PAGE-001: main prose is 289 words / 1800 chars; budget is 450 words / 3200 chars"
+    ],
+    "expected": "NG-LABEL-001"
+   },
+   {
+    "demo": "Hyperlex r2 error: 'five positive and three negative' cited to the five-positive line only",
+    "errors": [
+     "NG-LABEL-003: claims[1] cited quote support is inconclusive without a judge"
+    ],
+    "expected": "NG-LABEL-002/003"
+   },
+   {
+    "demo": "Negation flip: claim 'allowed' vs quote 'not allowed'",
+    "errors": [],
+    "expected": "should fail; passes (negation-blind)"
+   },
+   {
+    "demo": "Opposite claim whose only number is the '402' in x402",
+    "errors": [],
+    "expected": "should fail; passes (402 counts as the matched number)"
+   },
+   {
+    "demo": "Coinbase advanced-fees page (JS app shell, no fee data) through label_item",
+    "result": null,
+    "reason": "secret_like_body"
+   },
+   {
+    "demo": "robots.txt 404 (raw.githubusercontent.com) should allow per docstring",
+    "result": [
+     false,
+     "robots_unavailable"
+    ]
+   }
+  ]
+ }
+}

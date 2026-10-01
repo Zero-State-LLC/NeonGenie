@@ -3,15 +3,23 @@
 
 Neutral criteria sit beside Neon Genie's own criteria. Order is shuffled and
 pairwise choices run in both A/B directions. A third judge runs only when the
-first two disagree on the pairwise winner. This module does not call a model
-or the network. CI uses fixture judges only.
+first two disagree on the pairwise winner. The panel does not call a model.
+
+``judge_correctness`` is a separate optional diagnostic. It is off unless the
+caller passes ``enabled=True``. When on, it asks Jev (TypeSafe System One)
+which line is wrong. Jev returns a line id, not prose; this module quotes the
+line those ids point at. Tests pass a mock client and do not touch the network.
 """
 
 from __future__ import annotations
 
 import random
 import re
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
+
+import jev_client
+
+_LINE_CAP = 254
 
 NEUTRAL_CRITERIA = (
     "founder_usefulness",
@@ -240,6 +248,129 @@ def run_panel(
         "disagreement": disagreement,
         "tie_breaker_invoked": tie_breaker_invoked,
     }
+
+
+def _numbered_lines(text: str, prefix: str) -> list[tuple[str, str]]:
+    rows: list[tuple[str, str]] = []
+    for index, line in enumerate(text.splitlines(), start=1):
+        if len(rows) >= _LINE_CAP:
+            break
+        rows.append((f"{prefix}{index:03d}", line))
+    return rows
+
+
+def _choice_question(instructions: str, rows: list[tuple[str, str]]) -> dict[str, Any]:
+    criteria: dict[str, Any] = {"none": "No line applies"}
+    for line_id, line in rows:
+        preview = line.strip()
+        criteria[line_id] = preview[:180] if preview else "(blank line)"
+    return {
+        "type": "choice",
+        "instructions": instructions,
+        "criteria": criteria,
+    }
+
+
+def judge_correctness(
+    document: str,
+    source_notes: str,
+    *,
+    enabled: bool = False,
+    client: Callable[..., Any] | None = None,
+) -> dict[str, Any]:
+    """Optional correctness diagnostic. Off by default. No network unless enabled.
+
+    Jev cannot return a prose reason. The workable form is a line-id Choice:
+    the model picks a document line id and a SOURCE_NOTES line id, and this
+    function quotes those lines from the text it sent.
+    """
+    base: dict[str, Any] = {
+        "enabled": bool(enabled),
+        "invoked": False,
+        "model_invoked": False,
+        "reason_form": "line_id_choice",
+        "prose_reasons": False,
+        "has_conflict": None,
+        "document_line_id": None,
+        "document_line": None,
+        "source_line_id": None,
+        "source_line": None,
+    }
+    if not enabled:
+        base["reason"] = "disabled"
+        return base
+    doc_rows = _numbered_lines(document if isinstance(document, str) else "", "D")
+    src_rows = _numbered_lines(source_notes if isinstance(source_notes, str) else "", "S")
+    state = "\n".join(
+        ["DOCUMENT"]
+        + [f"{line_id}| {line}" for line_id, line in doc_rows]
+        + ["SOURCE_NOTES"]
+        + [f"{line_id}| {line}" for line_id, line in src_rows]
+    )
+    questions = {
+        "has_conflict": {
+            "type": "noul",
+            "instructions": (
+                "Does any DOCUMENT line conflict with a SOURCE_NOTES line?"
+            ),
+            "criteria": {
+                "true": "A document line states something the notes contradict",
+                "false": "No document line conflicts with the notes",
+            },
+        },
+        "document_line": _choice_question(
+            "Which DOCUMENT line is wrong? Choose none if no line is wrong.",
+            doc_rows,
+        ),
+        "source_line": _choice_question(
+            "Which SOURCE_NOTES line conflicts with that document line? "
+            "Choose none if none conflicts.",
+            src_rows,
+        ),
+    }
+    call = client or jev_client.system_one
+    try:
+        response = call(state, questions)
+    except jev_client.JevError as exc:
+        base["reason"] = str(exc)
+        return base
+    if not isinstance(response, dict):
+        base["reason"] = "Jev returned a non-object"
+        return base
+    answers = response.get("answers")
+    if not isinstance(answers, dict):
+        base["reason"] = "Jev returned no answers"
+        return base
+    base["invoked"] = True
+    base["model_invoked"] = True
+    base["model"] = response.get("model")
+    conflict = answers.get("has_conflict") or {}
+    noul = conflict.get("noul") if isinstance(conflict, dict) else None
+    if isinstance(noul, (int, float)) and not isinstance(noul, bool):
+        base["has_conflict"] = float(noul) >= 0.5
+    doc_choice = _choice_id(answers.get("document_line"))
+    src_choice = _choice_id(answers.get("source_line"))
+    doc_map = dict(doc_rows)
+    src_map = dict(src_rows)
+    base["document_line_id"] = doc_choice
+    base["source_line_id"] = src_choice
+    if doc_choice in doc_map:
+        base["document_line"] = doc_map[doc_choice]
+    if src_choice in src_map:
+        base["source_line"] = src_map[src_choice]
+    doc_answer = answers.get("document_line")
+    if isinstance(doc_answer, dict) and isinstance(doc_answer.get("confidence"), (int, float)):
+        base["confidence"] = float(doc_answer["confidence"])
+    return base
+
+
+def _choice_id(answer: Any) -> str | None:
+    if not isinstance(answer, dict):
+        return None
+    choice = answer.get("choice")
+    if not isinstance(choice, str) or choice == "none":
+        return None
+    return choice
 
 
 def agreed_source(result: dict[str, Any]) -> str | None:
