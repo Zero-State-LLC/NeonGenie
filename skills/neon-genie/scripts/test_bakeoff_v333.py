@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""v3.33 bake-off fixes. Stdlib only. No network and no paid model calls.
+"""v3.33 checks, updated for v3.34. Stdlib only. No network and no paid calls.
 
-The main page keeps named money-table recomputes, contradictory web facts,
-and at most five primary links. Jev is mocked. Search junk is not OBSERVED.
+Named money recomputes stay on the main page. Search hits and Jev lines
+do not. None of those research rows are OBSERVED.
 """
 
 from __future__ import annotations
@@ -107,17 +107,16 @@ def test_not_found_and_instagram_are_not_observed() -> None:
         ["vendor pricing"],
     )
     assert provider.calls == 1
-    assert len(result["observed_claims"]) == 1
-    claim = result["observed_claims"][0]
-    assert claim["label"] == "OBSERVED"
-    assert claim["url"] == rows["primary"]["url"]
+    assert result["observed_claims"] == []
     reasons = {row["reason"] for row in result["unverified_hits"]}
-    assert reasons == {"error_page", "social", "fragment"}
+    assert reasons == {"error_page", "social", "fragment", "unreviewed"}
     assert all(row["claim_label"] == "NOT_COMPUTABLE" for row in result["unverified_hits"])
-    assert all(row["status"] == "unverified" for row in result["unverified_hits"])
+    assert all(row["status"] == "unreviewed" for row in result["unverified_hits"])
+    assert all(row.get("label") != "OBSERVED" for row in result["unverified_hits"])
     urls = {row["url"] for row in result["unverified_hits"]}
     assert rows["not_found"]["url"] in urls
     assert rows["instagram"]["url"] in urls
+    assert rows["primary"]["url"] in urls
     wrapped = packet_compose.apply_page_budget(
         {
             "opportunity_thesis": "Short thesis.",
@@ -126,41 +125,47 @@ def test_not_found_and_instagram_are_not_observed() -> None:
         }
     )
     prose = packet_compose.prose_main(wrapped)
-    assert rows["primary"]["url"] in prose
+    assert rows["primary"]["url"] not in prose
     assert "instagram.com" not in prose
     assert "Not found" not in prose
-    parked = wrapped["appendix"]["search_hits_not_used"]["hits"]
-    assert {row["url"] for row in parked} == urls
+    assert "OBSERVED" not in prose
+    parked = wrapped["appendix"]["research_unreviewed"]
+    assert parked["label"] == "Research (unreviewed, needs a person's review)"
+    assert {row["url"] for row in parked["search_hits"]} == urls
+    assert all(row["claim_label"] != "OBSERVED" for row in parked["search_hits"])
     assert wrapped["page_budget"]["fits_one_page"] is True
-    print("Not found, Instagram, and a fragment are unverified; primary stays OBSERVED")
+    print("search hits are unreviewed and off the main page")
 
 
-def test_main_page_lists_at_most_five_links() -> None:
+def test_search_links_stay_off_the_main_page() -> None:
     cite = _rows()["primary"]["text"]
-    claims = []
+    hits = []
     for index in range(8):
-        claims.append(
+        hits.append(
             {
-                "claim_id": f"obs-{index + 1}",
-                "label": "OBSERVED",
-                "kind": "web_page",
                 "url": f"https://example.test/pricing/plan-{index}",
-                "retrieved_at": "2026-10-01",
                 "text": cite,
+                "retrieved_at": "2026-10-01",
+                "reason": "unreviewed",
+                "status": "unreviewed",
+                "claim_label": "NOT_COMPUTABLE",
             }
         )
     packet = packet_compose.apply_page_budget(
         {
             "opportunity_thesis": "Short thesis.",
             "input_contradictions": {"checked": True, "findings": []},
-            "research": {"observed_claims": claims},
+            "research": {"observed_claims": [], "unverified_hits": hits},
         }
     )
     prose = packet_compose.prose_main(packet)
-    assert prose.count("https://") == packet_compose.MAIN_LINK_CAP
+    assert "https://" not in prose
     assert packet["page_budget"]["fits_one_page"] is True
     assert packet["page_budget"]["main_word_count"] <= packet_compose.WORD_BUDGET
-    print("main page lists five primary links")
+    parked = packet["appendix"]["research_unreviewed"]["search_hits"]
+    assert len(parked) == 8
+    assert all(row["claim_label"] == "NOT_COMPUTABLE" for row in parked)
+    print("search links stay off the main page")
 
 
 def _client(choice_for: dict[str, str]) -> tuple[list[int], object]:
@@ -229,11 +234,14 @@ def test_jev_reconcile_is_mocked_and_capped() -> None:
         }
     )
     prose = packet_compose.prose_main(packet)
-    assert "CONTRADICTS:" in prose
+    assert "CONTRADICTS:" not in prose
     assert "AGREES:" not in prose
-    parked = packet["appendix"]["fact_reconcile"]["items"]
-    assert any(row["verdict"] == "AGREES" for row in parked)
-    assert all(row["verdict"] != "CONTRADICTS" for row in parked)
+    assert "OBSERVED" not in prose
+    parked = packet["appendix"]["research_unreviewed"]
+    assert parked["label"] == "Research (unreviewed, needs a person's review)"
+    verdicts = {row["verdict"] for row in parked["reconcile"]}
+    assert verdicts == {"AGREES", "CONTRADICTS"}
+    assert all(row.get("claim_label") != "OBSERVED" for row in parked["reconcile"])
 
     more = claims + [
         {
@@ -256,14 +264,74 @@ def test_jev_reconcile_is_mocked_and_capped() -> None:
     assert capped_calls == [1]
     assert capped["calls"] == 1
     assert sum(row["reason"] == "jev_call_cap" for row in capped["items"]) == 3
-    print("Jev reconcile mocked; contradicts on the main page; cap holds; no live call")
+    print("Jev reconcile mocked; every verdict is in the appendix; cap holds; no live call")
+
+
+def test_reconcile_step_stays_off_without_the_paid_flag() -> None:
+    _quiet()
+    calls: list[int] = []
+
+    def client(state: str, questions: dict) -> dict:
+        calls.append(1)
+        return {"model": "jev-test", "answers": {}}
+
+    packet = packet_compose.attach_v12(
+        {"opportunity_thesis": "Short thesis."},
+        notes="Heavy seat is about $300 per month.",
+        research_policy={
+            "enabled": True,
+            "offline": False,
+            "adapter": "fixture",
+            "jev_client": client,
+        },
+        queries=["seat floor"],
+        schema_id="neon-genie/opportunity-packet",
+        adapter=research_mode.FixtureAdapter(
+            [
+                {
+                    "url": "https://example.test/fixtures/seat-floor",
+                    "retrieved_at": "2026-10-01",
+                    "complete": True,
+                    "kind": "web_page",
+                    "text": "Fixture page states no live price.",
+                    "query": "seat floor",
+                }
+            ]
+        ),
+        handoff={
+            "summary": "Reconcile the notes.",
+            "first_commit": {
+                "touch": ["notes"],
+                "done_when": "One rule is declared.",
+                "test_to_write": "Re-run the input pass.",
+                "owner_role": "operator",
+            },
+        },
+        kill_criteria=[
+            {
+                "metric": "open_findings",
+                "threshold": 0,
+                "comparison": "gt",
+                "check_date": "2026-10-15",
+                "data_source": "input contradiction pass",
+                "claim_label": "SPECULATIVE",
+                "derivation": packet_compose.identity_derivation(0),
+            }
+        ],
+    )
+    assert calls == []
+    assert "reconcile" not in packet["research"]
+    prose = packet_compose.prose_main(packet)
+    assert "https://" not in prose
+    print("Jev reconcile stays off without NEON_GENIE_RESEARCH_PAID")
 
 
 def main() -> None:
     test_duplicate_line_keeps_one_named_recompute()
     test_not_found_and_instagram_are_not_observed()
-    test_main_page_lists_at_most_five_links()
+    test_search_links_stay_off_the_main_page()
     test_jev_reconcile_is_mocked_and_capped()
+    test_reconcile_step_stays_off_without_the_paid_flag()
     print("PASS: bake-off v3.33")
 
 

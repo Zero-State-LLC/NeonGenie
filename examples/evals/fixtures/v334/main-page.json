@@ -1,0 +1,20 @@
+{
+  "appendix_label": "Research (unreviewed, needs a person's review)",
+  "alta_main": [
+    "Input notes lock both Option A and B.",
+    "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr.",
+    "notes say monthly burn 35000, recomputed monthly rent 55000"
+  ],
+  "jev_main": [
+    "The action ask_human is both required and excluded."
+  ],
+  "autogive_main": [
+    "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4"
+  ],
+  "off_main": [
+    "Double of 64 is 128, not 512",
+    "331.5",
+    "The rationale for locked Option A agrees with Option B.",
+    "Computed 512 does not appear in a later total."
+  ]
+}
