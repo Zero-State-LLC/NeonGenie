@@ -1,0 +1,14 @@
+{
+  "input": {
+    "packet_type": "opportunity",
+    "packet": {
+      "schema_version": "1.2.0",
+      "kill_criteria": "Stop if revenue is low."
+    }
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "KILL",
+    "code": "NG-KILL-001"
+  }
+}

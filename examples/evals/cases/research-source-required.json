@@ -1,0 +1,31 @@
+{
+  "input": {
+    "queries": [
+      "price"
+    ],
+    "items": [
+      {
+        "url": "https://example.test/paper",
+        "retrieved_at": "2026-10-01",
+        "complete": true,
+        "kind": "paper",
+        "text": "The note states no price number is set.",
+        "query": "price"
+      },
+      {
+        "retrieved_at": "2026-10-01",
+        "complete": true,
+        "text": "A body with no URL.",
+        "query": "price"
+      }
+    ]
+  },
+  "expected": {
+    "status": "PASS",
+    "observed_count": 1,
+    "rejected_reasons": [
+      "missing_url"
+    ],
+    "gate": "RESEARCH"
+  }
+}

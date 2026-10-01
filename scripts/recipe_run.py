@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 from typing import Callable
 
+import packet_compose
 import recipe_common as rc
 
 SKILL_ROOT = rc.SKILL_ROOT
@@ -372,6 +373,36 @@ def recipe_commercial(out: Path) -> int:
         "grants_execution": False,
         "promotion_state": "CONCEPTUAL",
     }
+    packet = packet_compose.attach_offline(
+        packet,
+        notes=brief.read_text(encoding="utf-8"),
+        schema_id="neon-genie/commercial-simulation",
+        handoff={
+            "summary": "Separate buyer from beneficiary before any price is proposed.",
+            "steps": [
+                "Satisfy the buyer DataRequest.",
+                "Keep firm price NOT_COMPUTABLE until a cite exists.",
+            ],
+            "first_commit": {
+                "touch": ["operator notes on who pays versus who benefits"],
+                "done_when": "buyer_map roles are separated or still marked NOT_COMPUTABLE",
+                "test_to_write": "Assert firm_price stays NOT_COMPUTABLE while the buyer DataRequest is open",
+                "owner_role": "operator",
+            },
+        },
+        kill_criteria=[
+            {
+                "criterion_id": "kc-named-buyer",
+                "metric": "named_buyer_count",
+                "threshold": 1,
+                "comparison": "lt",
+                "check_date": "2026-10-15",
+                "data_source": "operator DataRequest log for buyer_budget_authority",
+                "claim_label": "SPECULATIVE",
+                "role": "guardrail",
+            }
+        ],
+    )
     packet_path = out / "commercial-simulation.stub.json"
     rc.write_json(packet_path, packet)
     rc.validate_packet(packet_path, "commercial")
@@ -842,6 +873,36 @@ def recipe_opportunity(out: Path) -> int:
         "failure_modes": "silence, invented pipeline, or buyer/beneficiary conflation",
         "jtbd": "book a first paid diagnostic or record an evidenced refusal",
     }
+    packet = packet_compose.attach_offline(
+        packet,
+        notes=brief.read_text(encoding="utf-8"),
+        schema_id="neon-genie/opportunity-packet",
+        handoff={
+            "summary": "Declare skills, access, and who pays, then offer one diagnostic.",
+            "steps": [
+                "Satisfy the open DataRequest before naming a buyer.",
+                "Offer one diagnostic only to declared warm contacts.",
+            ],
+            "first_commit": {
+                "touch": ["operator inventory of skills, access, and who pays"],
+                "done_when": "DataRequest dr-skills-buyer is satisfied or explicitly waived",
+                "test_to_write": "Assert economic_buyer stays NOT_COMPUTABLE until that DataRequest is satisfied",
+                "owner_role": "operator",
+            },
+        },
+        kill_criteria=[
+            {
+                "criterion_id": "kc-paid-yes",
+                "metric": "paid_diagnostic_count",
+                "threshold": 1,
+                "comparison": "lt",
+                "check_date": "2026-10-15",
+                "data_source": "operator ledger of invoices against declared warm contacts",
+                "claim_label": "SPECULATIVE",
+                "role": "guardrail",
+            }
+        ],
+    )
     packet_path = out / "opportunity-packet.stub.json"
     rc.write_json(packet_path, packet)
     rc.validate_packet(packet_path, "opportunity")

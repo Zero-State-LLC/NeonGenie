@@ -140,6 +140,18 @@ def main() -> int:
         print("==> founder profile routing")
         print("SKIP: test_route_profiles.py not present")
 
+    bakeoff_test = SCRIPT_DIR / "test_bakeoff_six.py"
+    if bakeoff_test.is_file():
+        print("==> bake-off packet checks")
+        r = subprocess.run([PY, str(bakeoff_test)], cwd=SKILL_ROOT)
+        if r.returncode != 0:
+            print("FAIL: bake-off packet checks", file=sys.stderr)
+            return r.returncode
+        print("OK: bake-off packet checks")
+    else:
+        print("==> bake-off packet checks")
+        print("SKIP: test_bakeoff_six.py not present")
+
     print("")
     print("PASS: neon-genie doctor (all smokes green)")
     print("  authority remains advisory_only; no execution granted")

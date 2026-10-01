@@ -316,3 +316,48 @@ gates:
       - arXiv:2605.14306
     note: Warn-then-require in 3.26.x. Fabricated cites remain Gate CITE. No invent Brier.
 
+  # 3.28.0 bake-off — packaging checks on schema >= 1.2.0
+  KILL:
+    name: numeric_kill_criteria
+    severity: blocking
+    condition: kill_criteria_prose || criterion_missing_metric_threshold_comparison_check_date_or_source || observed_threshold_without_evidence_refs
+    remediation: emit_structured_kill_criteria_with_claim_label
+    refs:
+      - schemas/opportunity-packet.schema.json
+      - schemas/commercial-simulation.schema.json
+      - scripts/packet_compose.py
+
+  HANDOFF:
+    name: first_commit_handoff
+    severity: blocking
+    condition: schema_1_2_packet_missing_first_commit_touch_done_when_test_or_owner
+    remediation: end_build_handoff_with_first_commit
+    refs:
+      - scripts/packet_compose.py
+      - profiles/wayfinder_handoff.md
+
+  INPUT:
+    name: input_contradiction_pass
+    severity: blocking
+    condition: schema_1_2_packet_missing_checked_input_contradictions
+    remediation: scan_notes_for_contradictions_arithmetic_and_inconsistent_figures
+    refs:
+      - scripts/packet_compose.py
+
+  PAGE:
+    name: one_page_decision_prose
+    severity: blocking
+    condition: decision_prose_over_450_words_or_3200_chars || truncated_true
+    remediation: move_evidence_to_appendix_intact_do_not_slice
+    refs:
+      - scripts/packet_compose.py
+
+  RESEARCH_OBS:
+    name: observed_claim_needs_source
+    severity: blocking
+    condition: observed_research_claim_missing_url_or_retrieval_date || offline_record_contains_observed
+    remediation: drop_label_or_attach_url_and_retrieved_at
+    refs:
+      - scripts/research_mode.py
+      - profiles/evidence_intelligence.md
+

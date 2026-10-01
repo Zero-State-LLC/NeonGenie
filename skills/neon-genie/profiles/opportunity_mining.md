@@ -87,9 +87,11 @@ Before promotion ≥ `TESTABLE`, require an explicit **hypothesis ↔ MVP** map:
 |-------|------|
 | falsifiable hypothesis | What must be true for the opportunity to work |
 | MVP / nano-test | Smallest external check that could falsify it |
-| kill criteria | What evidence stops the path |
+| kill criteria | What evidence stops the path. On schema 1.2.0 this is a list of `{metric, threshold, comparison, check_date, data_source, claim_label}`. Prose-only kills fail (NG-KILL-001). |
 
 Missing map → fail CLEAR (Gate HYP). Do not promote on thesis prose alone. Keepers: arXiv:1808.05630, arXiv:2506.16334.
+
+Schema 1.2.0 packets also carry `input_contradictions` (checked before writing), `build_handoff.first_commit` (touch, done-when, one test, owner role), and `page_budget` (450 words / 3200 characters of decision prose; evidence in `appendix`). Research adapters may add OBSERVED claims only with a URL and retrieval date. Offline adds none.
 
 Note: Gate HYP is distinct from Wayfinder **Gate H** (intent-rewrite handoff).
 

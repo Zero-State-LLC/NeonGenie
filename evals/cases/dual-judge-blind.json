@@ -1,0 +1,87 @@
+{
+  "input": {
+    "seed": 20260930,
+    "expect_winner": "left-arm",
+    "packets": [
+      {
+        "id": "left-arm",
+        "body": "Neon Genie says the buyer is NOT_COMPUTABLE and no price is set."
+      },
+      {
+        "id": "right-arm",
+        "body": "Opus baseline offers an illustrative hosted tier."
+      }
+    ],
+    "judges": [
+      {
+        "kind": "fixture",
+        "name": "judge-one",
+        "winner_excerpt": "NOT_COMPUTABLE",
+        "rows": [
+          {
+            "excerpt": "NOT_COMPUTABLE",
+            "founder_usefulness": 1.8,
+            "correctness": 1.8,
+            "actionability": 1.8,
+            "labeled_claims": 1.8,
+            "no_invented_buyers_or_prices": 1.8,
+            "kill_criteria_testable": 1.8,
+            "cheapest_falsifying_test": 1.8,
+            "build_handoff": 1.8,
+            "evidence_from_sources": 1.8
+          }
+        ],
+        "default_scores": {
+          "founder_usefulness": 1.5,
+          "correctness": 1.5,
+          "actionability": 1.5,
+          "labeled_claims": 1.5,
+          "no_invented_buyers_or_prices": 1.5,
+          "kill_criteria_testable": 1.5,
+          "cheapest_falsifying_test": 1.5,
+          "build_handoff": 1.5,
+          "evidence_from_sources": 1.5
+        }
+      },
+      {
+        "kind": "fixture",
+        "name": "judge-two",
+        "winner_excerpt": "NOT_COMPUTABLE",
+        "rows": [
+          {
+            "excerpt": "NOT_COMPUTABLE",
+            "founder_usefulness": 1.4,
+            "correctness": 1.4,
+            "actionability": 1.4,
+            "labeled_claims": 1.4,
+            "no_invented_buyers_or_prices": 1.4,
+            "kill_criteria_testable": 1.4,
+            "cheapest_falsifying_test": 1.4,
+            "build_handoff": 1.4,
+            "evidence_from_sources": 1.4
+          }
+        ],
+        "default_scores": {
+          "founder_usefulness": 1.1,
+          "correctness": 1.1,
+          "actionability": 1.1,
+          "labeled_claims": 1.1,
+          "no_invented_buyers_or_prices": 1.1,
+          "kill_criteria_testable": 1.1,
+          "cheapest_falsifying_test": 1.1,
+          "build_handoff": 1.1,
+          "evidence_from_sources": 1.1
+        }
+      }
+    ]
+  },
+  "expected": {
+    "status": "PASS",
+    "judge_count": 2,
+    "model_invoked": false,
+    "neutral_criteria": true,
+    "ab_swap": true,
+    "agreed_winner": "left-arm",
+    "gate": "JUDGE"
+  }
+}

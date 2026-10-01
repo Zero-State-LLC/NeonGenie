@@ -47,3 +47,11 @@ Wave 1 captures invariants for later automated runners. Fixtures live in `evals/
 | `paperpilot-incomplete-not-computable.json` | Labeled incomplete research → NOT_COMPUTABLE / DataRequest |
 | `boring-prfaq-hold.json` | Gate HYP — boring unfalsifiable PRFAQ → HOLD |
 | `irreversible-missing-log-pointer.json` | Gate ISO — irreversible without versioned log pointer → GATE_FAIL |
+| `research-offline-no-observed.json` | Offline research adds no OBSERVED claims |
+| `research-source-required.json` | OBSERVED requires a URL; missing URL is rejected |
+| `kill-criteria-prose.json` | Prose kill criteria → NG-KILL-001 |
+| `handoff-first-commit.json` | Handoff without first_commit → NG-HANDOFF-001 |
+| `input-contradiction-notes.json` | Seat mix, option lock, and bad arithmetic are listed |
+| `page-budget-no-truncation.json` | Over-budget thesis fails and is not sliced |
+| `dual-judge-blind.json` | Two fixture judges, neutral criteria, A/B swap, no model call |
+| `paid-judge-rejected.json` | Paid/network judge kinds are rejected |
