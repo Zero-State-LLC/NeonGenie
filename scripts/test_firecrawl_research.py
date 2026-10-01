@@ -19,6 +19,10 @@ _ENV_KEYS = (
     firecrawl_client.DOLLARS_PER_CREDIT_ENV,
 )
 _KEY = "test-firecrawl-key"
+_CITE = (
+    "Vendor pricing documentation lists the published monthly price, "
+    "the included quota, and the plan name on this official pricing page."
+)
 
 
 class _Transport:
@@ -117,7 +121,7 @@ def _run(transport: _Transport, queries: list[str], **extra: object) -> dict:
 
 def test_success_cites_markdown_and_pt_date() -> None:
     transport = _Transport([
-        _payload([_web("https://example.test/pricing", "Published list price is 12 USD.")]),
+        _payload([_web("https://example.test/pricing", _CITE)]),
     ])
     result = _run(transport, ["official pricing"])
     assert transport.calls == ["https://api.firecrawl.dev/v2/search"]
@@ -127,7 +131,7 @@ def test_success_cites_markdown_and_pt_date() -> None:
     claim = result["observed_claims"][0]
     assert claim["label"] == "OBSERVED"
     assert claim["url"] == "https://example.test/pricing"
-    assert claim["text"] == "Published list price is 12 USD."
+    assert claim["text"] == _CITE
     assert claim["retrieved_at"] == research_mode._today()
     assert _KEY not in json.dumps(result)
     print("success cites the returned markdown with a PT date")
@@ -135,10 +139,10 @@ def test_success_cites_markdown_and_pt_date() -> None:
 
 def test_description_when_markdown_absent() -> None:
     transport = _Transport([
-        _payload([_web("https://example.test/docs", None, "Docs say the floor is 9.")]),
+        _payload([_web("https://example.test/docs", None, _CITE)]),
     ])
     result = _run(transport, ["floor price"])
-    assert result["observed_claims"][0]["text"] == "Docs say the floor is 9."
+    assert result["observed_claims"][0]["text"] == _CITE
     print("description is the citation when markdown is absent")
 
 
@@ -169,12 +173,12 @@ def test_429_retries_once_then_cites() -> None:
     sleeps: list[float] = []
     transport = _Transport([
         (429, b"{}"),
-        _payload([_web("https://example.test/after-retry", "Retried page says 4.")]),
+        _payload([_web("https://example.test/pricing/after-retry", _CITE)]),
     ])
     result = _run(transport, ["retry me"], sleep=lambda seconds: sleeps.append(seconds))
     assert len(transport.calls) == 2
     assert sleeps == [firecrawl_client.RETRY_BACKOFF_S]
-    assert result["observed_claims"][0]["url"] == "https://example.test/after-retry"
+    assert result["observed_claims"][0]["url"] == "https://example.test/pricing/after-retry"
     assert result["observed_claims"][0]["label"] == "OBSERVED"
     print("429 retries once")
 
@@ -223,12 +227,12 @@ def test_over_cap_does_not_call() -> None:
 
 def test_actual_credits_fail_closed_for_the_next_query() -> None:
     transport = _Transport([
-        _payload([_web("https://example.test/first", "First page.")], credits=80),
-        _payload([_web("https://example.test/second", "Second page.")]),
+        _payload([_web("https://example.test/pricing/first", _CITE)], credits=80),
+        _payload([_web("https://example.test/pricing/second", _CITE)]),
     ])
     result = _run(transport, ["one", "two"])
     assert len(transport.calls) == 1
-    assert result["observed_claims"][0]["url"] == "https://example.test/first"
+    assert result["observed_claims"][0]["url"] == "https://example.test/pricing/first"
     assert result["not_fetched"][-1]["reason"] == "over_cap"
     assert not any(claim["url"].endswith("/second") for claim in result["observed_claims"])
     print("creditsUsed above the reservation blocks the next call")
@@ -327,7 +331,7 @@ def test_free_fetch_runs_before_search() -> None:
         return _Page(b"Published list price is 12.", str(url))
 
     transport = _Transport([
-        _payload([_web("https://example.test/search-hit", "Search hit body.")]),
+        _payload([_web("https://example.test/docs/search-hit", _CITE)]),
     ])
     result = _run(
         transport,
@@ -339,7 +343,7 @@ def test_free_fetch_runs_before_search() -> None:
     assert len(transport.calls) == 1
     urls = [claim["url"] for claim in result["observed_claims"]]
     assert "https://example.test/pricing" in urls
-    assert "https://example.test/search-hit" in urls
+    assert "https://example.test/docs/search-hit" in urls
     assert all(claim["label"] == "OBSERVED" for claim in result["observed_claims"])
     assert all(claim["retrieved_at"] == research_mode._today() for claim in result["observed_claims"])
     print("free robots fetch runs first; search cites only returned URLs")
@@ -347,7 +351,7 @@ def test_free_fetch_runs_before_search() -> None:
 
 def test_scrape_option_and_v1_body() -> None:
     transport = _Transport([
-        _payload([_web("https://example.test/v1", "v1 body")], v1=True),
+        _payload([_web("https://example.test/pricing/v1", _CITE)], v1=True),
     ])
     result = _run(
         transport,
@@ -357,8 +361,8 @@ def test_scrape_option_and_v1_body() -> None:
     )
     assert transport.calls == ["https://api.firecrawl.dev/v1/search"]
     assert transport.bodies[0]["scrapeOptions"]["formats"] == ["markdown"]
-    assert result["observed_claims"][0]["text"] == "v1 body"
-    v2 = _Transport([_payload([_web("https://example.test/v2", "v2 body")])])
+    assert result["observed_claims"][0]["text"] == _CITE
+    v2 = _Transport([_payload([_web("https://example.test/docs/v2", _CITE)])])
     scraped = _run(
         v2,
         ["v2 query", "held for the cap"],
