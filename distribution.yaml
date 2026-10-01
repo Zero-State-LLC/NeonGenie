@@ -82,6 +82,7 @@ hub_support_globs:
   - scripts/validate_hermes_skill.py
   - scripts/validate_packet.py
   - scripts/research_mode.py
+  - scripts/firecrawl_client.py
   - scripts/packet_compose.py
   - scripts/judge_eval.py
   - scripts/jev_client.py

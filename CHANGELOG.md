@@ -5,6 +5,36 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.32.0] — 2026-10-01
+
+Firecrawl is the paid search provider for the capped per-idea research step
+added in 3.31.0. Honesty stays: no invented sources. Artifact schema stays
+**1.3.0**. No new required fields.
+
+### Added
+
+- `scripts/firecrawl_client.py` calls Firecrawl `POST /search` (v2 by
+  default, v1 responses accepted). It runs only when
+  `NEON_GENIE_RESEARCH_PAID=1` and `FIRECRAWL_API_KEY` are both set. Otherwise
+  the pass is unchanged: free robots-aware fetch first, other queries
+  `NOT_FETCHED`. Optional markdown scrape of the top results is off unless
+  `NEON_GENIE_FIRECRAWL_SCRAPE=1`.
+- Cost is Firecrawl credits times `DOLLARS_PER_CREDIT` (default `0.005`:
+  Hobby pay-as-you-go, 1,000 credits per $5, the dearest published
+  self-serve rate). Search is 2 credits per 10 results, rounded up. Scrape
+  adds 1 credit per result. The same caps apply: 5 calls and $0.20 per idea,
+  $1.00 per run. A call that would exceed a cap is not sent. `creditsUsed`
+  above that reservation blocks the next call.
+- HTTP errors, timeouts, and 403s are `NOT_FETCHED`. A 429 or 5xx retries
+  once with backoff. A secret-like query is not sent. OBSERVED citations
+  still need the returned URL and an America/Los_Angeles retrieval date.
+- `scripts/test_firecrawl_research.py` mocks the client (success, empty,
+  403, 429, over-cap). No live Firecrawl call.
+
+### Changed
+
+- VERSION **3.32.0**. Research user agent `neon-genie-research/3.32`.
+
 ## [3.31.0] — 2026-10-01
 
 Round-4 bake-off fixes on v3.30.0. Honesty stays: no invented buyers,
