@@ -30,6 +30,7 @@ They are **not** execution authority.
 | File | Validate |
 |------|----------|
 | `packets/sample-opportunity.packet.json` | `do validate --type opportunity` |
+| `packets/sample-opportunity-v12.packet.json` | Schema 1.2.0 fixture (seat-floor notes): contradictions, first commit, numeric kill, one OBSERVED source |
 | `packets/sample-commercial.packet.json` | `do validate --type commercial` |
 | `packets/sample-receipt.packet.json` | `do validate --type receipt --strict-authority` |
 | `packets/sample-privacy-context.json` | `do validate --type privacy` |

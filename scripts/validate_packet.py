@@ -29,6 +29,7 @@ SKILL_ROOT = SCRIPT_DIR.parent
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
+import packet_compose  # noqa: E402
 import paths as ng_paths  # noqa: E402
 
 PACKET_TYPE_TO_SCHEMA = {
@@ -402,6 +403,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.packet_type and isinstance(packet, dict):
         errors.extend(check_privacy_rules(packet, args.packet_type))
         errors.extend(check_commercial_rules(packet, args.packet_type))
+        errors.extend(packet_compose.packaging_errors(packet, args.packet_type))
     elif not args.packet_type and isinstance(packet, dict):
         # Infer from schema filename when --schema was used alone
         name = schema_path.name.lower()
@@ -411,6 +413,9 @@ def main(argv: list[str] | None = None) -> int:
             errors.extend(check_privacy_rules(packet, "envelope"))
         elif name in {"commercial-simulation.schema.json"}:
             errors.extend(check_commercial_rules(packet, "commercial"))
+            errors.extend(packet_compose.packaging_errors(packet, "commercial"))
+        elif name in {"opportunity-packet.schema.json"}:
+            errors.extend(packet_compose.packaging_errors(packet, "opportunity"))
 
     if errors:
         print(f"FAIL: {args.packet} vs {schema_path.name}", file=sys.stderr)

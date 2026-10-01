@@ -88,6 +88,7 @@ Public entry points:
 | **3.25.0** | Founder cold-start: founder-language routing, capital_sprint recipe, default transitional-builder job shape, hub list after doctrine, judgment honesty |
 | **3.26.0** | Hermes packaging wizard (`do wizard`), presets, `references/wizard.md` |
 | **3.27.0** | Gate ISO; PaperPilot PILOT; required `logic_label` / envelope `stage` / `evidence_ledger`; CLEAR BRIC / CITE / LEDGER / LOGIC / STAGE (`#14`) |
+| **3.28.0** | Bake-off follow-up: research adapters, input-contradiction pass, numeric kill criteria, first-commit handoff, one-page prose plus appendix, dual fixture judges. Opportunity/commercial schema **1.2.0** (1.1.0 packets still validate). |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
 

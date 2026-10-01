@@ -47,6 +47,14 @@ Fixtures: `evals/cases/`. Rubric skeleton: `evals/rubric.md`.
 | `evals/cases/paperpilot-invent-cite.json` | Gate CITE — invented PaperPilot cite fails |
 | `evals/cases/paperpilot-incomplete-not-computable.json` | Incomplete research → NOT_COMPUTABLE / DataRequest |
 | `evals/cases/boring-prfaq-hold.json` | Unfalsifiable PRFAQ → HOLD (Gate HYP) |
+| `evals/cases/research-offline-no-observed.json` | Offline research → no OBSERVED claims |
+| `evals/cases/research-source-required.json` | OBSERVED claim requires a source URL |
+| `evals/cases/kill-criteria-prose.json` | Prose kill criteria fail |
+| `evals/cases/handoff-first-commit.json` | Handoff without first commit fails |
+| `evals/cases/input-contradiction-notes.json` | Input notes: contradiction, arithmetic, inconsistent figure |
+| `evals/cases/page-budget-no-truncation.json` | Over-budget prose fails closed and is not truncated |
+| `evals/cases/dual-judge-blind.json` | Two fixture judges, neutral criteria, blind A/B swap |
+| `evals/cases/paid-judge-rejected.json` | Paid judge kinds are rejected; no model call |
 
 Anti-overclaim catalog: `references/anti-overclaim-patterns.md`.
 

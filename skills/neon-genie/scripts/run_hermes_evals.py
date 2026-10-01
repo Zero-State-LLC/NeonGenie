@@ -27,8 +27,11 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_ROOT = SCRIPT_DIR.parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
+import judge_eval  # noqa: E402
+import packet_compose  # noqa: E402
 import paths as ng_paths  # noqa: E402
 import privacy_runtime  # noqa: E402
+import research_mode  # noqa: E402
 
 EvalFn = Callable[[dict[str, Any]], dict[str, Any]]
 
@@ -515,6 +518,125 @@ def eval_paperpilot_incomplete(inp: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def eval_research_offline(inp: dict[str, Any]) -> dict[str, Any]:
+    result = research_mode.run_research(inp.get("research") or {}, inp.get("queries") or [])
+    return {
+        "status": "PASS" if not result["observed_claims"] else "FAIL",
+        "observed_count": len(result["observed_claims"]),
+        "research_ran": bool(result["research_ran"]),
+        "gate": "RESEARCH",
+    }
+
+
+def eval_research_source_required(inp: dict[str, Any]) -> dict[str, Any]:
+    adapter = research_mode.FixtureAdapter(inp.get("items") or [])
+    result = research_mode.run_research(
+        {"enabled": True, "offline": False, "adapter": "fixture"},
+        inp.get("queries") or [],
+        adapter=adapter,
+    )
+    labels = [claim.get("label") for claim in result["observed_claims"]]
+    reasons = [row.get("reason") for row in result["rejected"]]
+    ok = labels == ["OBSERVED"] and "missing_url" in reasons
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "observed_count": len(result["observed_claims"]),
+        "rejected_reasons": reasons,
+        "gate": "RESEARCH",
+    }
+
+
+def eval_kill_prose(inp: dict[str, Any]) -> dict[str, Any]:
+    errors = packet_compose.packaging_errors(
+        inp.get("packet") or {}, inp.get("packet_type") or "opportunity"
+    )
+    hit = any(line.startswith("NG-KILL-001") for line in errors)
+    return {
+        "status": "GATE_FAIL" if hit else "PASS",
+        "gate": "KILL",
+        "code": "NG-KILL-001" if hit else "",
+    }
+
+
+def eval_handoff_first_commit(inp: dict[str, Any]) -> dict[str, Any]:
+    errors = packet_compose.packaging_errors(
+        inp.get("packet") or {}, inp.get("packet_type") or "opportunity"
+    )
+    hit = any(line.startswith("NG-HANDOFF-001") for line in errors)
+    return {
+        "status": "GATE_FAIL" if hit else "PASS",
+        "gate": "HANDOFF",
+        "code": "NG-HANDOFF-001" if hit else "",
+    }
+
+
+def eval_input_contradictions(inp: dict[str, Any]) -> dict[str, Any]:
+    scanned = packet_compose.scan_input_notes(inp.get("notes") or "")
+    kinds = sorted({row["kind"] for row in scanned["findings"]})
+    return {
+        "status": "PASS" if scanned["checked"] else "FAIL",
+        "checked": bool(scanned["checked"]),
+        "kinds": kinds,
+        "gate": "INPUT",
+    }
+
+
+def eval_page_budget(inp: dict[str, Any]) -> dict[str, Any]:
+    original = str((inp.get("packet") or {}).get("opportunity_thesis") or "")
+    packet = packet_compose.apply_page_budget(dict(inp.get("packet") or {}))
+    errors = packet_compose.packaging_errors(packet, "opportunity")
+    hit = any(line.startswith("NG-PAGE-001") for line in errors)
+    return {
+        "status": "GATE_FAIL" if hit else "PASS",
+        "truncated": packet.get("page_budget", {}).get("truncated"),
+        "thesis_intact": packet.get("opportunity_thesis") == original,
+        "gate": "PAGE",
+    }
+
+
+def eval_dual_judge(inp: dict[str, Any]) -> dict[str, Any]:
+    judges = [judge_eval.load_judge(spec) for spec in (inp.get("judges") or [])]
+    result = judge_eval.run_panel(
+        inp.get("packets") or [],
+        judges,
+        seed=int(inp.get("seed") or 0),
+    )
+    neutral = all(name in result["criteria"] for name in judge_eval.NEUTRAL_CRITERIA)
+    swapped = bool(result["pairwise"]) and all(
+        "order_ab" in pair and "order_ba" in pair for pair in result["pairwise"]
+    )
+    winner = judge_eval.agreed_source(result)
+    ok = (
+        result["judge_count"] >= 2
+        and result["model_invoked"] is False
+        and neutral
+        and swapped
+        and winner == inp.get("expect_winner")
+    )
+    return {
+        "status": "PASS" if ok else "FAIL",
+        "judge_count": result["judge_count"],
+        "model_invoked": result["model_invoked"],
+        "neutral_criteria": neutral,
+        "ab_swap": swapped,
+        "agreed_winner": winner,
+        "gate": "JUDGE",
+    }
+
+
+def eval_paid_judge_rejected(inp: dict[str, Any]) -> dict[str, Any]:
+    try:
+        judge_eval.load_judge({"kind": inp.get("kind") or "paid"})
+        rejected = False
+    except judge_eval.JudgeRejected:
+        rejected = True
+    return {
+        "status": "PASS" if rejected else "FAIL",
+        "model_invoked": False,
+        "gate": "JUDGE",
+    }
+
+
 def eval_boring_prfaq_hold(inp: dict[str, Any]) -> dict[str, Any]:
     artifact = str(inp.get("artifact") or "").lower()
     generic = bool(inp.get("generic_unfalsifiable"))
@@ -564,6 +686,14 @@ EVALUATORS: dict[str, EvalFn] = {
     "paperpilot-invent-cite.json": eval_fabricated_cite,
     "paperpilot-incomplete-not-computable.json": eval_paperpilot_incomplete,
     "boring-prfaq-hold.json": eval_boring_prfaq_hold,
+    "research-offline-no-observed.json": eval_research_offline,
+    "research-source-required.json": eval_research_source_required,
+    "kill-criteria-prose.json": eval_kill_prose,
+    "handoff-first-commit.json": eval_handoff_first_commit,
+    "input-contradiction-notes.json": eval_input_contradictions,
+    "page-budget-no-truncation.json": eval_page_budget,
+    "dual-judge-blind.json": eval_dual_judge,
+    "paid-judge-rejected.json": eval_paid_judge_rejected,
 }
 
 

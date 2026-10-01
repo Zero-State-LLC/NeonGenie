@@ -1,0 +1,17 @@
+{
+  "input": {
+    "research": {
+      "enabled": false,
+      "offline": true
+    },
+    "queries": [
+      "public price"
+    ]
+  },
+  "expected": {
+    "status": "PASS",
+    "observed_count": 0,
+    "research_ran": false,
+    "gate": "RESEARCH"
+  }
+}

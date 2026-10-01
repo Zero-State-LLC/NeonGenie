@@ -1,0 +1,15 @@
+{
+  "input": {
+    "notes": "N=1 $636 counts two seats.\nN=10 counts one seat.\nOption A is locked.\nThe locked option is B.\n10 \u00d7 5 = 100.\n"
+  },
+  "expected": {
+    "status": "PASS",
+    "checked": true,
+    "kinds": [
+      "arithmetic_error",
+      "contradiction",
+      "inconsistent_figure"
+    ],
+    "gate": "INPUT"
+  }
+}

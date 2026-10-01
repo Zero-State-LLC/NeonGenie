@@ -81,6 +81,9 @@ hub_support_globs:
   - scripts/doctor.py
   - scripts/validate_hermes_skill.py
   - scripts/validate_packet.py
+  - scripts/research_mode.py
+  - scripts/packet_compose.py
+  - scripts/judge_eval.py
   - scripts/route_profiles.py
   - scripts/build_receipt.py
   - scripts/run_fixture_invariants.py

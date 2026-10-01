@@ -46,6 +46,15 @@ python scripts/neon_genie.py do eval --live
 `--live` prints whether keys or a Hermes home are visible. It never invokes
 a model. Missing keys print HOLD and the deterministic suite still runs.
 
+## Dual judges (fixture only)
+
+`scripts/judge_eval.py` scores packets with two independent judges on
+neutral criteria (founder usefulness, correctness, actionability) and on
+Neon Genie's own criteria. Presentation order is shuffled. Pairwise choices
+run in both A/B orders. CI loads `kind: fixture` judges only. `kind: paid`,
+`openrouter`, `anthropic`, `openai`, and `http` are rejected and do not
+call a network. See `evals/cases/dual-judge-blind.json`.
+
 ## Live session must still fail closed
 
 - Invent-cite → CLEAR fail (Gate CITE). Never generate paper IDs.

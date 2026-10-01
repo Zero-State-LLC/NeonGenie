@@ -5,6 +5,38 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.28.0] — 2026-10-01
+
+Bake-off follow-up (2026-09-30, five ideas). Honesty stays: no invented
+buyers, revenue, or prices. Schema **1.2.0** is additive. Packets below
+1.2.0 still validate. See `schemas/migrations/1.1.0-to-1.2.0.md`.
+
+### Added
+
+- Research mode (`scripts/research_mode.py`): pluggable `null`, `fixture`,
+  and opt-in `stdlib_http` adapters. A gathered item is `OBSERVED` only
+  with an http(s) URL, a retrieval date, and a complete body. Offline and
+  `research.enabled=false` do not call an adapter and add no OBSERVED claims.
+- Input-contradiction pass (`input_contradictions`) before the packet is
+  written: contradictions, arithmetic errors, inconsistent figures.
+- Structured `kill_criteria` (metric, numeric threshold, comparison,
+  check date, data source). Prose fails validation (NG-KILL-001).
+- `build_handoff.first_commit`: areas to touch, done-when, one test, owner role.
+- One-page decision prose (450 words, 3200 characters). Long evidence moves
+  intact into `appendix`. The writer does not truncate.
+- Dual-judge eval harness (`scripts/judge_eval.py`): two fixture judges,
+  neutral criteria (founder usefulness, correctness, actionability) plus
+  the skill criteria, shuffled order, A/B swap. No paid API calls.
+- Golden cases for each of the six changes. `scripts/test_bakeoff_six.py`
+  runs from `do doctor`.
+
+### Changed
+
+- Opportunity packet and commercial simulation document `$id` **1.2.0**.
+- Opportunity and commercial packaging recipes emit schema 1.2.0 packets
+  on the offline path.
+- VERSION **3.28.0**.
+
 ## [Unreleased]
 
 ### Added

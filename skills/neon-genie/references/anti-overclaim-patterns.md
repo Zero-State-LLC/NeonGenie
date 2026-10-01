@@ -59,6 +59,16 @@ CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti
 
 | **PILOT — Research DAG missing** | Research ran but `research_search_dag` missing/empty | Emit keyword→cite-expand→filter→score→extract DAG; fabricated IDs → CITE |
 
+| **RESEARCH_OBS — OBSERVED without source** | Research claim labeled OBSERVED without URL and retrieval date, or offline record contains OBSERVED | Drop the label. No source means no OBSERVED. |
+
+| **KILL — Prose kill** | Kill criteria are prose, or a numeric row is missing metric, threshold, comparison, check date, or data source | Emit a structured criterion. OBSERVED thresholds need evidence_refs. |
+
+| **HANDOFF — No first commit** | Schema 1.2.0 handoff lacks touch, done-when, one test, and an owner role | End the handoff with `first_commit`. |
+
+| **INPUT — Notes not checked** | Schema 1.2.0 packet skipped the input contradiction pass | Record contradictions, arithmetic errors, and inconsistent figures. Empty findings are valid. |
+
+| **PAGE — Over one page or truncated** | Decision prose exceeds 450 words or 3200 characters, or `truncated` is true | Move evidence into `appendix` intact. Do not slice the main text. |
+
 ## Scorecard rule
 
 A composite score **never** overrides a mandatory gate failure or an anti-overclaim fail-closed outcome.

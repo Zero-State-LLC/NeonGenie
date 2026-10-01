@@ -1,7 +1,7 @@
 ---
 name: neon-genie
 description: Audit products and opportunities with labeled evidence.
-version: 3.27.0
+version: 3.28.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -146,6 +146,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Find → request private → `NOT_COMPUTABLE` — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
    - Never fabricate — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
    - Freshness — prefer primary/current sources; note retrieval time for volatile facts.
+   - Research mode (3.28.0) — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`). The core does not add a third-party HTTP library. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a retrieval date, and a complete source body. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
    - Attribution boundaries — separate person / company / foundation / model inference.
    - Authority unchanged — research may draft; it may not submit, contact, spend, publish, or mutate repos.
    - Privacy — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
@@ -233,6 +234,16 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
 
     Anti-overclaim gates: `references/anti-overclaim-patterns.md`. Privacy: `PRIVACY.md`, `references/PRIVACY.md`, `profiles/privacy.md`. Completion: emitted packets validate against the named schema.
 
+    Opportunity and commercial packets at schema **1.2.0** (`scripts/packet_compose.py`) also include:
+
+    - `input_contradictions` — a pass over the input notes for contradictions, arithmetic errors, and inconsistent figures, run before the packet is written. Empty findings are valid. Skipping the pass is not.
+    - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`.
+    - `build_handoff.first_commit` — files or areas to touch, a done-when check, one test to write, and an owner role.
+    - `page_budget` — decision prose at most 450 words and 3200 characters. Long evidence moves intact into `appendix`. Do not truncate.
+    - `research` — the gathering record. Offline records stay empty of OBSERVED claims.
+
+    Packets with `schema_version` below 1.2.0 stay valid. Migration: `references/schemas/migrations/1.1.0-to-1.2.0.md`.
+
 11. **Promotion ladder.** `RAW_SIGNAL` → `MAPPED` → `CONCEPTUAL` → `TESTABLE` → `SERVICE_FIRST` → `SERVICE_PROVEN` → `SPEC_COMPLETE` → `WAYFINDER_READY` → `BUILD_READY` → `CANON_CANDIDATE` → `ARCHIVED` / `NOT_COMPUTABLE`. A composite score may never override a mandatory gate failure. Completion: promotion state matches the weakest mandatory gate.
 
 12. **Mandatory gates.** Fail closed when:
@@ -270,6 +281,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - material claim without active ledger cite, invent-OBSERVED without ledger, or unresolved Contradict/Invalidate at ≥TESTABLE (Gate LEDGER);
     - irreversible agentic action without independent validation_isolation / validation_step (Gate ISO);
     - research ran without research_search_dag stages (Gate PILOT).
+    - schema 1.2.0 opportunity/commercial packet with prose-only kill criteria, a missing first-commit handoff, a skipped input-contradiction pass, a truncated or over-budget main page, or an OBSERVED research claim without URL and retrieval date (NG-KILL / NG-HANDOFF / NG-INPUT / NG-PAGE / NG-RESEARCH).
 
     Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET, LEDGER, ISO, PILOT). Completion: CLEAR lists every failed gate or records none.
 
@@ -327,13 +339,19 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/completion-proof-required.json`
 - `examples/evals/cases/contradict-unresolved-testable.json`
 - `examples/evals/cases/dag-fabricated-cite.json`
+- `examples/evals/cases/dual-judge-blind.json`
 - `examples/evals/cases/effectual-missing-means.json`
 - `examples/evals/cases/fabricated-cite.json`
 - `examples/evals/cases/fictional-resource.json`
+- `examples/evals/cases/handoff-first-commit.json`
+- `examples/evals/cases/input-contradiction-notes.json`
 - `examples/evals/cases/irreversible-missing-log-pointer.json`
 - `examples/evals/cases/irreversible-without-validation.json`
+- `examples/evals/cases/kill-criteria-prose.json`
 - `examples/evals/cases/memetic-cannot-promote.json`
 - `examples/evals/cases/offline-no-fabricated-observed.json`
+- `examples/evals/cases/page-budget-no-truncation.json`
+- `examples/evals/cases/paid-judge-rejected.json`
 - `examples/evals/cases/paperpilot-incomplete-not-computable.json`
 - `examples/evals/cases/paperpilot-invent-cite.json`
 - `examples/evals/cases/privacy-consent-purpose-bound.json`
@@ -344,7 +362,9 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/private-gap-silent-invent.json`
 - `examples/evals/cases/public-gap-must-attempt-research.json`
 - `examples/evals/cases/public-gap-research-attempted.json`
+- `examples/evals/cases/research-offline-no-observed.json`
 - `examples/evals/cases/research-ran-without-dag.json`
+- `examples/evals/cases/research-source-required.json`
 - `examples/evals/cases/scale-without-test.json`
 - `examples/evals/cases/scorecard-cannot-override-gate.json`
 - `examples/evals/cases/uncited-claim.json`
@@ -371,6 +391,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/packets/sample-commercial.packet.json`
 - `examples/packets/sample-data-request.json`
 - `examples/packets/sample-external-action.json`
+- `examples/packets/sample-opportunity-v12.packet.json`
 - `examples/packets/sample-opportunity.packet.json`
 - `examples/packets/sample-privacy-context.json`
 - `examples/packets/sample-purpose-bound-consent.json`
@@ -436,8 +457,10 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `scripts/distribution_spine.py`
 - `scripts/doctor.py`
 - `scripts/hermes_runtime_smoke.py`
+- `scripts/judge_eval.py`
 - `scripts/lineage.py`
 - `scripts/neon_genie.py`
+- `scripts/packet_compose.py`
 - `scripts/paths.py`
 - `scripts/privacy_diagnostics.py`
 - `scripts/privacy_preflight.py`
@@ -449,6 +472,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `scripts/reconcile_learning.py`
 - `scripts/record_learning.py`
 - `scripts/release_check.py`
+- `scripts/research_mode.py`
 - `scripts/route_profiles.py`
 - `scripts/run_fixture_invariants.py`
 - `scripts/run_hermes_evals.py`
@@ -466,7 +490,8 @@ Full tree also keeps root schemas, profiles, evals, VERSION, and manifest for cl
 - A folded or multi-sentence `description` loses routing signal: Hermes indexes 60 characters and truncates at 57 + `...`.
 - Leading blank lines or a BOM before `---` fail frontmatter parse.
 - Treating `do run` / `run-envelope.json` as execution authority. Packaging is not product judgment.
-- Inventing buyers, capital, skills, or `OBSERVED` facts. Use Find → `DataRequest` → `NOT_COMPUTABLE`.
+- Inventing buyers, capital, skills, or `OBSERVED` facts. Use Find → `DataRequest` → `NOT_COMPUTABLE`. Research mode does not make a missing source OBSERVED.
+- Prose-only kill criteria, a handoff with no first commit, or a main packet that was truncated to look like one page.
 - Skipping host research on public fetchable gaps (Gate P) or skipping `DataRequest` on private gaps (Gate Q).
 - Sending credentials or private/operator data without consent (Gates U/V). Offline / `LOCAL_ONLY` still recorded as an external send (Gate T).
 - Letting a scorecard override a failed mandatory gate.
@@ -493,5 +518,6 @@ Pass when:
 - VERSION matches frontmatter and `manifest.json`.
 - `do check`, `do eval`, and `do doctor` exit 0.
 - Advisory authority is unchanged: no spend, publish, contact, or repo mutation.
+- Dual-judge bake-off scoring (`scripts/judge_eval.py`) uses fixture judges in CI. It does not call a paid model. Neutral criteria are founder usefulness, correctness, and actionability, beside the skill's own criteria, with shuffled order and an A/B swap.
 
 Source, profile, and migration rules: `references/source-and-upgrades.md`.
