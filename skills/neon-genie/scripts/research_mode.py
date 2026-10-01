@@ -7,6 +7,10 @@ do not emit OBSERVED claims.
 
 A gathered item is OBSERVED only when it has an http(s) URL, a retrieval
 date, and a complete source body. No source means no OBSERVED label.
+A paid search hit is OBSERVED only when it is also a primary source
+(vendor pricing or docs, an official blog, government or registry, or a
+paper) and the snippet is longer than a fragment. Social posts, forums,
+aggregators, other blogs, error pages, and short fragments are unverified.
 """
 
 from __future__ import annotations
@@ -26,7 +30,8 @@ import privacy_preflight
 # Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
 # (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
 MAX_BODY_BYTES = 2 * 1024 * 1024
-RESEARCH_UA = "neon-genie-research/3.32"
+RESEARCH_UA = "neon-genie-research/3.33"
+MIN_SEARCH_WORDS = 20
 DEFAULT_MAX_CALLS_PER_IDEA = 5
 DEFAULT_DOLLAR_CAP_PER_IDEA = 0.20
 DEFAULT_DOLLAR_CAP_PER_RUN = 1.00
@@ -85,6 +90,139 @@ class FixtureAdapter:
             if any(q.lower() in blob for q in queries if q):
                 matched.append(item)
         return matched
+
+
+_SOCIAL_HOSTS = (
+    "instagram.com",
+    "facebook.com",
+    "fb.com",
+    "twitter.com",
+    "x.com",
+    "linkedin.com",
+    "tiktok.com",
+    "youtube.com",
+    "youtu.be",
+    "reddit.com",
+    "threads.net",
+    "bsky.app",
+    "pinterest.com",
+    "mastodon.social",
+    "snapchat.com",
+)
+_FORUM_HOSTS = (
+    "news.ycombinator.com",
+    "stackoverflow.com",
+    "stackexchange.com",
+    "quora.com",
+    "lobste.rs",
+    "discourse.org",
+)
+_AGGREGATOR_HOSTS = (
+    "yelp.com",
+    "crunchbase.com",
+    "g2.com",
+    "capterra.com",
+    "producthunt.com",
+    "wikipedia.org",
+    "wikimedia.org",
+    "trustpilot.com",
+    "glassdoor.com",
+)
+_BLOG_HOSTS = (
+    "medium.com",
+    "substack.com",
+    "wordpress.com",
+    "blogspot.com",
+    "blogger.com",
+    "dev.to",
+    "hashnode.dev",
+    "tumblr.com",
+)
+_PAPER_HOSTS = (
+    "arxiv.org",
+    "doi.org",
+    "sciencedirect.com",
+    "nature.com",
+    "acm.org",
+    "ieee.org",
+    "springer.com",
+    "pubmed.ncbi.nlm.nih.gov",
+    "ncbi.nlm.nih.gov",
+    "ssrn.com",
+    "plos.org",
+    "jstor.org",
+)
+_ERROR_PAGE = re.compile(
+    r"\b(?:page not found|not found|404 not found)\b|\b404\b",
+    re.IGNORECASE,
+)
+_PRIMARY_PATHS = (
+    "/pricing",
+    "/price",
+    "/billing",
+    "/docs",
+    "/documentation",
+    "/developers",
+    "/developer",
+    "/fees",
+    "/api-docs",
+    "/api/",
+    "/blog",
+    "/news/",
+    "/index/",
+    "/announcements",
+    "/changelog",
+    "/release-notes",
+)
+
+
+def _hostname(url: str) -> str:
+    host = (urllib.parse.urlsplit(url).hostname or "").lower()
+    if host.startswith("www."):
+        return host[4:]
+    return host
+
+
+def _host_matches(host: str, names: tuple[str, ...]) -> bool:
+    return any(host == name or host.endswith("." + name) for name in names)
+
+
+def primary_source(url: str) -> bool:
+    """Vendor docs/pricing, official blogs, government/registry, or a paper."""
+    host = _hostname(url)
+    path = urllib.parse.urlsplit(url).path.lower()
+    if host.endswith(".gov") or host.endswith(".mil") or host.endswith(".gov.uk"):
+        return True
+    if _host_matches(host, _PAPER_HOSTS) or "/doi/" in path:
+        return True
+    if host.startswith(("docs.", "developer.", "developers.", "help.")):
+        return True
+    return any(bit in path for bit in _PRIMARY_PATHS)
+
+
+def search_hit_block(url: str, text: str) -> str | None:
+    """Why a search hit is not OBSERVED. None means it may be cited.
+
+    Direct fetches the operator named are not passed through this filter.
+    """
+    if not isinstance(url, str) or not isinstance(text, str):
+        return "not_primary"
+    if _ERROR_PAGE.search(text):
+        return "error_page"
+    host = _hostname(url)
+    if _host_matches(host, _SOCIAL_HOSTS):
+        return "social"
+    if _host_matches(host, _FORUM_HOSTS):
+        return "forum"
+    if _host_matches(host, _AGGREGATOR_HOSTS):
+        return "aggregator"
+    if _host_matches(host, _BLOG_HOSTS):
+        return "blog"
+    if len(text.split()) < MIN_SEARCH_WORDS:
+        return "fragment"
+    if not primary_source(url):
+        return "not_primary"
+    return None
 
 
 def classify_url(url: str) -> str:
@@ -641,6 +779,11 @@ def run_idea_research(
         observed = list(result.get("observed_claims") or [])
         rejected = list(result.get("rejected") or [])
         items = list(result.get("items") or [])
+        unverified_hits = [
+            row
+            for row in (result.get("unverified_hits") or [])
+            if isinstance(row, dict)
+        ]
         if callable(search):
             for query in paid_queries:
                 if spent > dollar_cap + 1e-9 or ledger.spent > ledger.run_cap + 1e-9:
@@ -681,11 +824,27 @@ def run_idea_research(
                     if claim is None:
                         rejected.append({"reason": reason, "url": item.get("url"), "query": query})
                         continue
+                    blocked = search_hit_block(str(claim.get("url") or ""), str(claim.get("text") or ""))
+                    if blocked:
+                        unverified_hits.append(
+                            {
+                                "url": claim.get("url"),
+                                "text": claim.get("text"),
+                                "retrieved_at": claim.get("retrieved_at"),
+                                "reason": blocked,
+                                "status": "unverified",
+                                "claim_label": "NOT_COMPUTABLE",
+                                "query": query,
+                            }
+                        )
+                        continue
                     claim["claim_id"] = f"obs-{len(observed) + 1}"
                     observed.append(claim)
             result["observed_claims"] = observed
             result["rejected"] = rejected
             result["items"] = items
+            if unverified_hits:
+                result["unverified_hits"] = unverified_hits
             result["research_ran"] = True
             result["adapter"] = str(getattr(provider, "name", "paid_search"))
             result["enabled"] = True

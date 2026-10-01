@@ -19,12 +19,15 @@ import json
 import re
 from typing import Any
 
+import jev_client
+import judge_eval
 import research_mode
 
 SCHEMA_VERSION = "1.3.0"
 BAKEOFF_VERSION = "1.2.0"
 WORD_BUDGET = 450
 CHAR_BUDGET = 3200
+MAIN_LINK_CAP = 5
 
 _COMPARISONS = frozenset({"lt", "lte", "gt", "gte", "eq", "neq"})
 _LABELS = frozenset({"OBSERVED", "INFERRED", "SPECULATIVE", "NOT_COMPUTABLE"})
@@ -862,16 +865,20 @@ def _scan_count_series(text: str) -> list[dict[str, Any]]:
             if miss is None:
                 continue
             count, stated, predicted = miss
-            found.append(
-                _finding(
-                    "inconsistent_figure",
-                    (
-                        f"Count {count} states {stated:g}, but the larger counts "
-                        f"imply {predicted:g}."
-                    ),
-                    quote,
-                )
+            row = _finding(
+                "inconsistent_figure",
+                (
+                    f"Count {count} states {stated:g}, but the larger counts "
+                    f"imply {predicted:g}."
+                ),
+                quote,
             )
+            row["quantity"] = {
+                "op": "count_series",
+                "stated": float(stated),
+                "count": int(count),
+            }
+            found.append(row)
             break
     return found
 
@@ -1335,6 +1342,63 @@ def _fmt_money(value: float) -> str:
     return f"{value:g}"
 
 
+def _line_label(text: str, start: int) -> str:
+    """Row name on the note line, before the matched total."""
+    line_start = text.rfind("\n", 0, start) + 1
+    prefix = text[line_start:start]
+    prefix = re.sub(r"\([^)]*\)", " ", prefix)
+    prefix = re.sub(r"[*_#|]+", " ", prefix)
+    prefix = " ".join(prefix.strip(" \t:-·").split())
+    return prefix[:80]
+
+
+def _money_summary(summary: str) -> bool:
+    text = summary.strip()
+    return text.startswith("notes say ") and ", recomputed " in text
+
+
+def _stated_amount(row: dict[str, Any]) -> float | None:
+    rec = row.get("recompute")
+    if isinstance(rec, dict) and rec.get("op") == "money_table":
+        stated = rec.get("stated")
+        if isinstance(stated, (int, float)) and not isinstance(stated, bool):
+            return round(float(stated), 2)
+    qty = row.get("quantity")
+    if isinstance(qty, dict):
+        stated = qty.get("stated")
+        if isinstance(stated, (int, float)) and not isinstance(stated, bool):
+            return round(float(stated), 2)
+    return None
+
+
+def _drop_same_quantity(
+    verified: list[dict[str, Any]], unverified: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Keep the verified recompute when another line states the same quantity."""
+    money: set[float] = set()
+    for row in verified:
+        rec = row.get("recompute") or {}
+        if isinstance(rec, dict) and rec.get("op") == "money_table" and rec.get("confirmed") is True:
+            amount = _stated_amount(row)
+            if amount is not None:
+                money.add(amount)
+
+    def keep(row: dict[str, Any], is_money: bool) -> bool:
+        if is_money:
+            return True
+        amount = _stated_amount(row)
+        return amount is None or amount not in money
+
+    return (
+        [
+            row
+            for row in verified
+            if keep(row, (row.get("recompute") or {}).get("op") == "money_table")
+        ],
+        [row for row in unverified if keep(row, False)],
+    )
+
+
 def _scan_money_tables(text: str) -> list[dict[str, Any]]:
     """Recompute price, seat, and month totals stated in the notes.
 
@@ -1366,7 +1430,7 @@ def _scan_money_tables(text: str) -> list[dict[str, Any]]:
 
     fixed_match = re.search(r"\bfixed\s+\$(\d[\d,]*(?:\.\d+)?)", text, re.IGNORECASE)
     fixed = _num(fixed_match.group(1)) if fixed_match else None
-    rows: list[tuple[int, list[float], str]] = []
+    rows: list[tuple[int, list[float], str, int]] = []
     for match in re.finditer(
         r"(?P<n>\d+)\s*(?:tenants?|units?|seats?)?\s*:\s*"
         r"\$(?P<a>\d[\d,]*(?:\.\d+)?)/\$(?P<b>\d[\d,]*(?:\.\d+)?)/\$(?P<c>\d[\d,]*(?:\.\d+)?)",
@@ -1378,18 +1442,21 @@ def _scan_money_tables(text: str) -> list[dict[str, Any]]:
                 int(match.group("n")),
                 [_num(match.group("a")), _num(match.group("b")), _num(match.group("c"))],
                 match.group(0),
+                match.start(),
             )
         )
     if fixed is not None and len(bands) >= 3 and components:
         reference: list[float] | None = None
-        for count, triple, _quote in rows:
+        reference_label = ""
+        for count, triple, _quote, start in rows:
             if count != 1 or len(triple) < 3:
                 continue
             if all(_money_close(triple[index], fixed + bands[index]) for index in range(3)):
                 reference = [fixed + bands[index] for index in range(3)]
+                reference_label = _line_label(text, start)
                 break
         if reference is not None:
-            for count, triple, quote in rows:
+            for count, triple, _quote, start in rows:
                 if count != 1:
                     continue
                 if all(_money_close(triple[index], reference[index]) for index in range(3)):
@@ -1401,19 +1468,25 @@ def _scan_money_tables(text: str) -> list[dict[str, Any]]:
                     _money_close(deltas[0], component) for component in components
                 ):
                     continue
+                stated_name = _line_label(text, start) or "stated total"
+                computed_name = reference_label or "recomputed total"
+                line_end = text.find("\n", start)
+                cited = text[text.rfind("\n", 0, start) + 1 : line_end if line_end != -1 else len(text)]
                 found.append(
                     _finding(
                         "arithmetic_error",
                         (
-                            f"notes say {_fmt_money(triple[0])}, "
-                            f"recomputed {_fmt_money(reference[0])}"
+                            f"notes say {stated_name} {_fmt_money(triple[0])}, "
+                            f"recomputed {computed_name} {_fmt_money(reference[0])}"
                         ),
-                        quote,
+                        cited.strip(),
                         recompute={
                             "op": "money_table",
                             "operands": [fixed, *bands[:3], deltas[0]],
                             "stated": triple[0],
                             "computed": reference[0],
+                            "stated_name": stated_name,
+                            "computed_name": computed_name,
                             "unambiguous": True,
                             "confirmed": True,
                         },
@@ -1451,13 +1524,18 @@ def _scan_money_tables(text: str) -> list[dict[str, Any]]:
             found.append(
                 _finding(
                     "inconsistent_figure",
-                    f"notes say {_fmt_money(stated)}, recomputed {_fmt_money(rent)}",
+                    (
+                        f"notes say monthly burn {_fmt_money(stated)}, "
+                        f"recomputed monthly rent {_fmt_money(rent)}"
+                    ),
                     f"{rate.group(0).strip()} {line.strip()}",
                     recompute={
                         "op": "money_table",
                         "operands": [area * 1000.0, float(rate.group("rate"))],
                         "stated": stated,
                         "computed": rent,
+                        "stated_name": "monthly burn",
+                        "computed_name": "monthly rent",
                         "unambiguous": True,
                         "confirmed": True,
                     },
@@ -1591,7 +1669,11 @@ def _as_unverified(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _public_finding(row: dict[str, Any]) -> dict[str, Any]:
-    return {key: value for key, value in row.items() if key != "recompute"}
+    return {
+        key: value
+        for key, value in row.items()
+        if key not in {"recompute", "quantity"}
+    }
 
 
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
@@ -1628,16 +1710,19 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     raw.extend(_scan_directive_clash(text))
     raw.extend(_scan_count_clash(text))
     raw.extend(_scan_date_order(text))
-    verified: list[dict[str, Any]] = []
-    unverified: list[dict[str, Any]] = []
+    kept_main: list[dict[str, Any]] = []
+    kept_unverified: list[dict[str, Any]] = []
     for row in raw:
         decision = _classify_finding(text, row)
         if decision == "drop":
             continue
         if decision == "unverified":
-            unverified.append(_as_unverified(row))
+            kept_unverified.append(row)
         else:
-            verified.append(_public_finding(row))
+            kept_main.append(row)
+    kept_main, kept_unverified = _drop_same_quantity(kept_main, kept_unverified)
+    verified = [_public_finding(row) for row in kept_main]
+    unverified = [_as_unverified(row) for row in kept_unverified]
     findings = []
     for index, row in enumerate(verified, start=1):
         row["finding_id"] = f"in-{index}"
@@ -1732,12 +1817,21 @@ def prose_main(packet: dict[str, Any]) -> str:
                 add(finding.get("summary"))
     research = packet.get("research")
     if isinstance(research, dict):
+        shown = 0
         for claim in research.get("observed_claims") or []:
-            if isinstance(claim, dict):
+            if shown >= MAIN_LINK_CAP:
+                break
+            if isinstance(claim, dict) and claim.get("label") == "OBSERVED":
                 lines.append(
                     f"{claim.get('label')} {claim.get('kind')} {claim.get('url')} "
                     f"retrieved {claim.get('retrieved_at')}"
                 )
+                shown += 1
+        reconcile = research.get("reconcile")
+        if isinstance(reconcile, dict):
+            for item in reconcile.get("items") or []:
+                if isinstance(item, dict) and item.get("verdict") == "CONTRADICTS":
+                    add(item.get("sentence"))
     return "\n".join(lines)
 
 
@@ -1797,41 +1891,81 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
     ]
     known_findings = {row.get("finding_id") for row in evidence_rows}
     slim_findings: list[dict[str, Any]] = []
-    for finding in contradictions.get("findings") or []:
-        if not isinstance(finding, dict):
-            continue
-        evidence = finding.get("evidence")
-        if isinstance(evidence, str) and evidence:
-            if finding.get("finding_id") not in known_findings:
-                evidence_rows.append(
-                    {
-                        "finding_id": finding.get("finding_id"),
-                        "evidence": evidence,
-                    }
-                )
-                known_findings.add(finding.get("finding_id"))
-            slim_findings.append(
-                {key: value for key, value in finding.items() if key != "evidence"}
-            )
-        else:
-            slim_findings.append(dict(finding))
+    relocated: list[dict[str, Any]] = []
     if contradictions:
+        for finding in contradictions.get("findings") or []:
+            if not isinstance(finding, dict):
+                continue
+            if not _money_summary(str(finding.get("summary") or "")):
+                relocated.append(_as_unverified(finding))
+                continue
+            evidence = finding.get("evidence")
+            if isinstance(evidence, str) and evidence:
+                if finding.get("finding_id") not in known_findings:
+                    evidence_rows.append(
+                        {
+                            "finding_id": finding.get("finding_id"),
+                            "evidence": evidence,
+                        }
+                    )
+                    known_findings.add(finding.get("finding_id"))
+                slim_findings.append(
+                    {key: value for key, value in finding.items() if key != "evidence"}
+                )
+            else:
+                slim_findings.append(dict(finding))
         contradictions["findings"] = slim_findings
-        unverified = [
+        relocated.extend(
             dict(row)
             for row in (contradictions.get("unverified_notes") or [])
             if isinstance(row, dict)
-        ]
+        )
         contradictions.pop("unverified_notes", None)
-        if unverified:
+        if relocated:
+            prior = appendix.get("unverified_scanner_notes") or {}
+            notes = [
+                dict(row)
+                for row in (prior.get("notes") or [])
+                if isinstance(row, dict)
+            ]
+            notes.extend(relocated)
             appendix["unverified_scanner_notes"] = {
                 "label": "Unverified scanner notes",
                 "statement": (
                     "These notes are not confirmed. Do not treat them as fact."
                 ),
-                "notes": unverified,
+                "notes": notes,
             }
         out["input_contradictions"] = contradictions
+
+    if isinstance(research, dict):
+        hits = [
+            dict(row)
+            for row in (research.get("unverified_hits") or [])
+            if isinstance(row, dict)
+        ]
+        if hits:
+            appendix["search_hits_not_used"] = {
+                "label": "Unverified search hits",
+                "statement": "Not primary sources. Not labeled OBSERVED.",
+                "hits": hits,
+            }
+        reconcile = research.get("reconcile")
+        if isinstance(reconcile, dict):
+            rest = [
+                dict(row)
+                for row in (reconcile.get("items") or [])
+                if isinstance(row, dict) and row.get("verdict") != "CONTRADICTS"
+            ]
+            if rest:
+                appendix["fact_reconcile"] = {
+                    "label": "Web fact reconcile",
+                    "statement": (
+                        "AGREES, NOT_APPLICABLE, and NOT_COMPUTABLE comparisons. "
+                        "CONTRADICTS stays on the main page."
+                    ),
+                    "items": rest,
+                }
 
     appendix["research_claims"] = appendix_claims
     appendix["contradiction_evidence"] = evidence_rows
@@ -2522,6 +2656,23 @@ def attach_v12(
     research = research_mode.run_idea_research(
         research_policy, queries, adapter=adapter
     )
+    claims = [
+        claim
+        for claim in (research.get("observed_claims") or [])
+        if isinstance(claim, dict)
+    ]
+    if claims:
+        client = research_policy.get("jev_client")
+        try:
+            max_calls = int(research_policy.get("jev_max_calls") or judge_eval.DEFAULT_JEV_CALLS)
+        except (TypeError, ValueError):
+            max_calls = judge_eval.DEFAULT_JEV_CALLS
+        research["reconcile"] = judge_eval.reconcile_facts(
+            notes,
+            claims,
+            client=client if callable(client) else None,
+            max_calls=max_calls,
+        )
     out["research"] = research
     if research.get("research_ran"):
         out["research_search_dag"] = research_mode.research_search_dag(
@@ -2532,6 +2683,11 @@ def attach_v12(
     out["build_handoff"] = handoff
     out["kill_criteria"] = list(kill_criteria)
     return apply_page_budget(out)
+
+
+def _sample_jev(state: str, questions: dict[str, Any]) -> dict[str, Any]:
+    """The checked-in sample never calls Jev."""
+    raise jev_client.JevError("TYPESAFE_AI_API_KEY is not set")
 
 
 def seat_option_example_packet() -> dict[str, Any]:
@@ -2583,6 +2739,7 @@ def seat_option_example_packet() -> dict[str, Any]:
             "enabled": True,
             "offline": False,
             "adapter": "fixture",
+            "jev_client": _sample_jev,
         },
         queries=["seat floor"],
         schema_id="neon-genie/opportunity-packet",

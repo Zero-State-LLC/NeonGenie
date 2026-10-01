@@ -21,8 +21,8 @@ Artifact entries may include `schema_id` + `schema_version` when known.
 | Run envelope | `neon-genie/run-envelope` | `1.0.0` |
 | Run receipt | `neon-genie/run-receipt` | `1.0.0` (+ privacy provenance fields) |
 | Privacy context | `neon-genie/privacy-context` (file `privacy-context.schema.json`) | `1.0.0` |
-| Opportunity packet | `neon-genie/opportunity-packet` | `1.3.0` (1.2.0 fields plus kill derivation; optional `derivation.justification`, `cheapest_test`, and unverified scanner notes; packets below 1.3.0 still validate). Skill 3.31.0 and 3.32.0 did not bump `$id`. |
-| Commercial simulation | `neon-genie/commercial-simulation` | `1.3.0` (same bake-off fields as opportunity, including kill derivation and the optional 3.31 fields; older packets still validate; CAC/LTV OBSERVED needs evidence_refs). Skill 3.31.0 and 3.32.0 did not bump `$id`. |
+| Opportunity packet | `neon-genie/opportunity-packet` | `1.3.0` (1.2.0 fields plus kill derivation; optional `derivation.justification`, `cheapest_test`, unverified scanner notes, unverified search hits, and a Jev reconcile record; packets below 1.3.0 still validate). Skill 3.31.0 through 3.33.0 did not bump `$id`. |
+| Commercial simulation | `neon-genie/commercial-simulation` | `1.3.0` (same bake-off fields as opportunity, including kill derivation and the optional 3.31–3.33 fields; older packets still validate; CAC/LTV OBSERVED needs evidence_refs). Skill 3.31.0 through 3.33.0 did not bump `$id`. |
 | Product packet | `neon-genie/product-packet` | `1.0.0` |
 | Wayfinder handoff | `neon-genie/wayfinder-execution-packet` | `1.0.0` |
 | Capital sprint packet | `neon-genie/capital-sprint-packet` | `1.0.0` |

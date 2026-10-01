@@ -5,6 +5,44 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.33.0] — 2026-10-01
+
+Round-5 bake-off fixes on v3.32.0. Correctness had fallen because scanner
+lines and every search hit sat on the main page as confirmed. Honesty
+stays: no invented buyers, prices, or sources. Artifact schema stays
+**1.3.0**. New fields are optional. Older packets still validate. The
+build handoff is unchanged.
+
+### Fixed
+
+- The main page keeps a scanner line only when it is a verified money-table
+  recompute. The line names both quantities: `notes say monthly burn 35000,
+  recomputed monthly rent 55000`, and `notes say Heavy per tenant 636,
+  recomputed Shared Heavy 336.4`. A second line about that same quantity
+  is dropped, including Autogive's `implies 331.5` beside `recomputed 336.4`.
+  Every other scanner flag goes to `appendix.unverified_scanner_notes` and
+  is not stated as fact. The false `Double of 64 is 128, not 512` flag stays
+  off the packet.
+- A search hit is OBSERVED only for a primary source: vendor pricing or
+  docs, an official blog, a government or registry page, or a paper, with
+  a snippet longer than about 20 words. Social posts, forums, aggregators,
+  other blogs, Not found pages, and shorter fragments are
+  `appendix.search_hits_not_used` and are not OBSERVED. The main page lists
+  at most five primary links per idea.
+
+### Added
+
+- One Jev reconcile call per idea when research kept facts (at most two).
+  Jev chooses AGREES, CONTRADICTS, or NOT_APPLICABLE. The sentence quotes
+  the note line. CONTRADICTS is on the main page. The others are in
+  `appendix.fact_reconcile`. With no `TYPESAFE_AI_API_KEY`, each fact is
+  NOT_COMPUTABLE and nothing is invented. Tests pass a mock client. CI
+  does not call Jev.
+
+### Changed
+
+- VERSION **3.33.0**. Research user agent `neon-genie-research/3.33`.
+
 ## [3.32.0] — 2026-10-01
 
 Firecrawl is the paid search provider for the capped per-idea research step

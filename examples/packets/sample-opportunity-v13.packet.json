@@ -42,44 +42,7 @@
   "schema_version": "1.3.0",
   "input_contradictions": {
     "checked": true,
-    "findings": [
-      {
-        "kind": "arithmetic_error",
-        "summary": "Stated product 10 \u00d7 5 = 100 does not equal 50.",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-1"
-      },
-      {
-        "kind": "inconsistent_figure",
-        "summary": "Input notes mix seat assumptions (N=1 counts 2, N=10 counts 1, N=50 counts 1).",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-2"
-      },
-      {
-        "kind": "inconsistent_figure",
-        "summary": "Seat count per tenant is not constant across table rows.",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-3"
-      },
-      {
-        "kind": "arithmetic_error",
-        "summary": "Stated floor does not equal seats times per-seat for one or more table rows.",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-4"
-      },
-      {
-        "kind": "contradiction",
-        "summary": "Input notes lock both Option A and B.",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-5"
-      },
-      {
-        "kind": "contradiction",
-        "summary": "The rationale for locked A describes B.",
-        "claim_label": "OBSERVED",
-        "finding_id": "in-6"
-      }
-    ]
+    "findings": []
   },
   "research": {
     "enabled": true,
@@ -106,7 +69,23 @@
         "text_in": "appendix.research_claims"
       }
     ],
-    "rejected": []
+    "rejected": [],
+    "reconcile": {
+      "status": "NOT_COMPUTABLE",
+      "calls": 0,
+      "items": [
+        {
+          "claim_id": "obs-1",
+          "url": "https://example.test/fixtures/seat-floor",
+          "verdict": "NOT_COMPUTABLE",
+          "sentence": "NOT_COMPUTABLE: Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
+          "note_line": null,
+          "reason": "TYPESAFE_AI_API_KEY is not set",
+          "claim_label": "NOT_COMPUTABLE"
+        }
+      ],
+      "claim_label": "NOT_COMPUTABLE"
+    }
   },
   "research_search_dag": {
     "schema_id": "neon-genie/research-search-dag",
@@ -217,6 +196,69 @@
     }
   ],
   "appendix": {
+    "unverified_scanner_notes": {
+      "label": "Unverified scanner notes",
+      "statement": "These notes are not confirmed. Do not treat them as fact.",
+      "notes": [
+        {
+          "kind": "arithmetic_error",
+          "summary": "Unverified scanner note: not stated as fact. Stated product 10 \u00d7 5 = 100 does not equal 50.",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "10 \u00d7 5 = 100"
+        },
+        {
+          "kind": "inconsistent_figure",
+          "summary": "Unverified scanner note: not stated as fact. Input notes mix seat assumptions (N=1 counts 2, N=10 counts 1, N=50 counts 1).",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "N=1 $636 counts two seats N=10 counts one seat N=50 counts one seat"
+        },
+        {
+          "kind": "inconsistent_figure",
+          "summary": "Unverified scanner note: not stated as fact. Seat count per tenant is not constant across table rows.",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "1 | 2 | 318 | 636 10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
+        },
+        {
+          "kind": "arithmetic_error",
+          "summary": "Unverified scanner note: not stated as fact. Stated floor does not equal seats times per-seat for one or more table rows.",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
+        },
+        {
+          "kind": "contradiction",
+          "summary": "Unverified scanner note: not stated as fact. Input notes lock both Option A and B.",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "Option A is locked Option B leftovers remain the locked locked option is B"
+        },
+        {
+          "kind": "contradiction",
+          "summary": "Unverified scanner note: not stated as fact. The rationale for locked A describes B.",
+          "claim_label": "NOT_COMPUTABLE",
+          "status": "unverified",
+          "evidence": "rationale for locked A describes B's"
+        }
+      ]
+    },
+    "fact_reconcile": {
+      "label": "Web fact reconcile",
+      "statement": "AGREES, NOT_APPLICABLE, and NOT_COMPUTABLE comparisons. CONTRADICTS stays on the main page.",
+      "items": [
+        {
+          "claim_id": "obs-1",
+          "url": "https://example.test/fixtures/seat-floor",
+          "verdict": "NOT_COMPUTABLE",
+          "sentence": "NOT_COMPUTABLE: Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
+          "note_line": null,
+          "reason": "TYPESAFE_AI_API_KEY is not set",
+          "claim_label": "NOT_COMPUTABLE"
+        }
+      ]
+    },
     "research_claims": [
       {
         "text": "Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
@@ -227,39 +269,14 @@
         "claim_id": "obs-1"
       }
     ],
-    "contradiction_evidence": [
-      {
-        "finding_id": "in-1",
-        "evidence": "10 \u00d7 5 = 100"
-      },
-      {
-        "finding_id": "in-2",
-        "evidence": "N=1 $636 counts two seats N=10 counts one seat N=50 counts one seat"
-      },
-      {
-        "finding_id": "in-3",
-        "evidence": "1 | 2 | 318 | 636 10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
-      },
-      {
-        "finding_id": "in-4",
-        "evidence": "10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
-      },
-      {
-        "finding_id": "in-5",
-        "evidence": "Option A is locked Option B leftovers remain the locked locked option is B"
-      },
-      {
-        "finding_id": "in-6",
-        "evidence": "rationale for locked A describes B's"
-      }
-    ]
+    "contradiction_evidence": []
   },
   "page_budget": {
     "word_budget": 450,
     "char_budget": 3200,
-    "main_word_count": 239,
-    "main_char_count": 1498,
-    "appendix_word_count": 98,
+    "main_word_count": 175,
+    "main_char_count": 1160,
+    "appendix_word_count": 267,
     "fits_one_page": true,
     "truncated": false
   }

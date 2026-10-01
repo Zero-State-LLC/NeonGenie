@@ -26,6 +26,7 @@
 24. Round-3 checks (skill 3.30.0, schema stays 1.3.0): quote negation and whole-token numbers, placeholder words on every OBSERVED field, cost inputs a kill derivation ignores, general note-scan checks, robots.txt 404 with a 2 MiB body cap and Los Angeles retrieval dates, optional Jev line-id correctness diagnostic (off by default)
 25. Round-4 checks (skill 3.31.0, schema stays 1.3.0): verified numeric contradictions only, money-table recompute, unverified scanner appendix, capped per-idea research, one-action cheapest test
 26. Firecrawl paid search (skill 3.32.0, schema stays 1.3.0): capped per-idea `/search`, credit-to-dollar config, mock client in CI
+27. Round-5 checks (skill 3.33.0, schema stays 1.3.0): named money-table recomputes only on the main page, duplicate quantities dropped, primary-only OBSERVED search hits, at most five main-page links, mocked Jev fact reconcile
 
 Packet schemas: `schemas/`. Profile contracts: `profiles/`. Gates: `references/anti-overclaim-patterns.md` · `references/gates.yaml`.
 DataRequest: `schemas/data-request.schema.json`.

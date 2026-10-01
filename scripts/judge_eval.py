@@ -13,6 +13,7 @@ line those ids point at. Tests pass a mock client and do not touch the network.
 
 from __future__ import annotations
 
+import os
 import random
 import re
 from typing import Any, Callable, Protocol
@@ -362,6 +363,182 @@ def judge_correctness(
     if isinstance(doc_answer, dict) and isinstance(doc_answer.get("confidence"), (int, float)):
         base["confidence"] = float(doc_answer["confidence"])
     return base
+
+
+DEFAULT_JEV_CALLS = 2
+_FACTS_PER_CALL = 8
+_RECONCILE_VERDICTS = frozenset({"AGREES", "CONTRADICTS", "NOT_APPLICABLE"})
+
+
+def _clip_words(text: str, limit: int) -> str:
+    words = " ".join(str(text).split())
+    parts = words.split(" ") if words else []
+    if len(parts) <= limit:
+        return " ".join(parts)
+    return " ".join(parts[:limit]) + "..."
+
+
+def _reconcile_sentence(verdict: str, fact: str, note_line: str | None) -> str:
+    """One sentence. The reason is a quote of the note line, not model prose."""
+    fact_bit = _clip_words(fact, 18)
+    if verdict == "NOT_COMPUTABLE" or not note_line:
+        if verdict == "NOT_COMPUTABLE":
+            return f"NOT_COMPUTABLE: {fact_bit}"
+        return f"{verdict}: {fact_bit}"
+    quote = " ".join(str(note_line).split())
+    if len(quote) > 160:
+        quote = quote[:157] + "..."
+    return f'{verdict}: {fact_bit} Note: "{quote}"'
+
+
+def _reconcile_item(
+    claim: dict[str, Any],
+    verdict: str,
+    note_line: str | None,
+    reason: str,
+) -> dict[str, Any]:
+    label = "NOT_COMPUTABLE" if verdict == "NOT_COMPUTABLE" else "INFERRED"
+    return {
+        "claim_id": claim.get("claim_id"),
+        "url": claim.get("url"),
+        "verdict": verdict,
+        "sentence": _reconcile_sentence(verdict, str(claim.get("text") or ""), note_line),
+        "note_line": note_line,
+        "reason": reason,
+        "claim_label": label,
+    }
+
+
+def _unreconciled(
+    claims: list[dict[str, Any]], reason: str, *, calls: int
+) -> dict[str, Any]:
+    return {
+        "status": "NOT_COMPUTABLE",
+        "calls": calls,
+        "items": [
+            _reconcile_item(claim, "NOT_COMPUTABLE", None, reason)
+            for claim in claims
+            if isinstance(claim, dict)
+        ],
+        "claim_label": "NOT_COMPUTABLE",
+    }
+
+
+def reconcile_facts(
+    notes: str,
+    claims: list[dict[str, Any]],
+    *,
+    client: Callable[..., Any] | None = None,
+    max_calls: int = DEFAULT_JEV_CALLS,
+    per_call: int = _FACTS_PER_CALL,
+) -> dict[str, Any]:
+    """Compare each kept web fact with the notes. One Jev call per batch.
+
+    Jev returns a choice, not prose. This function quotes the note line that
+    choice points at. With no client and no ``TYPESAFE_AI_API_KEY``, every
+    fact is NOT_COMPUTABLE. Nothing is invented. At most ``max_calls`` calls
+    (default 2). Facts past that cap are NOT_COMPUTABLE.
+    """
+    kept = [claim for claim in claims if isinstance(claim, dict)]
+    if not kept:
+        return {
+            "status": "empty",
+            "calls": 0,
+            "items": [],
+            "claim_label": "NOT_COMPUTABLE",
+        }
+    cap = max(0, int(max_calls))
+    if client is None and not os.environ.get(jev_client.ENV_KEY, "").strip():
+        return _unreconciled(kept, "TYPESAFE_AI_API_KEY is not set", calls=0)
+    if cap == 0:
+        return _unreconciled(kept, "jev_call_cap", calls=0)
+    call = client or jev_client.system_one
+    note_rows = _numbered_lines(notes if isinstance(notes, str) else "", "S")
+    note_map = dict(note_rows)
+    items: list[dict[str, Any]] = []
+    calls = 0
+    offset = 0
+    while offset < len(kept):
+        if calls >= cap:
+            items.extend(
+                _reconcile_item(claim, "NOT_COMPUTABLE", None, "jev_call_cap")
+                for claim in kept[offset:]
+            )
+            break
+        batch = kept[offset : offset + max(1, int(per_call))]
+        offset += len(batch)
+        state = "\n".join(
+            ["SOURCE_NOTES"]
+            + [f"{line_id}| {line}" for line_id, line in note_rows]
+            + ["WEB_FACTS"]
+            + [
+                f"F{index}| {_clip_words(str(claim.get('text') or ''), 80)}"
+                for index, claim in enumerate(batch)
+            ]
+        )
+        questions: dict[str, Any] = {}
+        for index, claim in enumerate(batch):
+            fact = _clip_words(str(claim.get("text") or ""), 40)
+            questions[f"v{index}"] = {
+                "type": "choice",
+                "instructions": (
+                    "Compare this web fact to SOURCE_NOTES. "
+                    f"Fact: {fact}"
+                ),
+                "criteria": {
+                    "AGREES": "The fact matches the notes",
+                    "CONTRADICTS": "The fact conflicts with the notes",
+                    "NOT_APPLICABLE": "The fact does not bear on the notes",
+                },
+            }
+            questions[f"n{index}"] = _choice_question(
+                "Which SOURCE_NOTES line is the reason for that comparison? "
+                "Choose none if no line applies.",
+                note_rows,
+            )
+        try:
+            response = call(state, questions)
+        except jev_client.JevError as exc:
+            items.extend(
+                _reconcile_item(claim, "NOT_COMPUTABLE", None, str(exc))
+                for claim in batch
+            )
+            items.extend(
+                _reconcile_item(claim, "NOT_COMPUTABLE", None, str(exc))
+                for claim in kept[offset:]
+            )
+            break
+        calls += 1
+        answers = response.get("answers") if isinstance(response, dict) else None
+        if not isinstance(answers, dict):
+            items.extend(
+                _reconcile_item(claim, "NOT_COMPUTABLE", None, "Jev returned no answers")
+                for claim in batch
+            )
+            continue
+        for index, claim in enumerate(batch):
+            verdict = _choice_id(answers.get(f"v{index}"))
+            if verdict not in _RECONCILE_VERDICTS:
+                verdict = "NOT_COMPUTABLE"
+            note_id = _choice_id(answers.get(f"n{index}"))
+            note_line = note_map.get(note_id) if note_id else None
+            if isinstance(note_line, str) and not note_line.strip():
+                note_line = None
+            items.append(
+                _reconcile_item(
+                    claim,
+                    verdict,
+                    note_line,
+                    "jev_choice" if verdict != "NOT_COMPUTABLE" else "jev_choice_unused",
+                )
+            )
+    status = "ok" if calls else "NOT_COMPUTABLE"
+    return {
+        "status": status,
+        "calls": calls,
+        "items": items,
+        "claim_label": "INFERRED" if calls else "NOT_COMPUTABLE",
+    }
 
 
 def _choice_id(answer: Any) -> str | None:
