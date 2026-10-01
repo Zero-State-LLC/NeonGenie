@@ -84,6 +84,7 @@ hub_support_globs:
   - scripts/research_mode.py
   - scripts/packet_compose.py
   - scripts/judge_eval.py
+  - scripts/jev_client.py
   - scripts/route_profiles.py
   - scripts/build_receipt.py
   - scripts/run_fixture_invariants.py

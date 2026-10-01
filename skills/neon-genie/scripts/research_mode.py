@@ -12,15 +12,20 @@ date, and a complete source body. No source means no OBSERVED label.
 from __future__ import annotations
 
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Callable, Protocol
+from zoneinfo import ZoneInfo
 
 import privacy_preflight
 
-MAX_BODY_BYTES = 65536
-RESEARCH_UA = "neon-genie-research/3.29"
+# Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
+# (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
+MAX_BODY_BYTES = 2 * 1024 * 1024
+RESEARCH_UA = "neon-genie-research/3.30"
+_LA = ZoneInfo("America/Los_Angeles")
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _KINDS = frozenset({"web_page", "paper", "social_post"})
 _PAID_ADAPTERS = frozenset(
@@ -85,8 +90,13 @@ def classify_url(url: str) -> str:
     return "web_page"
 
 
-def _today() -> str:
-    return datetime.now(timezone.utc).date().isoformat()
+def _today(moment: datetime | None = None) -> str:
+    """Calendar date in America/Los_Angeles. UTC would stamp the next day after 5pm PT."""
+    if moment is None:
+        moment = datetime.now(_LA)
+    elif moment.tzinfo is None:
+        moment = moment.replace(tzinfo=timezone.utc)
+    return moment.astimezone(_LA).date().isoformat()
 
 
 def fetch_url(url: str, opener: Callable[..., Any] | None = None) -> dict[str, Any]:
@@ -251,8 +261,10 @@ class RobotsHttpAdapter:
     """Free stdlib fetch that honors robots.txt. No third-party crawler and no paid API.
 
     Crawl4AI is not a dependency. Tests inject ``opener``. A missing robots.txt
-    (HTTP 404) allows the fetch. Any other robots failure fails closed and does
-    not fetch the page.
+    (HTTP 404, including ``urllib.error.HTTPError``) allows the fetch. Any other
+    robots failure fails closed and does not fetch the page. Page bodies over
+    ``MAX_BODY_BYTES`` (2 MiB) are rejected whole. ``retrieved_at`` is the
+    America/Los_Angeles calendar date.
     """
 
     name = "robots_http"
@@ -296,6 +308,10 @@ class RobotsHttpAdapter:
             )
             with open_fn(req, timeout=10) as resp:
                 status, raw = _read_limited(resp)
+        except urllib.error.HTTPError as exc:
+            if getattr(exc, "code", None) == 404:
+                return True, ""
+            return False, "robots_unavailable"
         except Exception:
             return False, "robots_unavailable"
         if status == 404:

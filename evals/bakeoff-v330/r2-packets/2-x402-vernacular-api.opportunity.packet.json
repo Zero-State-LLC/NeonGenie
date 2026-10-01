@@ -1,0 +1,330 @@
+{
+ "blocked_transition": {
+  "from": "slang verdicts exist but no machine buyer can pay per lookup",
+  "to": "an x402 pay-per-lookup route on the same snapshot"
+ },
+ "outcome_model": {
+  "success": "unaffiliated wallets pay for lookups in the agreed window",
+  "failure": "zero unaffiliated paid lookups, or named buyers cannot pay via x402"
+ },
+ "system_topology": {
+  "actors": [
+   "agent developers (SPECULATIVE)",
+   "T&S and brand teams (named in gap packet)",
+   "Danny (wallet, price, listing yes)"
+  ],
+  "systems": [
+   "idea 1 snapshot and GET /term/{slug}",
+   "x402 payment wrapper"
+  ]
+ },
+ "opportunity_thesis": "The wrapper reuses idea 1's route, so build cost is small (INFERRED). But no buyer pays this way yet: the named buyers (T&S, brands) buy by contract or key, while x402 suits agents (INFERRED). No price, buyer or WTP exists (OBSERVED: 'No price number is set'). The rail cannot run inside ChatGPT (OBSERVED, obs-1).",
+ "affected_user": "Agent builders or T&S tools needing slang verdicts by API (SPECULATIVE).",
+ "economic_buyer": "NOT_COMPUTABLE. For moderation vendors the payer may not be the beneficiary.",
+ "service_first_wedge": "x402 wrapper on idea 1's GET /term/{slug}, test network only.",
+ "validation_path": [
+  "V1: confirm one snapshot and route serve plugin and API.",
+  "V2 (desk): per named buyer type, write how it would pay: wallet or invoice/key.",
+  "V3 (Danny yes): list the route at a Danny-set price for a fixed window.",
+  "V4: count unaffiliated paid lookups and misses."
+ ],
+ "completion_proof": "Settlement log with paid lookups from wallets Zero State does not control, inside the agreed window.",
+ "distribution": "Not ChatGPT (obs-1). No open x402 hackathon found (OBSERVED). Agent-payment directories: NOT_COMPUTABLE.",
+ "failure_modes": "buyer-rail mismatch; zero organic agent demand; open-sourcing the paid code via the hackathon; private-row leak",
+ "scorecard": {
+  "evidence_density": 0.45,
+  "outcome_clarity": 0.6,
+  "affected_user_clarity": 0.25,
+  "completion_proof_quality": 0.75,
+  "integration_feasibility": 0.75,
+  "reversibility": 0.9,
+  "auditability": 0.85,
+  "scope_boundedness": 0.8
+ },
+ "promotion_state": "CONCEPTUAL",
+ "logic_label": "effectual",
+ "authority": "advisory_only",
+ "grants_execution": false,
+ "data_requests": [
+  {
+   "request_id": "dr-x402-window",
+   "field": "listing window and price for V3",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  },
+  {
+   "request_id": "dr-x402-spec",
+   "field": "current x402 spec, facilitator and fees (public; not fetched this run: router cheap_local)",
+   "sensitivity": "public",
+   "blocks_promotion": false,
+   "status": "open"
+  }
+ ],
+ "schema_id": "neon-genie/opportunity-packet",
+ "schema_version": "1.2.0",
+ "input_contradictions": {
+  "checked": true,
+  "findings": [
+   {
+    "kind": "contradiction",
+    "summary": "'One build serves all three' conflicts with the hackathon rule that the entry calls Nebius Token Factory with an NVIDIA open model at runtime; a static lookup does not.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-1"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "The hackathon requires a public open-source repo, so shared paid-API code would become freely reusable.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-2"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "Paid demand is routed to x402, but the named payer (T&S teams) is reached 'through the API', i.e. contracts or keys.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-3"
+   }
+  ]
+ },
+ "research": {
+  "enabled": true,
+  "offline": false,
+  "adapter": "local_cache(chatgpt-plugins-verify captures)",
+  "research_ran": true,
+  "items": [
+   {
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "complete": true,
+    "title": "local capture developers_openai_com_plugins_plugin_guidelines",
+    "query": "https://developers.openai.com/plugins/plugin-guidelines"
+   },
+   {
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "complete": true,
+    "title": "local capture developers_openai_com_plugins_plugin_guidelines",
+    "query": "https://developers.openai.com/plugins/plugin-guidelines"
+   },
+   {
+    "url": "https://x402.org",
+    "complete": false,
+    "reason": "not_in_local_cache (router cheap_local: no new fetch)",
+    "query": "https://x402.org"
+   }
+  ],
+  "observed_claims": [
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "claim_id": "obs-1",
+    "text_in": "appendix.research_claims"
+   },
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "claim_id": "obs-2",
+    "text_in": "appendix.research_claims"
+   }
+  ],
+  "rejected": [
+   {
+    "reason": "not_in_local_cache (router cheap_local: no new fetch)",
+    "url": "https://x402.org"
+   }
+  ]
+ },
+ "research_search_dag": {
+  "schema_id": "neon-genie/research-search-dag",
+  "schema_version": "1.0.0",
+  "research_ran": true,
+  "stages": [
+   {
+    "stage_id": "s1",
+    "kind": "keyword",
+    "queries": [
+     "https://developers.openai.com/plugins/plugin-guidelines",
+     "https://x402.org"
+    ]
+   },
+   {
+    "stage_id": "s2",
+    "kind": "cite-expand",
+    "inputs": [
+     "s1"
+    ]
+   },
+   {
+    "stage_id": "s3",
+    "kind": "filter",
+    "inputs": [
+     "s2"
+    ]
+   },
+   {
+    "stage_id": "s4",
+    "kind": "score",
+    "inputs": [
+     "s3"
+    ]
+   },
+   {
+    "stage_id": "s5",
+    "kind": "extract",
+    "inputs": [
+     "s4"
+    ],
+    "citations": [
+     {
+      "id": "https://developers.openai.com/plugins/plugin-guidelines",
+      "verified_fetch": true,
+      "operator_supplied": false
+     },
+     {
+      "id": "https://developers.openai.com/plugins/plugin-guidelines",
+      "verified_fetch": true,
+      "operator_supplied": false
+     }
+    ]
+   }
+  ],
+  "edges": [
+   {
+    "from_stage": "s1",
+    "to_stage": "s2"
+   },
+   {
+    "from_stage": "s2",
+    "to_stage": "s3"
+   },
+   {
+    "from_stage": "s3",
+    "to_stage": "s4"
+   },
+   {
+    "from_stage": "s4",
+    "to_stage": "s5"
+   }
+  ],
+  "notes": "Citations are fetched URLs only. No generated paper ids."
+ },
+ "build_handoff": {
+  "summary": "Wrap idea 1's route after idea 1 passes. Test network only.",
+  "steps": [
+   "Price comes from config and stays unset until Danny's yes.",
+   "Serve the same JSON as the free route; no extra fields."
+  ],
+  "first_commit": {
+   "touch": [
+    "x402 middleware on /term/{slug}",
+    "payment-required integration test"
+   ],
+   "done_when": "Unpaid GET returns 402 with payment terms; a valid test-network payment returns the verdict JSON.",
+   "test_to_write": "Unpaid or replayed payment gives 402; valid test payment gives 200 with JSON equal to the free route.",
+   "owner_role": "PROMETHEUS engineer"
+  }
+ },
+ "kill_criteria": [
+  {
+   "criterion_id": "kc-paid",
+   "metric": "unaffiliated_paid_lookups",
+   "comparison": "lt",
+   "threshold": 1,
+   "check_date": "2026-11-30",
+   "data_source": "x402 settlement log, wallets not controlled by Zero State",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "evidence_refs": [
+    "gap packet: no paid lookups within an agreed window"
+   ],
+   "note": "window end is a placeholder; Danny sets the window"
+  },
+  {
+   "criterion_id": "kc-rail-fit",
+   "metric": "named_buyer_types_able_to_pay_via_x402",
+   "comparison": "lt",
+   "threshold": 1,
+   "check_date": "2026-10-07",
+   "data_source": "V2 desk sheet",
+   "claim_label": "INFERRED",
+   "role": "kill"
+  },
+  {
+   "criterion_id": "kc-leak",
+   "metric": "non_public_fields_served",
+   "comparison": "gt",
+   "threshold": 0,
+   "check_date": "2026-10-07",
+   "data_source": "idea 1 allowlist test",
+   "claim_label": "INFERRED",
+   "role": "hard_stop",
+   "evidence_refs": [
+    "gap packet walls"
+   ]
+  }
+ ],
+ "appendix": {
+  "research_claims": [
+   {
+    "text": "No other third-party checkout solutions may be embedded or hosted within the plugin UI.",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "claim_id": "obs-1"
+   },
+   {
+    "text": "Selling digital products or services—including subscriptions, digital content, tokens, or credits—is not allowed, whether offered directly or indirectly (for example, through freemium upsells).",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines",
+    "retrieved_at": "2026-09-30",
+    "kind": "web_page",
+    "claim_id": "obs-2"
+   }
+  ],
+  "contradiction_evidence": [
+   {
+    "finding_id": "h-1",
+    "evidence": "gap packet 'One build serves all three' vs Nebius plan 'must run on Nebius Token Factory... must use at least one NVIDIA open-source model'"
+   },
+   {
+    "finding_id": "h-2",
+    "evidence": "Nebius plan: 'open-source license' required; plan flags the concern"
+   },
+   {
+    "finding_id": "h-3",
+    "evidence": "gap packet BUYER lines vs PRICE UNIT line"
+   }
+  ],
+  "build_spec": {
+   "route": "GET /term/{slug} (same handler as idea 1)",
+   "unpaid": "HTTP 402 with x402 payment requirements (INFERRED from protocol name; confirm against current x402 spec before build)",
+   "paid": "200 + verdict JSON identical to free route",
+   "config": {
+    "price": "UNSET (Danny yes)",
+    "network": "test network only",
+    "pay_to": "UNSET (Danny yes)"
+   },
+   "logs": "settlement id, amount, payer wallet hash, slug, hit/miss; no prompt text"
+  }
+ },
+ "page_budget": {
+  "word_budget": 450,
+  "char_budget": 3200,
+  "main_word_count": 342,
+  "main_char_count": 2286,
+  "appendix_word_count": 143,
+  "fits_one_page": true,
+  "truncated": false
+ },
+ "decision": "HOLD as a cheap add-on to idea 1. No separate product, no wallet, no price until Danny's yes."
+}

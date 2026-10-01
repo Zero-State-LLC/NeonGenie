@@ -1,7 +1,7 @@
 ---
 name: neon-genie
 description: Audit products and opportunities with labeled evidence.
-version: 3.29.0
+version: 3.30.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -146,7 +146,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Find → request private → `NOT_COMPUTABLE` — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
    - Never fabricate — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
    - Freshness — prefer primary/current sources; note retrieval time for volatile facts.
-   - Research mode — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`, and free `robots_http`). `robots_http` is a stdlib fetch that reads robots.txt and fails closed when robots cannot be read. Crawl4AI is not a dependency. Paid adapters are opt-in and are not bundled; CI uses fixtures only. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a real retrieval date, and a complete source body. A placeholder date is not OBSERVED. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
+   - Research mode — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`, and free `robots_http`). `robots_http` is a stdlib fetch that reads robots.txt and fails closed when robots cannot be read. A missing robots.txt (HTTP 404, including urllib `HTTPError`) allows the fetch. Page bodies over 2 MiB are rejected whole. `retrieved_at` is the America/Los_Angeles date. Crawl4AI is not a dependency. Paid adapters are opt-in and are not bundled; CI uses fixtures only. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a real retrieval date, and a complete source body. A placeholder date is not OBSERVED. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
    - Attribution boundaries — separate person / company / foundation / model inference.
    - Authority unchanged — research may draft; it may not submit, contact, spend, publish, or mutate repos.
    - Privacy — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
@@ -236,13 +236,13 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
 
     Opportunity and commercial packets at schema **1.2.0** (`scripts/packet_compose.py`) also include:
 
-    - `input_contradictions` — a pass over the input notes for contradictions, arithmetic errors, and inconsistent figures, run before the packet is written. The pass does the arithmetic (price × seats, fee-inclusive totals, per-unit floors, tier labels) and compares an option rationale with the option definitions. Empty findings are valid. Skipping the pass is not.
-    - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`. Schema **1.3.0** also requires `derivation` so the threshold can be recomputed from its inputs, including every cost it depends on. A missing input fails (NG-KILL-005). A threshold that is not the recomputed value fails (NG-KILL-004).
+    - `input_contradictions` — a pass over the input notes for contradictions, arithmetic errors, and inconsistent figures, run before the packet is written. The pass does the arithmetic (price × seats, fee-inclusive totals, per-unit floors) and general checks: the same quantity stated twice, a monthly figure that does not match the yearly figure (including per-sf), and mutually exclusive options both locked. Empty findings are valid. Skipping the pass is not.
+    - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`. Schema **1.3.0** also requires `derivation` so the threshold can be recomputed from its inputs, including every cost it depends on. A missing input fails (NG-KILL-005). A threshold that is not the recomputed value fails (NG-KILL-004). A cost kill that ignores price tiers or card fees declared elsewhere in the packet fails (NG-KILL-006) unless an identity derivation carries a written `justification`.
     - `build_handoff.first_commit` — files or areas to touch, a done-when check, one test to write, and an owner role.
     - `page_budget` — decision prose at most 450 words and 3200 characters. Long evidence moves intact into `appendix`. Do not truncate.
     - `research` — the gathering record. Offline records stay empty of OBSERVED claims.
 
-    An OBSERVED claim fails when its date is a placeholder (NG-LABEL-001) or its cited quote does not support the claim (NG-LABEL-002). When the quote check is inconclusive, a pluggable quote judge may decide; with no judge the claim fails closed (NG-LABEL-003). Packets below 1.2.0 stay valid. Migrations: `references/schemas/migrations/1.1.0-to-1.2.0.md` and `references/schemas/migrations/1.2.0-to-1.3.0.md`.
+    An OBSERVED object fails when any of its string fields is a sentinel date or contains a placeholder word, including `note` (NG-LABEL-001). A cited quote fails when it does not support the claim (NG-LABEL-002): negation flips polarity, and a number counts only as a whole token. When the quote check is inconclusive, a pluggable quote judge may decide; with no judge the claim fails closed (NG-LABEL-003). An optional Jev correctness diagnostic can quote a document line and the conflicting SOURCE_NOTES line; it is off unless enabled, and golden evals do not call it. Packets below 1.2.0 stay valid. Migrations: `references/schemas/migrations/1.1.0-to-1.2.0.md` and `references/schemas/migrations/1.2.0-to-1.3.0.md`.
 
     Packets with `schema_version` below 1.2.0 stay valid. Migration: `references/schemas/migrations/1.1.0-to-1.2.0.md`.
 
@@ -284,7 +284,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - irreversible agentic action without independent validation_isolation / validation_step (Gate ISO);
     - research ran without research_search_dag stages (Gate PILOT).
     - schema 1.2.0 opportunity/commercial packet with prose-only kill criteria, a missing first-commit handoff, a skipped input-contradiction pass, a truncated or over-budget main page, or an OBSERVED research claim without URL and retrieval date (NG-KILL / NG-HANDOFF / NG-INPUT / NG-PAGE / NG-RESEARCH).
-    - schema 1.3.0 kill threshold that does not recompute from its stated inputs, or an OBSERVED claim whose date is a placeholder or whose quote does not support the claim (NG-KILL-004 / NG-KILL-005 / NG-LABEL).
+    - schema 1.3.0 kill threshold that does not recompute from its stated inputs, ignores tiers or fees declared in the packet, or an OBSERVED field whose date or note is a placeholder, or whose quote does not support the claim (NG-KILL-004 / NG-KILL-005 / NG-KILL-006 / NG-LABEL).
 
     Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET, LEDGER, ISO, PILOT). Completion: CLEAR lists every failed gate or records none.
 
@@ -341,6 +341,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/completion-proof-present.json`
 - `examples/evals/cases/completion-proof-required.json`
 - `examples/evals/cases/contradict-unresolved-testable.json`
+- `examples/evals/cases/correctness-judge-off.json`
 - `examples/evals/cases/dag-fabricated-cite.json`
 - `examples/evals/cases/dual-judge-blind.json`
 - `examples/evals/cases/effectual-missing-means.json`
@@ -467,6 +468,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `scripts/distribution_spine.py`
 - `scripts/doctor.py`
 - `scripts/hermes_runtime_smoke.py`
+- `scripts/jev_client.py`
 - `scripts/judge_eval.py`
 - `scripts/lineage.py`
 - `scripts/neon_genie.py`

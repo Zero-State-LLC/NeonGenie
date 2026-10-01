@@ -1,0 +1,284 @@
+{
+ "blocked_transition": {
+  "from": "a Jev gate design with no evidence any edge survives fees",
+  "to": "a pessimistic paper ledger that shows whether an edge exists"
+ },
+ "outcome_model": {
+  "success": "net paper PnL after fees and delay stays positive over the window",
+  "failure": "net ≤ 0; Jev gating then has no value"
+ },
+ "system_topology": {
+  "actors": [
+   "Danny (capital, human-yes)",
+   "Boof (loop owner)",
+   "TRUTINA, ADVERSARY"
+  ],
+  "systems": [
+   "public read-only venue books",
+   "paper simulator",
+   "Jev (later, gate only)"
+  ]
+ },
+ "opportunity_thesis": "No edge size is known (NOT_COMPUTABLE in source). If pessimistic paper fills lose after fees, gating with Jev is worthless, so test the edge before building the Jev pack. Jev stays a gate, never the executor (source walls).",
+ "affected_user": "Danny, as operator of a capped arb loop.",
+ "economic_buyer": "Danny's own capital; no outside buyer.",
+ "service_first_wedge": "Read-only quote logger plus pessimistic paper simulator; no keys, no Jev calls.",
+ "validation_path": [
+  "V1: freeze the required state schema; a missing field means blocked.",
+  "V2: log candidate spreads from public books for 14 days.",
+  "V3: fill at the worse side, full taker fees, transfer delay.",
+  "V4: only if net > 0, add Jev questions and TRUTINA scoring."
+ ],
+ "completion_proof": "14-day paper ledger with pessimistic fills and net PnL after fees, reproducible from logged books.",
+ "failure_modes": "fee and slippage wipe; latency; calibration theater; human-yes fatigue; keys in agent env",
+ "scorecard": {
+  "evidence_density": 0.5,
+  "outcome_clarity": 0.85,
+  "affected_user_clarity": 0.9,
+  "completion_proof_quality": 0.85,
+  "integration_feasibility": 0.8,
+  "reversibility": 0.95,
+  "auditability": 0.9,
+  "scope_boundedness": 0.9
+ },
+ "promotion_state": "TESTABLE",
+ "logic_label": "causal",
+ "authority": "advisory_only",
+ "grants_execution": false,
+ "data_requests": [
+  {
+   "request_id": "dr-venues",
+   "field": "which venues and pairs; current taker fee schedules (public; not fetched this run)",
+   "sensitivity": "public",
+   "blocks_promotion": true,
+   "status": "open"
+  },
+  {
+   "request_id": "dr-truthina-n",
+   "field": "TRUTINA sample N and Brier/PnL floor in writing",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  }
+ ],
+ "schema_id": "neon-genie/opportunity-packet",
+ "schema_version": "1.2.0",
+ "input_contradictions": {
+  "checked": true,
+  "findings": [
+   {
+    "kind": "contradiction",
+    "summary": "The X top 20 is labeled OBSERVED, but only the posts' existence is observed; claims in them (Jev 70–500ms, bot PnL) are unverified, yet S1 treats 70–500ms as fact.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-1"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "The route sends high consequential_spend to ask_human; the red team says unclear cases default to skip, not ask_human.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-2"
+   }
+  ]
+ },
+ "research": {
+  "enabled": true,
+  "offline": false,
+  "adapter": "local_cache(chatgpt-plugins-verify captures)",
+  "research_ran": true,
+  "items": [
+   {
+    "url": "https://docs.typesafe.ai/api.md",
+    "complete": false,
+    "reason": "not_in_local_cache (router cheap_local: no new fetch)",
+    "query": "https://docs.typesafe.ai/api.md"
+   }
+  ],
+  "observed_claims": [],
+  "rejected": [
+   {
+    "reason": "not_in_local_cache (router cheap_local: no new fetch)",
+    "url": "https://docs.typesafe.ai/api.md"
+   }
+  ]
+ },
+ "research_search_dag": {
+  "schema_id": "neon-genie/research-search-dag",
+  "schema_version": "1.0.0",
+  "research_ran": true,
+  "stages": [
+   {
+    "stage_id": "s1",
+    "kind": "keyword",
+    "queries": [
+     "https://docs.typesafe.ai/api.md"
+    ]
+   },
+   {
+    "stage_id": "s2",
+    "kind": "cite-expand",
+    "inputs": [
+     "s1"
+    ]
+   },
+   {
+    "stage_id": "s3",
+    "kind": "filter",
+    "inputs": [
+     "s2"
+    ]
+   },
+   {
+    "stage_id": "s4",
+    "kind": "score",
+    "inputs": [
+     "s3"
+    ]
+   },
+   {
+    "stage_id": "s5",
+    "kind": "extract",
+    "inputs": [
+     "s4"
+    ],
+    "citations": []
+   }
+  ],
+  "edges": [
+   {
+    "from_stage": "s1",
+    "to_stage": "s2"
+   },
+   {
+    "from_stage": "s2",
+    "to_stage": "s3"
+   },
+   {
+    "from_stage": "s3",
+    "to_stage": "s4"
+   },
+   {
+    "from_stage": "s4",
+    "to_stage": "s5"
+   }
+  ],
+  "notes": "Citations are fetched URLs only. No generated paper ids."
+ },
+ "build_handoff": {
+  "summary": "Code-only paper loop under Boof. No exchange keys, no orders.",
+  "steps": [
+   "Read-only market identity only.",
+   "Jev on candidate events, never per tick."
+  ],
+  "first_commit": {
+   "touch": [
+    "required state schema",
+    "paper fill simulator and its test"
+   ],
+   "done_when": "Simulator blocks candidates with a missing field and books fills at the worse side minus taker fees.",
+   "test_to_write": "Fixture: spread smaller than total taker fees gives net < 0 and skip; missing withdraw_lock gives blocked with no Jev call.",
+   "owner_role": "Boof loop engineer"
+  }
+ },
+ "kill_criteria": [
+  {
+   "criterion_id": "kc-edge",
+   "metric": "net_paper_pnl_after_fees_usd",
+   "comparison": "lte",
+   "threshold": 0,
+   "check_date": "2026-10-21",
+   "data_source": "14-day pessimistic paper ledger",
+   "claim_label": "INFERRED",
+   "role": "kill",
+   "evidence_refs": [
+    "CARD red team: pessimistic fills; edge NOT_COMPUTABLE"
+   ]
+  },
+  {
+   "criterion_id": "kc-sample",
+   "metric": "settled_paper_trades",
+   "comparison": "lt",
+   "threshold": 200,
+   "check_date": "2026-11-15",
+   "data_source": "TRUTINA settlement log",
+   "claim_label": "SPECULATIVE",
+   "role": "band_gate",
+   "note": "source says define N in writing; 200 is a placeholder"
+  },
+  {
+   "criterion_id": "kc-state",
+   "metric": "jev_calls_with_missing_required_fields",
+   "comparison": "gt",
+   "threshold": 0,
+   "check_date": "2026-10-21",
+   "data_source": "loop audit log",
+   "claim_label": "INFERRED",
+   "role": "hard_stop",
+   "evidence_refs": [
+    "CARD red team attack 1"
+   ]
+  },
+  {
+   "criterion_id": "kc-keys",
+   "metric": "trade_keys_in_agent_env",
+   "comparison": "gt",
+   "threshold": 0,
+   "check_date": "2026-10-07",
+   "data_source": "env scan",
+   "claim_label": "INFERRED",
+   "role": "hard_stop",
+   "evidence_refs": [
+    "CARD walls: no exchange keys in agents"
+   ]
+  }
+ ],
+ "appendix": {
+  "research_claims": [],
+  "contradiction_evidence": [
+   {
+    "finding_id": "h-1",
+    "evidence": "CARD 'X top 20 (OBSERVED...)' item 1 vs S1"
+   },
+   {
+    "finding_id": "h-2",
+    "evidence": "Recommended route §3 vs red team attack 6"
+   }
+  ],
+  "build_spec": {
+   "state_schema_required": [
+    "venue",
+    "pair",
+    "bid",
+    "ask",
+    "depth_at_size",
+    "taker_fee_bps",
+    "withdraw_lock",
+    "transfer_eta_s",
+    "book_ts",
+    "balance_ts"
+   ],
+   "fill_rule": "buy at ask + slippage at size, sell at bid − slippage, both taker fees, mark-to-market after transfer_eta",
+   "jev_questions_later": [
+    "Choice action: skip|paper|ask_human|blocked",
+    "Noul edge_alive",
+    "Score restraint_integrity from harness facts",
+    "Noul data_freshness"
+   ],
+   "never": [
+    "execute enum",
+    "exchange keys in agent memory"
+   ]
+  }
+ },
+ "page_budget": {
+  "word_budget": 450,
+  "char_budget": 3200,
+  "main_word_count": 277,
+  "main_char_count": 1738,
+  "appendix_word_count": 66,
+  "fits_one_page": true,
+  "truncated": false
+ },
+ "decision": "PAPER-FALSIFY THE EDGE FIRST, IN CODE ONLY. Build the Jev pack only if net paper PnL after fees is positive."
+}

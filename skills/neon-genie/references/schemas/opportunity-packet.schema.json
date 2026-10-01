@@ -237,7 +237,11 @@
               },
               "inputs": {"type": "object"},
               "depends_on": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-              "tier_count": {"type": "integer"}
+              "tier_count": {"type": "integer"},
+              "justification": {
+                "type": "string",
+                "description": "Optional. Required by packaging when formula is identity and the packet states tiers or fees this derivation does not use."
+              }
             }
           }
         }

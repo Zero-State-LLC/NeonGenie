@@ -4,6 +4,8 @@
 The round-2 report says a host review found 14 input issues and does not
 list them. These fixtures are the defects that report, and the round-1
 report, actually name, plus the arithmetic classes the follow-up asked for.
+v3.30 dropped phrase rules fitted to packet wording. The count, quantity,
+period, and included-at cases below are the general forms of those checks.
 """
 
 from __future__ import annotations
@@ -32,28 +34,28 @@ RECONSTRUCTED = [
         "UNVERIFIED and verified",
     ),
     (
-        "hyperlex-funnel",
-        "The notes imply a plugin-to-paid funnel. In-plugin plans and upsells are banned.",
-        "contradiction",
-        "paid funnel",
-    ),
-    (
-        "x402-scope",
+        "count-clash",
         "The pitch says one build serves all three. The hackathon Token Factory runtime rule is one runtime, not three products.",
         "contradiction",
         "serves all three",
     ),
     (
-        "x402-rail",
-        "Named buyers purchase through contracts or keys. The rail is an agent-only rail because x402 fits agents.",
-        "contradiction",
-        "contracts or keys",
+        "labeled-quantity",
+        "seat count: 2\nseat count: 1",
+        "inconsistent_figure",
+        "seat count",
     ),
     (
-        "autogive-seat",
+        "monthly-yearly",
+        "The fee is $10 monthly. The fee is $100 yearly.",
+        "inconsistent_figure",
+        "yearly",
+    ),
+    (
+        "included-at-n",
         "The per-tenant floor includes an operator seat at N=1 but not at N=10 or N=50.",
         "inconsistent_figure",
-        "Operator seat",
+        "omitted at N",
     ),
     (
         "autogive-seats-times-price",

@@ -59,13 +59,13 @@ CLEAR order: **authority → evidence P–R → privacy S–Y → remaining anti
 
 | **PILOT — Research DAG missing** | Research ran but `research_search_dag` missing/empty | Emit keyword→cite-expand→filter→score→extract DAG; fabricated IDs → CITE |
 
-| **RESEARCH_OBS — OBSERVED without source** | Research claim labeled OBSERVED without URL and a real retrieval date, offline record contains OBSERVED, or the cited quote does not support the claim | Drop the label. No source means no OBSERVED. |
+| **RESEARCH_OBS — OBSERVED without source** | Research claim labeled OBSERVED without URL and a real retrieval date, offline record contains OBSERVED, any string field on an OBSERVED object is a sentinel date or contains a placeholder word, or the cited quote does not support the claim (negation flips polarity; numbers are whole tokens) | Drop the label. No source means no OBSERVED. |
 
-| **KILL — Prose or unrecomputed kill** | Kill criteria are prose, a numeric row is missing fields, or a schema 1.3.0 threshold does not recompute from its inputs | Emit a structured criterion with `derivation`. OBSERVED thresholds need evidence_refs and a real date. |
+| **KILL — Prose or unrecomputed kill** | Kill criteria are prose, a numeric row is missing fields, a schema 1.3.0 threshold does not recompute from its inputs, or a cost threshold ignores tiers or fees declared elsewhere in the packet | Emit a structured criterion with `derivation`. An identity derivation that skips those inputs needs a written justification. OBSERVED thresholds need evidence_refs and a real date. |
 
 | **HANDOFF — No first commit** | Schema 1.2.0 handoff lacks touch, done-when, one test, and an owner role | End the handoff with `first_commit`. |
 
-| **INPUT — Notes not checked** | Schema 1.2.0 packet skipped the input contradiction pass | Record contradictions, arithmetic errors, and inconsistent figures. Empty findings are valid. |
+| **INPUT — Notes not checked** | Schema 1.2.0 packet skipped the input contradiction pass | Record contradictions, arithmetic errors, inconsistent quantities, period mismatches, and option locks. Empty findings are valid. |
 
 | **PAGE — Over one page or truncated** | Decision prose exceeds 450 words or 3200 characters, or `truncated` is true | Move evidence into `appendix` intact. Do not slice the main text. |
 

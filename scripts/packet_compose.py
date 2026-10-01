@@ -15,6 +15,7 @@ recomputation. Older packets stay valid.
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -62,9 +63,13 @@ _RENT_YR = re.compile(
     re.IGNORECASE,
 )
 _LABELED_NUM = re.compile(
-    r"(?P<label>price floor|weekly users|refundable deposit|token floor)"
+    r"(?P<label>[a-z][a-z]+(?:\s+[a-z][a-z]+){0,4})"
     r"\s*[:=]\s*\$?(?P<num>\d[\d,]*(?:\.\d+)?)"
     r"(?:\s*(?P<suffix>k|m|b|thousand|million|billion))?",
+    re.IGNORECASE,
+)
+_QTY_LABEL = re.compile(
+    r"\b(price|floor|users|deposit|fee|cost|rate|rent|seats|tokens|count)\b",
     re.IGNORECASE,
 )
 _FEE_ABS = re.compile(
@@ -87,9 +92,30 @@ _PER_SEAT_N = re.compile(
     r"N\s*=\s*(?P<n>\d+)[^.\n]{0,40}?per[- ]seat\s+\$?(?P<amt>\d[\d,]*(?:\.\d+)?)",
     re.IGNORECASE,
 )
-_OP_SEAT = re.compile(
-    r"operator seat at N\s*=\s*(?P<yes>\d+)\b[^.\n]{0,80}?"
-    r"\bnot at N\s*=\s*(?P<rest>\d+(?:\s+or\s+N\s*=\s*\d+)*)",
+_INCLUDED_AT_N = re.compile(
+    r"(?P<item>(?:[A-Za-z]+(?:-[A-Za-z]+)?\s+){1,6})at\s+N\s*=\s*(?P<yes>\d+)\b"
+    r"[^.\n]{0,80}?\bnot\s+at\s+N\s*=\s*(?P<rest>\d+(?:\s+or\s+N\s*=\s*\d+)*)",
+    re.IGNORECASE,
+)
+_ALL_COUNT = re.compile(
+    r"\ball\s+(?P<n>two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+    re.IGNORECASE,
+)
+_NOT_COUNT = re.compile(
+    r"\bnot\s+(?P<n>two|three|four|five|six|seven|eight|nine|ten|\d+)\b",
+    re.IGNORECASE,
+)
+_MONTHLY_AMOUNT = re.compile(
+    r"\$?(?P<num>\d+(?:\.\d+)?)\s+(?:monthly|per month|a month)\b",
+    re.IGNORECASE,
+)
+_YEARLY_AMOUNT = re.compile(
+    r"\$?(?P<num>\d+(?:\.\d+)?)\s+(?:yearly|per year|a year)\b",
+    re.IGNORECASE,
+)
+_OPTION_RECOMMENDED = re.compile(
+    r"\boption\s+([A-Z])\b[^.\n]{0,40}?\b(?:recommended|default)\b"
+    r"|\b(?:recommended|default)\b[^.\n]{0,40}?\boption\s+([A-Z])\b",
     re.IGNORECASE,
 )
 _OPTION_DEF = re.compile(
@@ -101,7 +127,8 @@ _OPTION_WHY = re.compile(
     re.IGNORECASE,
 )
 _AMOUNT = re.compile(
-    r"\$?(?P<num>\d[\d,]*(?:\.\d+)?)(?:\s*(?P<suffix>k|m|b|thousand|million|billion))?\b",
+    r"(?<![A-Za-z0-9_])\$?(?P<num>\d[\d,]*(?:\.\d+)?)"
+    r"(?:\s*(?P<suffix>k|m|b|thousand|million|billion))?\b",
     re.IGNORECASE,
 )
 _SUFFIX_VALUE = {
@@ -142,6 +169,8 @@ _QUOTE_POLARITY = {
     "succeed": "pos",
     "succeeded": "pos",
 }
+_QUOTE_NEGATORS = frozenset({"not", "no", "never", "without"})
+_QUOTE_TOKEN = re.compile(r"[a-z]+n't|[a-z]+|[.!?]")
 _FORMULA_REQUIRES = {
     "identity": ("value",),
     "sum": ("values",),
@@ -402,6 +431,24 @@ def _scan_option_locks(text: str) -> list[dict[str, Any]]:
                 evidence,
             )
         )
+    locked_letters = set(locked)
+    recommended: dict[str, str] = {}
+    for match in _OPTION_RECOMMENDED.finditer(text):
+        letter = (match.group(1) or match.group(2) or "").upper()
+        if letter:
+            recommended[letter] = match.group(0).strip()
+    if locked_letters:
+        for letter, quote in recommended.items():
+            if letter in locked_letters:
+                continue
+            locked_name = " and ".join(sorted(locked_letters))
+            found.append(
+                _finding(
+                    "contradiction",
+                    f"Option {locked_name} is locked and Option {letter} is still recommended.",
+                    quote,
+                )
+            )
     for match in _RATIONALE.finditer(text):
         left, right = match.group(1).upper(), match.group(2).upper()
         if left == right:
@@ -416,27 +463,48 @@ def _scan_option_locks(text: str) -> list[dict[str, Any]]:
     return found
 
 
-def _scan_rent_bands(text: str) -> list[dict[str, Any]]:
+def _scan_period_mismatch(text: str) -> list[dict[str, Any]]:
+    """Monthly and yearly statements of the same unit that do not agree."""
+    found: list[dict[str, Any]] = []
     monthly = [float(value) for value in _RENT_MO.findall(text)]
     yearly = [float(value) for value in _RENT_YR.findall(text)]
-    if not monthly or not yearly:
-        return []
-    implied = monthly[0] * 12
-    if _close(implied, yearly[0]):
-        return []
-    return [
-        _finding(
-            "inconsistent_figure",
-            f"${monthly[0]:g}/sf/mo implies ${implied:g}/sf/yr, not ${yearly[0]:g}/sf/yr.",
-            f"${monthly[0]:g}/sf/mo vs ${yearly[0]:g}/sf/yr",
-        )
-    ]
+    for month in monthly:
+        implied = month * 12
+        for year in yearly:
+            if _close(implied, year):
+                continue
+            found.append(
+                _finding(
+                    "inconsistent_figure",
+                    f"${month:g}/sf/mo implies ${implied:g}/sf/yr, not ${year:g}/sf/yr.",
+                    f"${month:g}/sf/mo vs ${year:g}/sf/yr",
+                )
+            )
+            return found
+    month_amounts = [float(value) for value in _MONTHLY_AMOUNT.findall(text)]
+    year_amounts = [float(value) for value in _YEARLY_AMOUNT.findall(text)]
+    for month in month_amounts:
+        implied = month * 12
+        for year in year_amounts:
+            if _close(implied, year):
+                continue
+            found.append(
+                _finding(
+                    "inconsistent_figure",
+                    f"${month:g} monthly implies ${implied:g} yearly, not ${year:g} yearly.",
+                    f"${month:g} monthly vs ${year:g} yearly",
+                )
+            )
+            return found
+    return found
 
 
 def _scan_repeated_labels(text: str) -> list[dict[str, Any]]:
     grouped: dict[str, list[tuple[float, str]]] = {}
     for match in _LABELED_NUM.finditer(text):
-        label = match.group("label").lower()
+        label = re.sub(r"\s+", " ", match.group("label").lower()).strip()
+        if _QTY_LABEL.search(label) is None:
+            continue
         amount = _scaled(match.group("num"), match.group("suffix"))
         grouped.setdefault(label, []).append((amount, match.group(0)))
     found: list[dict[str, Any]] = []
@@ -528,24 +596,54 @@ def _scan_per_unit_floors(text: str) -> list[dict[str, Any]]:
     return []
 
 
-def _scan_operator_seats(text: str) -> list[dict[str, Any]]:
+def _scan_included_at_n(text: str) -> list[dict[str, Any]]:
+    """Same item counted at one N and omitted at another."""
     found: list[dict[str, Any]] = []
-    for match in _OP_SEAT.finditer(text):
+    for match in _INCLUDED_AT_N.finditer(text):
         included = match.group("yes")
         excluded = re.findall(r"\d+", match.group("rest"))
         if not excluded:
             continue
+        item = re.sub(r"\s+", " ", match.group("item")).strip()
         found.append(
             _finding(
                 "inconsistent_figure",
                 (
-                    f"Operator seat is included at N={included} and omitted at N="
+                    f"{item} is included at N={included} and omitted at N="
                     + ", ".join(excluded)
                     + "."
                 ),
                 match.group(0).strip(),
             )
         )
+    return found
+
+
+def _count_word(token: str) -> str:
+    return token.lower()
+
+
+def _scan_count_clash(text: str) -> list[dict[str, Any]]:
+    """The same count is both 'all N' and 'not N'."""
+    all_hits = [( _count_word(m.group("n")), m) for m in _ALL_COUNT.finditer(text)]
+    not_hits = [( _count_word(m.group("n")), m) for m in _NOT_COUNT.finditer(text)]
+    found: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for number, left in all_hits:
+        for other, right in not_hits:
+            if number != other or number in seen:
+                continue
+            seen.add(number)
+            start = min(left.start(), right.start())
+            end = max(left.end(), right.end())
+            window = text[max(0, start - 48) : min(len(text), end + 48)]
+            found.append(
+                _finding(
+                    "contradiction",
+                    f"The same count is stated as all {number} and as not {number}. {window.strip()}",
+                    window.strip(),
+                )
+            )
     return found
 
 
@@ -632,60 +730,6 @@ def _scan_verification_clash(text: str) -> list[dict[str, Any]]:
     return []
 
 
-def _scan_ban_conflict(text: str) -> list[dict[str, Any]]:
-    banned = re.search(
-        r"(upsells?|in-plugin plans).{0,40}\bbanned\b|\bbanned\b.{0,40}(upsells?|in-plugin plans)",
-        text,
-        re.IGNORECASE,
-    )
-    proposed = re.search(r"plugin-to-paid funnel|paid funnel", text, re.IGNORECASE)
-    if not banned or not proposed:
-        return []
-    return [
-        _finding(
-            "contradiction",
-            "Notes ban in-plugin plans or upsells and also propose a paid funnel.",
-            f"{banned.group(0).strip()} {proposed.group(0).strip()}",
-        )
-    ]
-
-
-def _scan_scope_conflict(text: str) -> list[dict[str, Any]]:
-    serves = re.search(r"one build serves all three", text, re.IGNORECASE)
-    restricted = re.search(
-        r"not three(?: products)?|one runtime|single runtime",
-        text,
-        re.IGNORECASE,
-    )
-    if not serves or not restricted:
-        return []
-    return [
-        _finding(
-            "contradiction",
-            "Notes say one build serves all three and also restrict the runtime to one.",
-            f"{serves.group(0).strip()} {restricted.group(0).strip()}",
-        )
-    ]
-
-
-def _scan_buyer_rail(text: str) -> list[dict[str, Any]]:
-    contracts = re.search(r"contracts or keys", text, re.IGNORECASE)
-    agents = re.search(
-        r"x402 fits agents|agent-only rail|agents only",
-        text,
-        re.IGNORECASE,
-    )
-    if not contracts or not agents:
-        return []
-    return [
-        _finding(
-            "contradiction",
-            "Notes say buyers purchase through contracts or keys while the rail is agent-only.",
-            f"{contracts.group(0).strip()} {agents.group(0).strip()}",
-        )
-    ]
-
-
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
     """Mandatory pass. Empty findings are valid. Skipping the pass is not."""
     text = notes if isinstance(notes, str) else ""
@@ -693,17 +737,15 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     raw.extend(_scan_equalities(text))
     raw.extend(_scan_fee_totals(text))
     raw.extend(_scan_seat_sentences(text))
-    raw.extend(_scan_operator_seats(text))
+    raw.extend(_scan_included_at_n(text))
     raw.extend(_scan_per_unit_floors(text))
     raw.extend(_scan_tables(text))
     raw.extend(_scan_option_locks(text))
     raw.extend(_scan_option_overlap(text))
-    raw.extend(_scan_rent_bands(text))
+    raw.extend(_scan_period_mismatch(text))
     raw.extend(_scan_repeated_labels(text))
     raw.extend(_scan_verification_clash(text))
-    raw.extend(_scan_ban_conflict(text))
-    raw.extend(_scan_scope_conflict(text))
-    raw.extend(_scan_buyer_rail(text))
+    raw.extend(_scan_count_clash(text))
     findings = []
     for index, row in enumerate(raw, start=1):
         row["finding_id"] = f"in-{index}"
@@ -917,12 +959,35 @@ def _as_floats(value: Any) -> list[float] | None:
     return out
 
 
+def _flip_polarity(label: str) -> str:
+    return "pos" if label == "neg" else "neg"
+
+
 def _polarity(text: str) -> set[str]:
-    return {
-        _QUOTE_POLARITY[word]
-        for word in re.findall(r"[a-z]+", text.lower())
-        if word in _QUOTE_POLARITY
-    }
+    """Polarity words, with not/no/never/without/n't flipping the next one.
+
+    Negation lasts for a few tokens and dies at sentence punctuation, so a
+    later sentence is not flipped by an earlier "not".
+    """
+    found: set[str] = set()
+    pending = 0
+    for token in _QUOTE_TOKEN.findall(text.lower()):
+        if token in ".!?":
+            pending = 0
+            continue
+        if token.endswith("n't") or token in _QUOTE_NEGATORS:
+            pending = 6
+            continue
+        if token in _QUOTE_POLARITY:
+            label = _QUOTE_POLARITY[token]
+            if pending:
+                label = _flip_polarity(label)
+                pending = 0
+            found.add(label)
+            continue
+        if pending:
+            pending -= 1
+    return found
 
 
 def quote_support(claim: str, quote: str) -> str:
@@ -1031,6 +1096,121 @@ def identity_derivation(value: int | float) -> dict[str, Any]:
     }
 
 
+_COST_METRIC = re.compile(r"cost|price|usd|fee|rent|subsidy|tier", re.IGNORECASE)
+_TIER_PAIR = re.compile(
+    r"\$?(?P<a>\d{2,7}(?:\.\d+)?)\s+and\s+\$?(?P<b>\d{2,7}(?:\.\d+)?)\s+tiers?\b",
+    re.IGNORECASE,
+)
+_COST_WORD = r"(?:stripe|card|fee)"
+_COST_FEE_PCT = re.compile(
+    rf"\b{_COST_WORD}\b[^.\n]{{0,48}}?(?P<pct>\d+(?:\.\d+)?)\s*%"
+    rf"|(?P<pct2>\d+(?:\.\d+)?)\s*%[^.\n]{{0,48}}?\b{_COST_WORD}\b",
+    re.IGNORECASE,
+)
+_COST_FEE_FIXED = re.compile(
+    rf"\b{_COST_WORD}\b[^.\n]{{0,48}}?\$?(?P<fixed>\d+\.\d{{2}})"
+    rf"|\$?(?P<fixed2>\d+\.\d{{2}})[^.\n]{{0,24}}?\b{_COST_WORD}\b",
+    re.IGNORECASE,
+)
+
+
+def _cost_bearing(item: dict[str, Any]) -> bool:
+    metric = str(item.get("metric") or "")
+    if _COST_METRIC.search(metric):
+        return True
+    derivation = item.get("derivation")
+    formula = derivation.get("formula") if isinstance(derivation, dict) else None
+    return formula in {"min_tier_net_of_fee", "net_of_percent_and_fixed"}
+
+
+def _as_percent(raw: str) -> float:
+    value = float(raw)
+    if value > 1:
+        return value / 100.0
+    return value
+
+
+def declared_cost_inputs(text: str) -> dict[str, list[float]]:
+    """Price tiers and card fees stated in packet text. Not a price invention."""
+    tiers: list[float] = []
+    percents: list[float] = []
+    fixed: list[float] = []
+
+    def add(bucket: list[float], value: float) -> None:
+        if any(_close(value, seen) for seen in bucket):
+            return
+        bucket.append(value)
+
+    for match in _TIER_PAIR.finditer(text):
+        add(tiers, _num(match.group("a")))
+        add(tiers, _num(match.group("b")))
+    for match in _COST_FEE_PCT.finditer(text):
+        raw = match.group("pct") or match.group("pct2")
+        if raw:
+            add(percents, _as_percent(raw))
+    for match in _COST_FEE_FIXED.finditer(text):
+        raw = match.group("fixed") or match.group("fixed2")
+        if raw:
+            add(fixed, _num(raw))
+    return {"tiers": tiers, "percents": percents, "fixed": fixed}
+
+
+def _packet_text_without_derivation(packet: dict[str, Any], index: int) -> str:
+    clone = json.loads(json.dumps(packet))
+    kills = clone.get("kill_criteria")
+    if isinstance(kills, list) and 0 <= index < len(kills) and isinstance(kills[index], dict):
+        kills[index].pop("derivation", None)
+    return json.dumps(clone)
+
+
+def _input_has(inputs: dict[str, Any], key: str, value: float) -> bool:
+    raw = inputs.get(key)
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return False
+    return _close(float(raw), value)
+
+
+def _tiers_have(inputs: dict[str, Any], value: float) -> bool:
+    tiers = inputs.get("tiers")
+    if not isinstance(tiers, list):
+        return False
+    for item in tiers:
+        if isinstance(item, bool) or not isinstance(item, (int, float)):
+            continue
+        if _close(float(item), value):
+            return True
+    return False
+
+
+def ignored_cost_inputs(item: dict[str, Any], packet: dict[str, Any], index: int) -> list[str]:
+    """Cost inputs stated elsewhere in the packet and absent from this derivation."""
+    if not _cost_bearing(item):
+        return []
+    derivation = item.get("derivation")
+    if not isinstance(derivation, dict):
+        return []
+    formula = derivation.get("formula")
+    inputs = derivation.get("inputs")
+    if not isinstance(inputs, dict):
+        inputs = {}
+    if formula == "identity":
+        justification = derivation.get("justification")
+        if isinstance(justification, str) and justification.strip():
+            return []
+    registry = declared_cost_inputs(_packet_text_without_derivation(packet, index))
+    missing: list[str] = []
+    for tier in registry["tiers"]:
+        if not _tiers_have(inputs, tier):
+            missing.append(f"tier {tier:g}")
+    for percent in registry["percents"]:
+        if not _input_has(inputs, "percent", percent):
+            missing.append(f"percent {percent:g}")
+    for fee in registry["fixed"]:
+        if not _input_has(inputs, "fixed", fee):
+            missing.append(f"fixed {fee:g}")
+    return missing
+
+
 def _check_quote(
     claim: dict[str, Any],
     path: str,
@@ -1075,8 +1255,6 @@ def _check_observed_claim(
         errors.append(
             f"NG-RESEARCH-001: {path} OBSERVED claim missing retrieval date"
         )
-    if date_is_placeholder(retrieved):
-        errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
     _check_quote(claim, path, errors, quote_judge)
 
 
@@ -1134,12 +1312,20 @@ def _check_kill(
             errors.append(
                 f"NG-KILL-003: {path} labeled OBSERVED without evidence_refs"
             )
-        if label == "OBSERVED" and date_is_placeholder(item.get("check_date")):
-            errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
-        if label == "OBSERVED" and _PLACEHOLDER_WORD.search(str(item.get("data_source") or "")):
-            errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
         if isinstance(item.get("quote"), str):
             _check_quote(item, path, errors, quote_judge)
+        if is_v13:
+            ignored = ignored_cost_inputs(item, data, index)
+            if ignored:
+                detail = ", ".join(ignored)
+                derivation = item.get("derivation") if isinstance(item.get("derivation"), dict) else {}
+                excuse = ""
+                if derivation.get("formula") == "identity":
+                    excuse = " and has no written justification"
+                errors.append(
+                    f"NG-KILL-006: {path} derivation ignores cost inputs present "
+                    f"in the packet ({detail}){excuse}"
+                )
         if not is_v13:
             continue
         recomputed, problems = recompute_kill_threshold(item)
@@ -1292,11 +1478,36 @@ def _check_claim_list(
         if _claim_label(claim) != "OBSERVED":
             continue
         path = f"claims[{index}]"
-        for key in ("retrieved_at", "check_date"):
-            if date_is_placeholder(claim.get(key)):
-                errors.append(f"NG-LABEL-001: {path} OBSERVED date is a placeholder")
         if isinstance(claim.get("quote"), str):
             _check_quote(claim, path, errors, quote_judge)
+
+
+def _check_observed_fields(node: Any, path: str, errors: list[str]) -> None:
+    """Placeholder dates and words on every string of an OBSERVED object."""
+    if isinstance(node, dict):
+        if _claim_label(node) == "OBSERVED":
+            for key, value in node.items():
+                if key in {"claim_label", "label"}:
+                    continue
+                pairs: list[tuple[str, str]] = []
+                if isinstance(value, str):
+                    pairs.append((key, value))
+                elif isinstance(value, list):
+                    for index, item in enumerate(value):
+                        if isinstance(item, str):
+                            pairs.append((f"{key}[{index}]", item))
+                for field, text in pairs:
+                    if date_is_placeholder(text):
+                        where = f"{path}.{field}" if path else field
+                        errors.append(
+                            f"NG-LABEL-001: {where} OBSERVED date is a placeholder"
+                        )
+        for key, value in node.items():
+            child = f"{path}.{key}" if path else str(key)
+            _check_observed_fields(value, child, errors)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            _check_observed_fields(value, f"{path}[{index}]", errors)
 
 
 def packaging_errors(
@@ -1314,6 +1525,7 @@ def packaging_errors(
     is_v12 = _version_ge(version, BAKEOFF_VERSION)
     is_v13 = _version_ge(version, SCHEMA_VERSION)
     errors: list[str] = []
+    _check_observed_fields(data, "", errors)
     _check_kill(data, is_v12, is_v13, errors, quote_judge)
     _check_handoff(data, is_v12, errors)
     _check_contradictions(data, is_v12, errors)
