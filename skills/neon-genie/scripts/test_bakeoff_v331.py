@@ -72,12 +72,12 @@ def test_alta_burn_and_autogive_heavy_recompute() -> None:
                 "research": {"observed_claims": []},
             }
         )
-        appendix = wrapped["appendix"]["unverified_scanner_notes"]
-        assert appendix["label"] == "Unverified scanner notes"
-        assert "not confirmed" in appendix["statement"]
+        appendix = wrapped["appendix"]["research_unreviewed"]
+        assert appendix["label"] == "Research (unreviewed, needs a person's review)"
         assert "unverified_notes" not in wrapped["input_contradictions"]
-        for note in appendix["notes"]:
+        for note in appendix["scanner_notes"]:
             assert note["claim_label"] == "NOT_COMPUTABLE"
+            assert note["claim_label"] != "OBSERVED"
             assert note["summary"].startswith("Unverified scanner note: not stated as fact.")
     print("alta burn 35000→55000 and autogive 636→336.4 on the main page")
 
@@ -272,10 +272,12 @@ def test_capped_research_is_offline_safe() -> None:
         ["live pricing", "competitor", "official docs"],
     )
     assert priced.calls == 2
-    assert len(capped["observed_claims"]) == 2
+    assert capped["observed_claims"] == []
+    assert len(capped["unverified_hits"]) == 2
     assert capped["not_fetched"][0]["reason"] == "over_cap"
-    for claim in capped["observed_claims"]:
-        assert claim["label"] == "OBSERVED"
+    for claim in capped["unverified_hits"]:
+        assert claim["claim_label"] == "NOT_COMPUTABLE"
+        assert claim.get("label") != "OBSERVED"
         assert str(claim["url"]).startswith("https://")
         assert claim["retrieved_at"] == "2026-10-01"
 

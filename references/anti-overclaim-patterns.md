@@ -4,7 +4,7 @@ Gates that keep Neon Genie evidence-bound and advisory. Fail closed when a patte
 
 Use alongside mandatory gates in `SKILL.md`. Labels: `OBSERVED` · `INFERRED` · `SPECULATIVE` · `NOT_COMPUTABLE`.
 
-**Fluency ≠ provenance:** a fluent final answer (or a tidy agent trace) is not evidence that claims are grounded. A numeric note-scan flag that does not recompute from one reading is an unverified scanner note (`NOT_COMPUTABLE`), not `OBSERVED`. Execution provenance ≠ final-answer accuracy. Prefer claim-graph ledger cites over narrative polish (arXiv:2606.04990, 2608.04738, 2607.28374). Do not invent Brier / auto-settle scores.
+**Fluency ≠ provenance:** a fluent final answer (or a tidy agent trace) is not evidence that claims are grounded. A numeric note-scan flag that does not recompute from one reading, and a paid search hit or Jev reconcile line, is unreviewed research (`NOT_COMPUTABLE`), not `OBSERVED`. Execution provenance ≠ final-answer accuracy. Prefer claim-graph ledger cites over narrative polish (arXiv:2606.04990, 2608.04738, 2607.28374). Do not invent Brier / auto-settle scores.
 
 | Gate | Pattern | Repair |
 |------|---------|--------|

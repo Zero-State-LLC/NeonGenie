@@ -42,7 +42,14 @@
   "schema_version": "1.3.0",
   "input_contradictions": {
     "checked": true,
-    "findings": []
+    "findings": [
+      {
+        "kind": "contradiction",
+        "summary": "Input notes lock both Option A and B.",
+        "claim_label": "OBSERVED",
+        "finding_id": "in-5"
+      }
+    ]
   },
   "research": {
     "enabled": true,
@@ -69,23 +76,7 @@
         "text_in": "appendix.research_claims"
       }
     ],
-    "rejected": [],
-    "reconcile": {
-      "status": "NOT_COMPUTABLE",
-      "calls": 0,
-      "items": [
-        {
-          "claim_id": "obs-1",
-          "url": "https://example.test/fixtures/seat-floor",
-          "verdict": "NOT_COMPUTABLE",
-          "sentence": "NOT_COMPUTABLE: Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
-          "note_line": null,
-          "reason": "TYPESAFE_AI_API_KEY is not set",
-          "claim_label": "NOT_COMPUTABLE"
-        }
-      ],
-      "claim_label": "NOT_COMPUTABLE"
-    }
+    "rejected": []
   },
   "research_search_dag": {
     "schema_id": "neon-genie/research-search-dag",
@@ -196,10 +187,10 @@
     }
   ],
   "appendix": {
-    "unverified_scanner_notes": {
-      "label": "Unverified scanner notes",
-      "statement": "These notes are not confirmed. Do not treat them as fact.",
-      "notes": [
+    "research_unreviewed": {
+      "label": "Research (unreviewed, needs a person's review)",
+      "statement": "Unreviewed. Not labeled OBSERVED. Needs a person's review.",
+      "scanner_notes": [
         {
           "kind": "arithmetic_error",
           "summary": "Unverified scanner note: not stated as fact. Stated product 10 \u00d7 5 = 100 does not equal 50.",
@@ -230,34 +221,14 @@
         },
         {
           "kind": "contradiction",
-          "summary": "Unverified scanner note: not stated as fact. Input notes lock both Option A and B.",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "Option A is locked Option B leftovers remain the locked locked option is B"
-        },
-        {
-          "kind": "contradiction",
           "summary": "Unverified scanner note: not stated as fact. The rationale for locked A describes B.",
           "claim_label": "NOT_COMPUTABLE",
           "status": "unverified",
           "evidence": "rationale for locked A describes B's"
         }
-      ]
-    },
-    "fact_reconcile": {
-      "label": "Web fact reconcile",
-      "statement": "AGREES, NOT_APPLICABLE, and NOT_COMPUTABLE comparisons. CONTRADICTS stays on the main page.",
-      "items": [
-        {
-          "claim_id": "obs-1",
-          "url": "https://example.test/fixtures/seat-floor",
-          "verdict": "NOT_COMPUTABLE",
-          "sentence": "NOT_COMPUTABLE: Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
-          "note_line": null,
-          "reason": "TYPESAFE_AI_API_KEY is not set",
-          "claim_label": "NOT_COMPUTABLE"
-        }
-      ]
+      ],
+      "search_hits": [],
+      "reconcile": []
     },
     "research_claims": [
       {
@@ -269,14 +240,19 @@
         "claim_id": "obs-1"
       }
     ],
-    "contradiction_evidence": []
+    "contradiction_evidence": [
+      {
+        "finding_id": "in-5",
+        "evidence": "Option A is locked Option B leftovers remain the locked locked option is B"
+      }
+    ]
   },
   "page_budget": {
     "word_budget": 450,
     "char_budget": 3200,
-    "main_word_count": 175,
-    "main_char_count": 1160,
-    "appendix_word_count": 267,
+    "main_word_count": 178,
+    "main_char_count": 1118,
+    "appendix_word_count": 213,
     "fits_one_page": true,
     "truncated": false
   }
