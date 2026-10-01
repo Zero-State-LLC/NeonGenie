@@ -91,6 +91,7 @@ Public entry points:
 | **3.28.0** | Bake-off follow-up: research adapters, input-contradiction pass, numeric kill criteria, first-commit handoff, one-page prose plus appendix, dual fixture judges. Opportunity/commercial schema **1.2.0** (1.1.0 packets still validate). |
 | **3.29.0** | Round-2 follow-up: stronger note arithmetic, kill recomputation, OBSERVED date and quote checks, free robots.txt fetch, tie-breaker judge. Opportunity/commercial schema **1.3.0** (older packets still validate). |
 | **3.30.0** | Round-3 fixes: quote negation and whole-token numbers, OBSERVED placeholder words on every labeled field, kill derivations that ignore declared tiers or fees, general note-scan checks, robots.txt 404 and a 2 MiB body cap, Los Angeles retrieval dates, optional Jev line-id correctness diagnostic. Schema stays **1.3.0**. |
+| **3.31.0** | Round-4 fixes: numeric note flags stay on the main page only when they recompute, money-table mismatches print `notes say X, recomputed Y`, unconfirmed flags go to an unverified appendix, capped per-idea research (free fetch first; paid search off unless keyed), optional one-action cheapest test. Schema stays **1.3.0**. |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
 

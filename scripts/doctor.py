@@ -140,7 +140,12 @@ def main() -> int:
         print("==> founder profile routing")
         print("SKIP: test_route_profiles.py not present")
 
-    for test_name in ("test_bakeoff_six.py", "test_bakeoff_round2.py", "test_bakeoff_v330.py"):
+    for test_name in (
+        "test_bakeoff_six.py",
+        "test_bakeoff_round2.py",
+        "test_bakeoff_v330.py",
+        "test_bakeoff_v331.py",
+    ):
         bakeoff_test = SCRIPT_DIR / test_name
         if bakeoff_test.is_file():
             print(f"==> {test_name}")

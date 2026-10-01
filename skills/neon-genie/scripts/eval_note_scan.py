@@ -65,13 +65,20 @@ def catch_report(notes_dir: Path | None = None) -> dict:
         name = str(issue["file"])
         if name not in cached:
             text = (folder / name).read_text(encoding="utf-8")
-            cached[name] = packet_compose.scan_input_notes(text)["findings"]
-        blob = _blob(cached[name])
+            cached[name] = packet_compose.scan_input_notes(text)
+        blob = _blob(cached[name]["findings"] + cached[name].get("unverified_notes", []))
         needles = [str(item) for item in issue["needles"]]  # type: ignore[union-attr]
         hit = all(needle in blob for needle in needles)
         if hit:
             caught += 1
-        rows.append({"id": issue["id"], "caught": hit, "findings": len(cached[name])})
+        rows.append(
+            {
+                "id": issue["id"],
+                "caught": hit,
+                "findings": len(cached[name]["findings"])
+                + len(cached[name].get("unverified_notes") or []),
+            }
+        )
     return {"caught": caught, "total": len(ISSUE_NEEDLES), "issues": rows}
 
 
@@ -114,14 +121,16 @@ def held_out_report() -> dict:
     clean_findings = 0
     detail = []
     for row in rows:
-        findings = packet_compose.scan_input_notes(row["text"])["findings"]
+        scanned = packet_compose.scan_input_notes(row["text"])
+        findings = scanned["findings"]
+        unverified = scanned.get("unverified_notes") or []
         hit = bool(findings)
         if row["expect"] == "finding":
             planted += 1
             if hit:
                 planted_hit += 1
-        elif hit:
-            clean_findings += len(findings)
+        elif findings or unverified:
+            clean_findings += len(findings) + len(unverified)
         detail.append(
             {
                 "id": row["id"],
@@ -143,7 +152,8 @@ def false_positive_report() -> dict:
     findings = []
     for path in _clean_paths():
         text = path.read_text(encoding="utf-8")
-        for row in packet_compose.scan_input_notes(text)["findings"]:
+        scanned = packet_compose.scan_input_notes(text)
+        for row in list(scanned["findings"]) + list(scanned.get("unverified_notes") or []):
             findings.append(
                 {
                     "path": str(path.relative_to(ROOT)),
@@ -153,7 +163,8 @@ def false_positive_report() -> dict:
             )
     synthetic_hits = []
     for index, note in enumerate(CLEAN_SYNTHETIC):
-        rows = packet_compose.scan_input_notes(note)["findings"]
+        scanned = packet_compose.scan_input_notes(note)
+        rows = list(scanned["findings"]) + list(scanned.get("unverified_notes") or [])
         if rows:
             synthetic_hits.append({"index": index, "summaries": [row["summary"] for row in rows]})
     return {

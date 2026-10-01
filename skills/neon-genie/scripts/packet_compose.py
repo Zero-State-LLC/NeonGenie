@@ -278,13 +278,21 @@ def _close(left: float, right: float) -> bool:
     return abs(left - right) <= 1e-6 * scale
 
 
-def _finding(kind: str, summary: str, evidence: str) -> dict[str, Any]:
-    return {
+def _finding(
+    kind: str,
+    summary: str,
+    evidence: str,
+    recompute: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    row: dict[str, Any] = {
         "kind": kind,
         "summary": summary,
         "claim_label": "OBSERVED",
         "evidence": evidence.strip(),
     }
+    if recompute is not None:
+        row["recompute"] = recompute
+    return row
 
 
 def _scan_equalities(text: str) -> list[dict[str, Any]]:
@@ -753,11 +761,11 @@ _FROM_TO = re.compile(
     r"\bfrom\s+(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})\b",
     re.IGNORECASE,
 )
-_DOUBLED = re.compile(
-    r"=\s*\$?(?P<base>\d[\d,]*(?:\.\d+)?)\b"
-    r"[^.\n]{0,48}?\bx\s*2\s*=\s*\$?(?P<result>\d[\d,]*(?:\.\d+)?)",
+_X2 = re.compile(
+    r"\bx\s*2\s*=\s*\$?(?P<result>\d[\d,]*(?:\.\d+)?)",
     re.IGNORECASE,
 )
+_NEAR_MONEY = re.compile(r"\$(\d[\d,]*(?:\.\d+)?)")
 _MAG_TOKEN = re.compile(
     r"(?<![A-Za-z0-9_])(?P<num>\d[\d,]*(?:\.\d+)?)"
     r"(?:\s*(?P<suf>k|m|b|thousand|million|billion))?\b",
@@ -774,6 +782,26 @@ _ACTION_STOP = frozenset(
 )
 
 
+def _split_on_repeat(group: list[re.Match[str]]) -> list[list[re.Match[str]]]:
+    """A repeated count starts a new series. Merging them mixes two price rows."""
+    parts: list[list[re.Match[str]]] = []
+    current: list[re.Match[str]] = []
+    seen: set[int] = set()
+    for match in group:
+        count = int(match.group("n"))
+        if count in seen:
+            if current:
+                parts.append(current)
+            current = [match]
+            seen = {count}
+        else:
+            seen.add(count)
+            current.append(match)
+    if current:
+        parts.append(current)
+    return parts
+
+
 def _series_clusters(text: str) -> list[tuple[str, list[tuple[int, list[float]]]]]:
     matches = list(_SERIES_POINT.finditer(text))
     clusters: list[list[re.Match[str]]] = []
@@ -784,14 +812,18 @@ def _series_clusters(text: str) -> list[tuple[str, list[tuple[int, list[float]]]
             clusters.append([match])
     grouped: list[tuple[str, list[tuple[int, list[float]]]]] = []
     for group in clusters:
-        if len(group) < 3:
-            continue
-        points: list[tuple[int, list[float]]] = []
-        for match in group:
-            amounts = [_num(piece) for piece in re.findall(r"\d[\d,]*(?:\.\d+)?", match.group("amts"))]
-            points.append((int(match.group("n")), amounts))
-        quote = text[group[0].start() : group[-1].end()]
-        grouped.append((quote, points))
+        for part in _split_on_repeat(group):
+            if len(part) < 3:
+                continue
+            points: list[tuple[int, list[float]]] = []
+            for match in part:
+                amounts = [
+                    _num(piece)
+                    for piece in re.findall(r"\d[\d,]*(?:\.\d+)?", match.group("amts"))
+                ]
+                points.append((int(match.group("n")), amounts))
+            quote = text[part[0].start() : part[-1].end()]
+            grouped.append((quote, points))
     return grouped
 
 
@@ -948,18 +980,42 @@ def _scan_date_order(text: str) -> list[dict[str, Any]]:
     return found
 
 
+def _nearest_money_before(text: str, index: int, window: int = 48) -> float | None:
+    """The operand of `x2` is the closest preceding money amount, not an earlier total."""
+    chunk = text[max(0, index - window) : index]
+    amounts = list(_NEAR_MONEY.finditer(chunk))
+    if not amounts:
+        return None
+    return _num(amounts[-1].group(1))
+
+
 def _scan_doubled_unused(text: str) -> list[dict[str, Any]]:
-    """A computed double that no later total uses."""
+    """A computed double that no later total uses.
+
+    The base is the nearest `$` amount before `x2`. An earlier amount on the
+    same line (a different tier) is not the operand.
+    """
     found: list[dict[str, Any]] = []
-    for match in _DOUBLED.finditer(text):
-        base = _num(match.group("base"))
+    for match in _X2.finditer(text):
         result = _num(match.group("result"))
+        base = _nearest_money_before(text, match.start())
+        if base is None:
+            continue
+        quote = text[max(0, match.start() - 48) : match.end()].strip()
         if not _close(result, base * 2):
             found.append(
                 _finding(
                     "arithmetic_error",
                     f"Double of {base:g} is {base * 2:g}, not {result:g}.",
-                    match.group(0).strip(),
+                    quote,
+                    recompute={
+                        "op": "double",
+                        "operands": [base],
+                        "stated": result,
+                        "computed": base * 2,
+                        "unambiguous": True,
+                        "confirmed": True,
+                    },
                 )
             )
             continue
@@ -971,7 +1027,15 @@ def _scan_doubled_unused(text: str) -> list[dict[str, Any]]:
             _finding(
                 "inconsistent_figure",
                 f"Computed {result:g} does not appear in a later total.",
-                match.group(0).strip(),
+                quote,
+                recompute={
+                    "op": "unused_double",
+                    "operands": [base, result],
+                    "stated": result,
+                    "computed": base * 2,
+                    "unambiguous": True,
+                    "confirmed": True,
+                },
             )
         )
     return found
@@ -1261,8 +1325,282 @@ def _scan_credit_periods(text: str) -> list[dict[str, Any]]:
     return found
 
 
+def _money_close(left: float, right: float) -> bool:
+    return abs(left - right) <= 1.0
+
+
+def _fmt_money(value: float) -> str:
+    if abs(value - round(value)) < 1e-6:
+        return str(int(round(value)))
+    return f"{value:g}"
+
+
+def _scan_money_tables(text: str) -> list[dict[str, Any]]:
+    """Recompute price, seat, and month totals stated in the notes.
+
+    A confirmed row is `notes say X, recomputed Y`. Rows whose operands are
+    not a single reading are left to the verifier.
+    """
+    found: list[dict[str, Any]] = []
+    components: list[float] = []
+    for match in re.finditer(
+        r"(?<![\w/])\$(?P<amt>\d[\d,]*(?:\.\d+)?)(?P<k>k)?\s*/\s*mo\b",
+        text,
+        re.IGNORECASE,
+    ):
+        amount = _num(match.group("amt"))
+        if match.group("k"):
+            amount *= 1000
+        if amount > 0:
+            components.append(amount)
+
+    bands: list[float] = []
+    for line in text.splitlines():
+        stated = [_num(token) for token in re.findall(r"=\s*\$(\d[\d,]*(?:\.\d+)?)", line)]
+        if len(stated) < 3:
+            continue
+        if len(stated) >= 2 and _close(stated[-1], stated[-2] * 2):
+            stated = stated[:-1]
+        bands = stated
+        break
+
+    fixed_match = re.search(r"\bfixed\s+\$(\d[\d,]*(?:\.\d+)?)", text, re.IGNORECASE)
+    fixed = _num(fixed_match.group(1)) if fixed_match else None
+    rows: list[tuple[int, list[float], str]] = []
+    for match in re.finditer(
+        r"(?P<n>\d+)\s*(?:tenants?|units?|seats?)?\s*:\s*"
+        r"\$(?P<a>\d[\d,]*(?:\.\d+)?)/\$(?P<b>\d[\d,]*(?:\.\d+)?)/\$(?P<c>\d[\d,]*(?:\.\d+)?)",
+        text,
+        re.IGNORECASE,
+    ):
+        rows.append(
+            (
+                int(match.group("n")),
+                [_num(match.group("a")), _num(match.group("b")), _num(match.group("c"))],
+                match.group(0),
+            )
+        )
+    if fixed is not None and len(bands) >= 3 and components:
+        reference: list[float] | None = None
+        for count, triple, _quote in rows:
+            if count != 1 or len(triple) < 3:
+                continue
+            if all(_money_close(triple[index], fixed + bands[index]) for index in range(3)):
+                reference = [fixed + bands[index] for index in range(3)]
+                break
+        if reference is not None:
+            for count, triple, quote in rows:
+                if count != 1:
+                    continue
+                if all(_money_close(triple[index], reference[index]) for index in range(3)):
+                    continue
+                deltas = [triple[index] - reference[index] for index in range(3)]
+                if not all(_money_close(delta, deltas[0]) for delta in deltas):
+                    continue
+                if deltas[0] <= 1 or not any(
+                    _money_close(deltas[0], component) for component in components
+                ):
+                    continue
+                found.append(
+                    _finding(
+                        "arithmetic_error",
+                        (
+                            f"notes say {_fmt_money(triple[0])}, "
+                            f"recomputed {_fmt_money(reference[0])}"
+                        ),
+                        quote,
+                        recompute={
+                            "op": "money_table",
+                            "operands": [fixed, *bands[:3], deltas[0]],
+                            "stated": triple[0],
+                            "computed": reference[0],
+                            "unambiguous": True,
+                            "confirmed": True,
+                        },
+                    )
+                )
+                break
+
+    for rate in re.finditer(
+        r"(?P<area>\d+(?:\.\d+)?)\s*k\s*sf\b[^.\n]{0,80}?"
+        r"\$?(?P<rate>\d+(?:\.\d+)?)\s*/\s*sf\s*/\s*mo",
+        text,
+        re.IGNORECASE,
+    ):
+        area = float(rate.group("area"))
+        rent = area * 1000.0 * float(rate.group("rate"))
+        area_token = re.compile(
+            rf"\b{re.escape(rate.group('area'))}\s*k\s*sf\b",
+            re.IGNORECASE,
+        )
+        for burn in re.finditer(
+            r"\bburns?\b[^$\n]{0,40}\$?(?P<amt>\d[\d,]*(?:\.\d+)?)(?P<k>k)?\s*/\s*mo",
+            text,
+            re.IGNORECASE,
+        ):
+            line_start = text.rfind("\n", 0, burn.start()) + 1
+            line_end = text.find("\n", burn.end())
+            line = text[line_start : line_end if line_end != -1 else len(text)]
+            if area_token.search(line) is None:
+                continue
+            stated = _num(burn.group("amt"))
+            if burn.group("k"):
+                stated *= 1000
+            if not (stated + 1 < rent):
+                continue
+            found.append(
+                _finding(
+                    "inconsistent_figure",
+                    f"notes say {_fmt_money(stated)}, recomputed {_fmt_money(rent)}",
+                    f"{rate.group(0).strip()} {line.strip()}",
+                    recompute={
+                        "op": "money_table",
+                        "operands": [area * 1000.0, float(rate.group("rate"))],
+                        "stated": stated,
+                        "computed": rent,
+                        "unambiguous": True,
+                        "confirmed": True,
+                    },
+                )
+            )
+            return found
+    return found
+
+
+def _floors_at(text: str, count: int) -> list[float]:
+    floors: list[float] = []
+    for _quote, points in _series_clusters(text):
+        for n, amounts in points:
+            if n == count and amounts:
+                floors.append(max(amounts))
+    distinct: list[float] = []
+    for value in floors:
+        if any(_money_close(value, seen) for seen in distinct):
+            continue
+        distinct.append(value)
+    return distinct
+
+
+def _same_sentence(text: str, targets: list[float]) -> bool:
+    for sentence in _sentences(text):
+        amounts = [_num(token) for token in re.findall(r"\$(\d[\d,]*(?:\.\d+)?)", sentence)]
+        if all(
+            any(_money_close(amount, target) or _close(amount, target) for amount in amounts)
+            for target in targets
+        ):
+            return True
+    return False
+
+
+def _classify_finding(text: str, finding: dict[str, Any]) -> str:
+    """Return main, unverified, or drop.
+
+    A numeric flag reaches the main packet only when its operands recompute
+    to a mismatch and there is one reading. A disproven flag is dropped.
+    """
+    recompute = finding.get("recompute")
+    if isinstance(recompute, dict):
+        if recompute.get("confirmed") is True and recompute.get("unambiguous") is True:
+            stated = recompute.get("stated")
+            computed = recompute.get("computed")
+            if (
+                isinstance(stated, (int, float))
+                and isinstance(computed, (int, float))
+                and not isinstance(stated, bool)
+                and not isinstance(computed, bool)
+                and _close(float(stated), float(computed))
+                and recompute.get("op") != "unused_double"
+            ):
+                return "drop"
+            return "main"
+        if recompute.get("confirmed") is False:
+            return "drop"
+        return "unverified"
+
+    summary = str(finding.get("summary") or "")
+    kind = finding.get("kind")
+    if kind == "contradiction":
+        return "main"
+
+    credit = re.search(
+        r"credit of ([\d.]+) covers ([\d.]+) months at one monthly amount and ([\d.]+) months",
+        summary,
+    )
+    if credit:
+        lump = float(credit.group(1))
+        months = [float(credit.group(2)), float(credit.group(3))]
+        if any(month == 0 for month in months):
+            return "unverified"
+        monthly = [lump / month for month in months]
+        if _same_sentence(text, [lump, *monthly]):
+            return "main"
+        return "unverified"
+
+    floor = re.search(
+        r"List price ([\d.]+) is below the count-(\d+) floor ([\d.]+)",
+        summary,
+    )
+    if floor:
+        price = float(floor.group(1))
+        count = int(floor.group(2))
+        stated_floor = float(floor.group(3))
+        floors = _floors_at(text, count)
+        if len(floors) != 1 or not _money_close(floors[0], stated_floor):
+            return "unverified"
+        if price + 0.01 < stated_floor:
+            return "main"
+        return "drop"
+
+    series = re.search(
+        r"Count (\d+) states ([\d.]+), but the larger counts imply ([\d.]+)",
+        summary,
+    )
+    if series:
+        evidence = str(finding.get("evidence") or "")
+        counts = [
+            int(token)
+            for token in re.findall(
+                r"(\d+)\s*(?:tenants?|units?|seats?|stalls?|booths?)?\s*:",
+                evidence,
+                re.IGNORECASE,
+            )
+        ]
+        if len(counts) != len(set(counts)):
+            return "unverified"
+        return "main"
+
+    if summary.startswith("notes say "):
+        return "unverified"
+    return "main"
+
+
+def _as_unverified(row: dict[str, Any]) -> dict[str, Any]:
+    summary = str(row.get("summary") or "").strip()
+    if not summary.startswith("Unverified scanner note"):
+        summary = "Unverified scanner note: not stated as fact. " + summary
+    kind = row.get("kind")
+    if kind not in _FINDING_KINDS:
+        kind = "inconsistent_figure"
+    return {
+        "kind": kind,
+        "summary": summary,
+        "claim_label": "NOT_COMPUTABLE",
+        "status": "unverified",
+        "evidence": str(row.get("evidence") or "").strip(),
+    }
+
+
+def _public_finding(row: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in row.items() if key != "recompute"}
+
+
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
-    """Mandatory pass. Empty findings are valid. Skipping the pass is not."""
+    """Mandatory pass. Empty findings are valid. Skipping the pass is not.
+
+    Confirmed numeric mismatches stay in `findings` (main packet). Flags whose
+    operands do not recompute, or that have more than one reading, go to
+    `unverified_notes`. Those are not facts.
+    """
     text = notes if isinstance(notes, str) else ""
     raw: list[dict[str, Any]] = []
     raw.extend(_scan_equalities(text))
@@ -1277,6 +1615,7 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     raw.extend(_scan_count_series(text))
     raw.extend(_scan_price_below_floor(text))
     raw.extend(_scan_doubled_unused(text))
+    raw.extend(_scan_money_tables(text))
     raw.extend(_scan_option_locks(text))
     raw.extend(_scan_option_overlap(text))
     raw.extend(_scan_option_polarity(text))
@@ -1289,11 +1628,25 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     raw.extend(_scan_directive_clash(text))
     raw.extend(_scan_count_clash(text))
     raw.extend(_scan_date_order(text))
+    verified: list[dict[str, Any]] = []
+    unverified: list[dict[str, Any]] = []
+    for row in raw:
+        decision = _classify_finding(text, row)
+        if decision == "drop":
+            continue
+        if decision == "unverified":
+            unverified.append(_as_unverified(row))
+        else:
+            verified.append(_public_finding(row))
     findings = []
-    for index, row in enumerate(raw, start=1):
+    for index, row in enumerate(verified, start=1):
         row["finding_id"] = f"in-{index}"
         findings.append(row)
-    return {"checked": True, "findings": findings}
+    notes_out = []
+    for index, row in enumerate(unverified, start=1):
+        row["note_id"] = f"un-{index}"
+        notes_out.append(row)
+    return {"checked": True, "findings": findings, "unverified_notes": notes_out}
 
 
 def prose_main(packet: dict[str, Any]) -> str:
@@ -1356,6 +1709,12 @@ def prose_main(packet: dict[str, Any]) -> str:
             add(first.get("owner_role"))
     elif isinstance(handoff, str):
         add(handoff)
+    cheapest = packet.get("cheapest_test")
+    if isinstance(cheapest, dict):
+        lines.append(
+            f"{cheapest.get('action')} threshold {cheapest.get('comparison')} "
+            f"{cheapest.get('threshold')} by {cheapest.get('check_date')}"
+        )
     kills = packet.get("kill_criteria")
     if isinstance(kills, list):
         for item in kills:
@@ -1458,6 +1817,20 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
             slim_findings.append(dict(finding))
     if contradictions:
         contradictions["findings"] = slim_findings
+        unverified = [
+            dict(row)
+            for row in (contradictions.get("unverified_notes") or [])
+            if isinstance(row, dict)
+        ]
+        contradictions.pop("unverified_notes", None)
+        if unverified:
+            appendix["unverified_scanner_notes"] = {
+                "label": "Unverified scanner notes",
+                "statement": (
+                    "These notes are not confirmed. Do not treat them as fact."
+                ),
+                "notes": unverified,
+            }
         out["input_contradictions"] = contradictions
 
     appendix["research_claims"] = appendix_claims
@@ -2053,6 +2426,37 @@ def _check_observed_fields(node: Any, path: str, errors: list[str]) -> None:
             _check_observed_fields(value, f"{path}[{index}]", errors)
 
 
+_STEP_LIST = re.compile(
+    r"(?m)(?:^\s*\d+\s*[\.\)]\s+\S)|(?:\bthen\b)|(?:\bstep\s+\d+\b)|(?:\n\s*[-*]\s+\S)",
+    re.IGNORECASE,
+)
+
+
+def _check_cheapest(data: dict[str, Any], errors: list[str]) -> None:
+    """One action with a dated numeric pass/fail. Absent is valid (optional)."""
+    if "cheapest_test" not in data:
+        return
+    test = data.get("cheapest_test")
+    if isinstance(test, list) or not isinstance(test, dict):
+        errors.append("NG-TEST-001: cheapest_test must be one action, not a list")
+        return
+    action = test.get("action")
+    if not isinstance(action, str) or not action.strip():
+        errors.append("NG-TEST-001: cheapest_test.action must be a single action")
+    elif "\n" in action or _STEP_LIST.search(action):
+        errors.append(
+            "NG-TEST-001: cheapest_test.action must be one action, not a multi-step list"
+        )
+    threshold = test.get("threshold")
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
+        errors.append("NG-TEST-001: cheapest_test needs a numeric pass/fail threshold")
+    if test.get("comparison") not in _COMPARISONS:
+        errors.append("NG-TEST-001: cheapest_test.comparison must be a binary threshold")
+    check_date = test.get("check_date")
+    if not isinstance(check_date, str) or not _DATE.fullmatch(check_date):
+        errors.append("NG-TEST-001: cheapest_test.check_date must be YYYY-MM-DD")
+
+
 def packaging_errors(
     data: dict[str, Any],
     packet_type: str,
@@ -2075,6 +2479,7 @@ def packaging_errors(
     _check_research(data, is_v12, errors, quote_judge)
     _check_page(data, is_v12, errors)
     _check_claim_list(data, errors, quote_judge)
+    _check_cheapest(data, errors)
     return errors
 
 
@@ -2114,7 +2519,9 @@ def attach_v12(
     out["schema_id"] = schema_id
     out["schema_version"] = SCHEMA_VERSION
     out["input_contradictions"] = scan_input_notes(notes)
-    research = research_mode.run_research(research_policy, queries, adapter=adapter)
+    research = research_mode.run_idea_research(
+        research_policy, queries, adapter=adapter
+    )
     out["research"] = research
     if research.get("research_ran"):
         out["research_search_dag"] = research_mode.research_search_dag(
