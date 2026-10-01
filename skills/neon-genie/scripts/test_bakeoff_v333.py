@@ -60,11 +60,13 @@ def test_duplicate_line_keeps_one_named_recompute() -> None:
         }
     )
     main = [row["summary"] for row in wrapped["input_contradictions"]["findings"]]
-    assert main == money
+    assert main.count(money[0]) == 1
+    assert "Computed 512 does not appear in a later total." in main
     prose = packet_compose.prose_main(wrapped)
     assert money[0] in prose
+    assert prose.count(money[0]) == 1
     assert "331.5" not in prose
-    assert "Computed 512" not in prose
+    assert prose.count("Computed 512 does not appear in a later total.") == 1
     assert wrapped["build_handoff"]["first_commit"]["touch"] == ["pricing notes"]
     alta = packet_compose.scan_input_notes(rows["alta_burn_rent"])
     assert any(
@@ -129,7 +131,9 @@ def test_not_found_and_instagram_are_not_observed() -> None:
     assert "instagram.com" not in prose
     assert "Not found" not in prose
     assert "OBSERVED" not in prose
-    parked = wrapped["appendix"]["research_unreviewed"]
+    parked = packet_compose.unreviewed_research(wrapped)
+    assert parked is not None
+    assert "research_unreviewed" not in wrapped.get("appendix", {})
     assert parked["label"] == "Research (unreviewed, needs a person's review)"
     assert {row["url"] for row in parked["search_hits"]} == urls
     assert all(row["claim_label"] != "OBSERVED" for row in parked["search_hits"])
@@ -162,7 +166,9 @@ def test_search_links_stay_off_the_main_page() -> None:
     assert "https://" not in prose
     assert packet["page_budget"]["fits_one_page"] is True
     assert packet["page_budget"]["main_word_count"] <= packet_compose.WORD_BUDGET
-    parked = packet["appendix"]["research_unreviewed"]["search_hits"]
+    parked_doc = packet_compose.unreviewed_research(packet)
+    assert parked_doc is not None
+    parked = parked_doc["search_hits"]
     assert len(parked) == 8
     assert all(row["claim_label"] == "NOT_COMPUTABLE" for row in parked)
     print("search links stay off the main page")
@@ -237,7 +243,9 @@ def test_jev_reconcile_is_mocked_and_capped() -> None:
     assert "CONTRADICTS:" not in prose
     assert "AGREES:" not in prose
     assert "OBSERVED" not in prose
-    parked = packet["appendix"]["research_unreviewed"]
+    parked = packet_compose.unreviewed_research(packet)
+    assert parked is not None
+    assert "research_unreviewed" not in packet.get("appendix", {})
     assert parked["label"] == "Research (unreviewed, needs a person's review)"
     verdicts = {row["verdict"] for row in parked["reconcile"]}
     assert verdicts == {"AGREES", "CONTRADICTS"}

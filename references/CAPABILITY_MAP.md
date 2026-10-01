@@ -28,6 +28,7 @@
 26. Firecrawl paid search (skill 3.32.0, schema stays 1.3.0): capped per-idea `/search`, credit-to-dollar config, mock client in CI
 27. Round-5 checks (skill 3.33.0, schema stays 1.3.0): named money-table recomputes only on the main page, duplicate quantities dropped, primary-only OBSERVED search hits, at most five main-page links, mocked Jev fact reconcile
 28. Main-page rollback (skill 3.34.0, schema stays 1.3.0): reviewed contradictions and named money recomputes on the main page; Firecrawl hits, Jev reconcile lines, and other scanner notes in an unreviewed appendix, not OBSERVED; Firecrawl and Jev reconcile off unless `NEON_GENIE_RESEARCH_PAID=1`
+29. Research sidecar (skill 3.35.0, schema stays 1.3.0): reviewed contradictions stay by `source`, not a phrase list; paid and automatic research is `<packet>.research.md`, not the packet body; page budget dedupes; Firecrawl and Jev reconcile stay off unless `NEON_GENIE_RESEARCH_PAID=1`
 
 Packet schemas: `schemas/`. Profile contracts: `profiles/`. Gates: `references/anti-overclaim-patterns.md` · `references/gates.yaml`.
 DataRequest: `schemas/data-request.schema.json`.
