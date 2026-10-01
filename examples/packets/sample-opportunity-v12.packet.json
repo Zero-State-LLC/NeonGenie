@@ -248,8 +248,8 @@
   "page_budget": {
     "word_budget": 450,
     "char_budget": 3200,
-    "main_word_count": 239,
-    "main_char_count": 1498,
+    "main_word_count": 234,
+    "main_char_count": 1418,
     "appendix_word_count": 98,
     "fits_one_page": true,
     "truncated": false
