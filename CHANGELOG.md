@@ -5,6 +5,42 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.34.0] — 2026-10-01
+
+The outside bake-off scored v3.29.0 best on correctness (1.13 versus 0.79
+for v3.33.0). Every automatic main-page check added after v3.29.0 lowered
+that score. This release puts the reviewed contradictions back on the main
+page and moves paid and automatic research off it. Honesty stays: no
+invented buyers, prices, or sources. Artifact schema stays **1.3.0**. New
+fields are optional. Older packets still validate. The build handoff and
+the one-action cheapest test are unchanged.
+
+### Fixed
+
+- The main page again shows the reviewed contradictions: a dual option lock
+  (Alta Option A and Option B), a monthly rate that is not the yearly band
+  (`$5.5/sf/mo` implies `$66/sf/yr`, not `$60/sf/yr`), and an action that is
+  both required and excluded (Jev `ask_human` versus `skip`).
+- Verified money-table recomputes stay, and they still name both quantities:
+  `notes say monthly burn 35000, recomputed monthly rent 55000`, and
+  `notes say Heavy per tenant 636, recomputed Shared Heavy 336.4`. A second
+  line about that same quantity is still dropped, including Autogive's
+  `331.5` beside `336.4`. The false `Double of 64 is 128, not 512` flag
+  stays off the packet.
+- Firecrawl hits, Jev reconcile lines, and the other scanner notes move to
+  `appendix.research_unreviewed`, labeled `Research (unreviewed, needs a
+  person's review)`. None of that appendix is OBSERVED, and none of it is
+  on the main page.
+
+### Changed
+
+- The Jev reconcile step and Firecrawl stay opt-in. Both stay off unless
+  `NEON_GENIE_RESEARCH_PAID=1` is set. Firecrawl still also needs
+  `FIRECRAWL_API_KEY`. Caps stay 5 calls and $0.20 per idea, $1.00 per run,
+  and at most two Jev calls per idea. A free fetch of a named URL can still
+  be OBSERVED when it has a URL, a retrieval date, and a complete body.
+- VERSION **3.34.0**. Research user agent `neon-genie-research/3.34`.
+
 ## [3.33.0] — 2026-10-01
 
 Round-5 bake-off fixes on v3.32.0. Correctness had fallen because scanner

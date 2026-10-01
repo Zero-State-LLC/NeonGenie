@@ -16,10 +16,10 @@ recomputation. Older packets stay valid.
 from __future__ import annotations
 
 import json
+import os
 import re
 from typing import Any
 
-import jev_client
 import judge_eval
 import research_mode
 
@@ -27,7 +27,7 @@ SCHEMA_VERSION = "1.3.0"
 BAKEOFF_VERSION = "1.2.0"
 WORD_BUDGET = 450
 CHAR_BUDGET = 3200
-MAIN_LINK_CAP = 5
+_RESEARCH_APPENDIX_LABEL = "Research (unreviewed, needs a person's review)"
 
 _COMPARISONS = frozenset({"lt", "lte", "gt", "gte", "eq", "neq"})
 _LABELS = frozenset({"OBSERVED", "INFERRED", "SPECULATIVE", "NOT_COMPUTABLE"})
@@ -1357,6 +1357,73 @@ def _money_summary(summary: str) -> bool:
     return text.startswith("notes say ") and ", recomputed " in text
 
 
+def _reviewed_main(summary: str) -> bool:
+    """Main-page lines: named money recomputes and the reviewed contradictions.
+
+    The reviewed classes are a dual option lock, a monthly rate that is not
+    the yearly band, and an action that is both required and excluded.
+    """
+    text = summary.strip()
+    if _money_summary(text):
+        return True
+    if text.startswith("Input notes lock both Option"):
+        return True
+    if "/sf/mo implies " in text and "/sf/yr" in text:
+        return True
+    if text.startswith("The action ") and " is both required and excluded." in text:
+        return True
+    if "ask_human" in text and "skip" in text:
+        return True
+    return False
+
+
+def _not_observed(row: dict[str, Any]) -> dict[str, Any]:
+    out = dict(row)
+    if out.get("label") == "OBSERVED":
+        out["label"] = "NOT_COMPUTABLE"
+    if out.get("claim_label") == "OBSERVED":
+        out["claim_label"] = "NOT_COMPUTABLE"
+    return out
+
+
+def _park_unreviewed(
+    appendix: dict[str, Any],
+    *,
+    notes: list[dict[str, Any]],
+    hits: list[dict[str, Any]],
+    reconcile: list[dict[str, Any]],
+) -> None:
+    """Paid and automatic research. Not OBSERVED. Not on the main page."""
+    prior = appendix.get("research_unreviewed")
+    if not isinstance(prior, dict):
+        prior = {}
+
+    def rows(key: str, extra: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        kept = [
+            _not_observed(row)
+            for row in (prior.get(key) or [])
+            if isinstance(row, dict)
+        ]
+        kept.extend(_not_observed(row) for row in extra)
+        return kept
+
+    notes_out = rows("scanner_notes", notes)
+    hits_out = rows("search_hits", hits)
+    reconcile_out = rows("reconcile", reconcile)
+    if not notes_out and not hits_out and not reconcile_out:
+        return
+    appendix.pop("unverified_scanner_notes", None)
+    appendix.pop("search_hits_not_used", None)
+    appendix.pop("fact_reconcile", None)
+    appendix["research_unreviewed"] = {
+        "label": _RESEARCH_APPENDIX_LABEL,
+        "statement": "Unreviewed. Not labeled OBSERVED. Needs a person's review.",
+        "scanner_notes": notes_out,
+        "search_hits": hits_out,
+        "reconcile": reconcile_out,
+    }
+
+
 def _stated_amount(row: dict[str, Any]) -> float | None:
     rec = row.get("recompute")
     if isinstance(rec, dict) and rec.get("op") == "money_table":
@@ -1815,23 +1882,6 @@ def prose_main(packet: dict[str, Any]) -> str:
         for finding in contradictions.get("findings") or []:
             if isinstance(finding, dict):
                 add(finding.get("summary"))
-    research = packet.get("research")
-    if isinstance(research, dict):
-        shown = 0
-        for claim in research.get("observed_claims") or []:
-            if shown >= MAIN_LINK_CAP:
-                break
-            if isinstance(claim, dict) and claim.get("label") == "OBSERVED":
-                lines.append(
-                    f"{claim.get('label')} {claim.get('kind')} {claim.get('url')} "
-                    f"retrieved {claim.get('retrieved_at')}"
-                )
-                shown += 1
-        reconcile = research.get("reconcile")
-        if isinstance(reconcile, dict):
-            for item in reconcile.get("items") or []:
-                if isinstance(item, dict) and item.get("verdict") == "CONTRADICTS":
-                    add(item.get("sentence"))
     return "\n".join(lines)
 
 
@@ -1896,7 +1946,7 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
         for finding in contradictions.get("findings") or []:
             if not isinstance(finding, dict):
                 continue
-            if not _money_summary(str(finding.get("summary") or "")):
+            if not _reviewed_main(str(finding.get("summary") or "")):
                 relocated.append(_as_unverified(finding))
                 continue
             evidence = finding.get("evidence")
@@ -1921,51 +1971,29 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
             if isinstance(row, dict)
         )
         contradictions.pop("unverified_notes", None)
-        if relocated:
-            prior = appendix.get("unverified_scanner_notes") or {}
-            notes = [
-                dict(row)
-                for row in (prior.get("notes") or [])
-                if isinstance(row, dict)
-            ]
-            notes.extend(relocated)
-            appendix["unverified_scanner_notes"] = {
-                "label": "Unverified scanner notes",
-                "statement": (
-                    "These notes are not confirmed. Do not treat them as fact."
-                ),
-                "notes": notes,
-            }
         out["input_contradictions"] = contradictions
 
+    hits: list[dict[str, Any]] = []
+    reconcile_rows: list[dict[str, Any]] = []
     if isinstance(research, dict):
         hits = [
             dict(row)
             for row in (research.get("unverified_hits") or [])
             if isinstance(row, dict)
         ]
-        if hits:
-            appendix["search_hits_not_used"] = {
-                "label": "Unverified search hits",
-                "statement": "Not primary sources. Not labeled OBSERVED.",
-                "hits": hits,
-            }
         reconcile = research.get("reconcile")
         if isinstance(reconcile, dict):
-            rest = [
+            reconcile_rows = [
                 dict(row)
                 for row in (reconcile.get("items") or [])
-                if isinstance(row, dict) and row.get("verdict") != "CONTRADICTS"
+                if isinstance(row, dict)
             ]
-            if rest:
-                appendix["fact_reconcile"] = {
-                    "label": "Web fact reconcile",
-                    "statement": (
-                        "AGREES, NOT_APPLICABLE, and NOT_COMPUTABLE comparisons. "
-                        "CONTRADICTS stays on the main page."
-                    ),
-                    "items": rest,
-                }
+    _park_unreviewed(
+        appendix,
+        notes=relocated,
+        hits=hits,
+        reconcile=reconcile_rows,
+    )
 
     appendix["research_claims"] = appendix_claims
     appendix["contradiction_evidence"] = evidence_rows
@@ -2656,12 +2684,19 @@ def attach_v12(
     research = research_mode.run_idea_research(
         research_policy, queries, adapter=adapter
     )
-    claims = [
+    paid_on = (
+        research_policy.get("allow_paid") is True
+        or os.environ.get(research_mode.PAID_FLAG_ENV) == "1"
+    )
+    facts = [
         claim
         for claim in (research.get("observed_claims") or [])
         if isinstance(claim, dict)
     ]
-    if claims:
+    for hit in research.get("unverified_hits") or []:
+        if isinstance(hit, dict) and isinstance(hit.get("text"), str) and hit["text"].strip():
+            facts.append(hit)
+    if paid_on and facts:
         client = research_policy.get("jev_client")
         try:
             max_calls = int(research_policy.get("jev_max_calls") or judge_eval.DEFAULT_JEV_CALLS)
@@ -2669,7 +2704,7 @@ def attach_v12(
             max_calls = judge_eval.DEFAULT_JEV_CALLS
         research["reconcile"] = judge_eval.reconcile_facts(
             notes,
-            claims,
+            facts,
             client=client if callable(client) else None,
             max_calls=max_calls,
         )
@@ -2683,11 +2718,6 @@ def attach_v12(
     out["build_handoff"] = handoff
     out["kill_criteria"] = list(kill_criteria)
     return apply_page_budget(out)
-
-
-def _sample_jev(state: str, questions: dict[str, Any]) -> dict[str, Any]:
-    """The checked-in sample never calls Jev."""
-    raise jev_client.JevError("TYPESAFE_AI_API_KEY is not set")
 
 
 def seat_option_example_packet() -> dict[str, Any]:
@@ -2739,7 +2769,6 @@ def seat_option_example_packet() -> dict[str, Any]:
             "enabled": True,
             "offline": False,
             "adapter": "fixture",
-            "jev_client": _sample_jev,
         },
         queries=["seat floor"],
         schema_id="neon-genie/opportunity-packet",

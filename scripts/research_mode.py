@@ -30,7 +30,7 @@ import privacy_preflight
 # Normal HTML pricing and docs pages exceeded 64 KiB in the round-3 probe
 # (10 of 14). 2 MiB is still a hard cap: a larger body is rejected whole.
 MAX_BODY_BYTES = 2 * 1024 * 1024
-RESEARCH_UA = "neon-genie-research/3.33"
+RESEARCH_UA = "neon-genie-research/3.34"
 MIN_SEARCH_WORDS = 20
 DEFAULT_MAX_CALLS_PER_IDEA = 5
 DEFAULT_DOLLAR_CAP_PER_IDEA = 0.20
@@ -679,12 +679,13 @@ def run_idea_research(
 ) -> dict[str, Any]:
     """Capped research for one idea.
 
-    Free fetches run first. Firecrawl search runs only when
+    Free fetches run first and can be OBSERVED. Firecrawl search runs only when
     ``NEON_GENIE_RESEARCH_PAID=1`` (or ``allow_paid``) and ``FIRECRAWL_API_KEY``
-    are both set, or a test injects ``search_provider``. Over the call cap,
-    the per-idea dollar cap, or the run cap, the query is ``NOT_FETCHED`` and
-    the provider is not called. No URL is invented. Offline and disabled runs
-    do not call an adapter.
+    are both set, or a test injects ``search_provider``. Search hits are
+    ``NOT_COMPUTABLE`` and are not OBSERVED. Over the call cap, the per-idea
+    dollar cap, or the run cap, the query is ``NOT_FETCHED`` and the provider
+    is not called. No URL is invented. Offline and disabled runs do not call
+    an adapter.
     """
     policy = dict(policy or {})
     queries = [q for q in (queries or []) if isinstance(q, str)]
@@ -824,22 +825,22 @@ def run_idea_research(
                     if claim is None:
                         rejected.append({"reason": reason, "url": item.get("url"), "query": query})
                         continue
-                    blocked = search_hit_block(str(claim.get("url") or ""), str(claim.get("text") or ""))
-                    if blocked:
-                        unverified_hits.append(
-                            {
-                                "url": claim.get("url"),
-                                "text": claim.get("text"),
-                                "retrieved_at": claim.get("retrieved_at"),
-                                "reason": blocked,
-                                "status": "unverified",
-                                "claim_label": "NOT_COMPUTABLE",
-                                "query": query,
-                            }
-                        )
-                        continue
-                    claim["claim_id"] = f"obs-{len(observed) + 1}"
-                    observed.append(claim)
+                    blocked = search_hit_block(
+                        str(claim.get("url") or ""), str(claim.get("text") or "")
+                    )
+                    unverified_hits.append(
+                        {
+                            "url": claim.get("url"),
+                            "text": claim.get("text"),
+                            "retrieved_at": claim.get("retrieved_at"),
+                            "kind": claim.get("kind"),
+                            "reason": blocked or "unreviewed",
+                            "status": "unreviewed",
+                            "claim_label": "NOT_COMPUTABLE",
+                            "query": query,
+                        }
+                    )
+                    continue
             result["observed_claims"] = observed
             result["rejected"] = rejected
             result["items"] = items
