@@ -29,6 +29,7 @@
 27. Round-5 checks (skill 3.33.0, schema stays 1.3.0): named money-table recomputes only on the main page, duplicate quantities dropped, primary-only OBSERVED search hits, at most five main-page links, mocked Jev fact reconcile
 28. Main-page rollback (skill 3.34.0, schema stays 1.3.0): reviewed contradictions and named money recomputes on the main page; Firecrawl hits, Jev reconcile lines, and other scanner notes in an unreviewed appendix, not OBSERVED; Firecrawl and Jev reconcile off unless `NEON_GENIE_RESEARCH_PAID=1`
 29. Research sidecar (skill 3.35.0, schema stays 1.3.0): reviewed contradictions stay by `source`, not a phrase list; paid and automatic research is `<packet>.research.md`, not the packet body; page budget dedupes; Firecrawl and Jev reconcile stay off unless `NEON_GENIE_RESEARCH_PAID=1`
+30. Final bake-off page (skill 3.36.0, schema stays 1.3.0): the 16 v3.29 contradiction lines, verbatim, plus named money recomputes; a later line about the same field or quantity is dropped
 
 Packet schemas: `schemas/`. Profile contracts: `profiles/`. Gates: `references/anti-overclaim-patterns.md` · `references/gates.yaml`.
 DataRequest: `schemas/data-request.schema.json`.

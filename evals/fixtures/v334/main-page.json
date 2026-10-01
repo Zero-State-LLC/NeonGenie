@@ -6,7 +6,7 @@
     "notes say monthly burn 35000, recomputed monthly rent 55000"
   ],
   "jev_main": [
-    "The action ask_human is both required and excluded."
+    "The route sends high consequential_spend to ask_human; the red team says unclear cases default to skip, not ask_human."
   ],
   "autogive_main": [
     "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4"
