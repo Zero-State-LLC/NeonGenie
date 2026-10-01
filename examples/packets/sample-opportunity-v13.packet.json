@@ -47,7 +47,15 @@
         "kind": "contradiction",
         "summary": "Input notes lock both Option A and B.",
         "claim_label": "OBSERVED",
-        "finding_id": "in-5"
+        "source": "reviewed",
+        "finding_id": "in-1"
+      },
+      {
+        "kind": "contradiction",
+        "summary": "The rationale for locked A describes B.",
+        "claim_label": "OBSERVED",
+        "source": "reviewed",
+        "finding_id": "in-2"
       }
     ]
   },
@@ -186,50 +194,8 @@
       }
     }
   ],
+  "research_sidecar": "<packet>.research.md",
   "appendix": {
-    "research_unreviewed": {
-      "label": "Research (unreviewed, needs a person's review)",
-      "statement": "Unreviewed. Not labeled OBSERVED. Needs a person's review.",
-      "scanner_notes": [
-        {
-          "kind": "arithmetic_error",
-          "summary": "Unverified scanner note: not stated as fact. Stated product 10 \u00d7 5 = 100 does not equal 50.",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "10 \u00d7 5 = 100"
-        },
-        {
-          "kind": "inconsistent_figure",
-          "summary": "Unverified scanner note: not stated as fact. Input notes mix seat assumptions (N=1 counts 2, N=10 counts 1, N=50 counts 1).",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "N=1 $636 counts two seats N=10 counts one seat N=50 counts one seat"
-        },
-        {
-          "kind": "inconsistent_figure",
-          "summary": "Unverified scanner note: not stated as fact. Seat count per tenant is not constant across table rows.",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "1 | 2 | 318 | 636 10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
-        },
-        {
-          "kind": "arithmetic_error",
-          "summary": "Unverified scanner note: not stated as fact. Stated floor does not equal seats times per-seat for one or more table rows.",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "10 | 1 | 318 | 3180 50 | 1 | 318 | 15900"
-        },
-        {
-          "kind": "contradiction",
-          "summary": "Unverified scanner note: not stated as fact. The rationale for locked A describes B.",
-          "claim_label": "NOT_COMPUTABLE",
-          "status": "unverified",
-          "evidence": "rationale for locked A describes B's"
-        }
-      ],
-      "search_hits": [],
-      "reconcile": []
-    },
     "research_claims": [
       {
         "text": "Fixture page: the Heavy floor table is operator-supplied and is not a market price.",
@@ -242,17 +208,21 @@
     ],
     "contradiction_evidence": [
       {
-        "finding_id": "in-5",
+        "finding_id": "in-1",
         "evidence": "Option A is locked Option B leftovers remain the locked locked option is B"
+      },
+      {
+        "finding_id": "in-2",
+        "evidence": "rationale for locked A describes B's"
       }
     ]
   },
   "page_budget": {
     "word_budget": 450,
     "char_budget": 3200,
-    "main_word_count": 178,
-    "main_char_count": 1118,
-    "appendix_word_count": 213,
+    "main_word_count": 185,
+    "main_char_count": 1158,
+    "appendix_word_count": 41,
     "fits_one_page": true,
     "truncated": false
   }

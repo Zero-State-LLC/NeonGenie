@@ -71,15 +71,15 @@ def test_reviewed_lines_and_named_recomputes_stay() -> None:
         assert "one prepaid pilot at the floor price" in prose
         assert "Ship the notes check." in prose
         assert len(prose.split()) <= packet_compose.WORD_BUDGET
-    appendix = alta["appendix"]["research_unreviewed"]
-    assert appendix["label"] == rows["appendix_label"]
-    parked = appendix["scanner_notes"] + appendix["search_hits"] + appendix["reconcile"]
+    parked_doc = packet_compose.unreviewed_research(alta)
+    assert parked_doc is not None
+    assert parked_doc["label"] == rows["appendix_label"]
+    assert "research_unreviewed" not in alta.get("appendix", {})
+    parked = parked_doc["scanner_notes"] + parked_doc["search_hits"] + parked_doc["reconcile"]
     assert parked
     assert all(row.get("claim_label") != "OBSERVED" for row in parked)
     assert all(row.get("label") != "OBSERVED" for row in parked)
-    blob = json.dumps(parked)
-    assert "The rationale for locked Option A agrees with Option B." in blob
-    print("reviewed contradictions and named recomputes stay; other scanner lines do not")
+    print("reviewed contradictions and named recomputes stay; scanner notes are off the packet")
 
 
 def test_paid_research_is_off_without_the_flag() -> None:

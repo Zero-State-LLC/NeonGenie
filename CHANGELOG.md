@@ -5,6 +5,41 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.35.0] — 2026-10-01
+
+The outside bake-off scored v3.34.0 last on correctness (0.87 versus 1.11
+for v3.29.0). Taking the research appendix out of the packet raised that
+score to 1.04. This release keeps reviewed contradiction lines by
+provenance, writes paid and automatic research to a sidecar file, and
+stops the page-budget step from listing the same row twice. Honesty stays:
+no invented buyers, prices, or sources. Artifact schema stays **1.3.0**.
+New fields are optional. Older packets still validate. The build handoff
+and the one-action cheapest test are unchanged.
+
+### Fixed
+
+- Paid and automatic research (Firecrawl hits, Jev reconcile lines, and
+  unreviewed scanner notes) is not part of the packet. It is written to
+  `<packet>.research.md` next to the packet, labeled `Research (unreviewed,
+  needs a person's review)`. The packet may carry one line pointing at that
+  file. Nothing in the sidecar is OBSERVED.
+- The page-budget step is idempotent. Rows are deduped by a stable key, so
+  running it twice does not append a second copy. Repeated main-page lines
+  collapse the same way, including Jev `ask_human` stated twice.
+- A reviewed contradiction stays because its `source` is the reviewed or
+  v3.29-style pass (`reviewed` or `v329`), set where the line is created.
+  The fixed phrase list is gone. Unreviewed scanner output stays off the
+  main page. Named money recomputes stay, and they still name both
+  quantities. The false `Double of 64 is 128, not 512` flag stays off.
+  Autogive's second line about the same seat quantity stays off.
+
+### Changed
+
+- Firecrawl and the Jev reconcile step stay opt-in behind
+  `NEON_GENIE_RESEARCH_PAID=1`, with the same caps: 5 calls and $0.20 per
+  idea, $1.00 per run, and at most two Jev calls per idea.
+- VERSION **3.35.0**. Research user agent `neon-genie-research/3.35`.
+
 ## [3.34.0] — 2026-10-01
 
 The outside bake-off scored v3.29.0 best on correctness (1.13 versus 0.79

@@ -72,10 +72,12 @@ def test_alta_burn_and_autogive_heavy_recompute() -> None:
                 "research": {"observed_claims": []},
             }
         )
-        appendix = wrapped["appendix"]["research_unreviewed"]
-        assert appendix["label"] == "Research (unreviewed, needs a person's review)"
+        parked = packet_compose.unreviewed_research(wrapped)
+        assert parked is not None
+        assert parked["label"] == "Research (unreviewed, needs a person's review)"
+        assert "research_unreviewed" not in wrapped.get("appendix", {})
         assert "unverified_notes" not in wrapped["input_contradictions"]
-        for note in appendix["scanner_notes"]:
+        for note in parked["scanner_notes"]:
             assert note["claim_label"] == "NOT_COMPUTABLE"
             assert note["claim_label"] != "OBSERVED"
             assert note["summary"].startswith("Unverified scanner note: not stated as fact.")
