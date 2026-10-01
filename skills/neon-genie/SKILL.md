@@ -1,7 +1,7 @@
 ---
 name: neon-genie
 description: Audit products and opportunities with labeled evidence.
-version: 3.31.0
+version: 3.32.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -146,7 +146,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Find → request private → `NOT_COMPUTABLE` — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
    - Never fabricate — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
    - Freshness — prefer primary/current sources; note retrieval time for volatile facts.
-   - Research mode — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`, and free `robots_http`). `robots_http` is a stdlib fetch that reads robots.txt and fails closed when robots cannot be read. A missing robots.txt (HTTP 404, including urllib `HTTPError`) allows the fetch. Page bodies over 2 MiB are rejected whole. `retrieved_at` is the America/Los_Angeles date. Crawl4AI is not a dependency. Paid adapters are opt-in and are not bundled; CI uses fixtures only. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a real retrieval date, and a complete source body. A placeholder date is not OBSERVED. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
+   - Research mode — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`, and free `robots_http`). `robots_http` is a stdlib fetch that reads robots.txt and fails closed when robots cannot be read. A missing robots.txt (HTTP 404, including urllib `HTTPError`) allows the fetch. Page bodies over 2 MiB are rejected whole. `retrieved_at` is the America/Los_Angeles date. Crawl4AI is not a dependency. Firecrawl (`scripts/firecrawl_client.py`) is the paid search provider and stays off unless `NEON_GENIE_RESEARCH_PAID=1` and `FIRECRAWL_API_KEY` are both set. CI mocks that client and does not call the network. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a real retrieval date, and a complete source body. A placeholder date is not OBSERVED. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
    - Attribution boundaries — separate person / company / foundation / model inference.
    - Authority unchanged — research may draft; it may not submit, contact, spend, publish, or mutate repos.
    - Privacy — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
@@ -241,7 +241,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`. Schema **1.3.0** also requires `derivation` so the threshold can be recomputed from its inputs, including every cost it depends on. A missing input fails (NG-KILL-005). A threshold that is not the recomputed value fails (NG-KILL-004). A cost kill that ignores price tiers or card fees declared elsewhere in the packet fails (NG-KILL-006) unless an identity derivation carries a written `justification`.
     - `build_handoff.first_commit` — files or areas to touch, a done-when check, one test to write, and an owner role.
     - `page_budget` — decision prose at most 450 words and 3200 characters. Long evidence moves intact into `appendix`. Do not truncate.
-    - `research` — the gathering record. Offline records stay empty of OBSERVED claims. An optional per-idea pass fetches free pages first (robots-aware) and may call a paid search provider only when `NEON_GENIE_RESEARCH_PAID=1` and `NEON_GENIE_SEARCH_API_KEY` is set, or a test injects a provider. Caps default to 5 calls and $0.20 per idea and $1.00 per run. Over cap, or no key, the pass skips and marks the query `NOT_FETCHED`. An OBSERVED claim still needs a URL and an America/Los_Angeles retrieval date. No source is invented.
+    - `research` — the gathering record. Offline records stay empty of OBSERVED claims. An optional per-idea pass fetches free pages first (robots-aware). Text queries may call Firecrawl `POST /search` (`https://api.firecrawl.dev/v2/search`; v1 `/search` responses are accepted) only when `NEON_GENIE_RESEARCH_PAID=1` and `FIRECRAWL_API_KEY` are both set. `NEON_GENIE_SEARCH_API_KEY` does not enable it. Optional markdown scrape of those top results stays off unless `NEON_GENIE_FIRECRAWL_SCRAPE=1`. Cost is credits times `DOLLARS_PER_CREDIT` in `scripts/firecrawl_client.py` (default `0.005`, Hobby pay-as-you-go: 1,000 credits per $5). Search is 2 credits per 10 results, rounded up; scrape adds 1 credit per result. Caps stay 5 calls and $0.20 per idea and $1.00 per run. A call that would exceed a cap is not sent. HTTP errors, timeouts, and 403s are `NOT_FETCHED`. A 429 or 5xx retries once, with backoff, then is `NOT_FETCHED`. A secret-like query is not sent. An OBSERVED claim still needs a URL and an America/Los_Angeles retrieval date. No source is invented. CI injects a mock transport.
 
     An OBSERVED object fails when any of its string fields is a sentinel date or contains a placeholder word, including `note` (NG-LABEL-001). A cited quote fails when it does not support the claim (NG-LABEL-002): negation flips polarity, and a number counts only as a whole token. When the quote check is inconclusive, a pluggable quote judge may decide; with no judge the claim fails closed (NG-LABEL-003). An optional Jev correctness diagnostic can quote a document line and the conflicting SOURCE_NOTES line; it is off unless enabled, and golden evals do not call it. Packets below 1.2.0 stay valid. Migrations: `references/schemas/migrations/1.1.0-to-1.2.0.md` and `references/schemas/migrations/1.2.0-to-1.3.0.md`.
 
@@ -469,6 +469,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `scripts/check_transcripts.py`
 - `scripts/distribution_spine.py`
 - `scripts/doctor.py`
+- `scripts/firecrawl_client.py`
 - `scripts/hermes_runtime_smoke.py`
 - `scripts/jev_client.py`
 - `scripts/judge_eval.py`

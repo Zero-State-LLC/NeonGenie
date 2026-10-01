@@ -25,6 +25,7 @@
 23. Round-2 checks (schema 1.3.0): arithmetic and option-rationale scan, kill recomputation, OBSERVED quote and date checks, free robots.txt fetch, tie-breaker judge
 24. Round-3 checks (skill 3.30.0, schema stays 1.3.0): quote negation and whole-token numbers, placeholder words on every OBSERVED field, cost inputs a kill derivation ignores, general note-scan checks, robots.txt 404 with a 2 MiB body cap and Los Angeles retrieval dates, optional Jev line-id correctness diagnostic (off by default)
 25. Round-4 checks (skill 3.31.0, schema stays 1.3.0): verified numeric contradictions only, money-table recompute, unverified scanner appendix, capped per-idea research, one-action cheapest test
+26. Firecrawl paid search (skill 3.32.0, schema stays 1.3.0): capped per-idea `/search`, credit-to-dollar config, mock client in CI
 
 Packet schemas: `schemas/`. Profile contracts: `profiles/`. Gates: `references/anti-overclaim-patterns.md` · `references/gates.yaml`.
 DataRequest: `schemas/data-request.schema.json`.
