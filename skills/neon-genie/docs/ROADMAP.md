@@ -96,6 +96,7 @@ Public entry points:
 | **3.33.0** | Round-5 fixes: main page keeps named money-table recomputes only, duplicate quantities are dropped, search hits are OBSERVED only from primary sources, at most five links on the main page, and a mocked Jev reconcile step. Schema stays **1.3.0**. |
 | **3.34.0** | Main-page rollback toward v3.29.0: reviewed contradictions return (option lock, monthly versus yearly band, required-and-excluded action) beside named money recomputes. Paid and automatic research moves to an unreviewed appendix and is not OBSERVED. Firecrawl and Jev reconcile stay off unless `NEON_GENIE_RESEARCH_PAID=1`. Schema stays **1.3.0**. |
 | **3.35.0** | Reviewed contradictions stay by provenance, not a phrase list. Paid and automatic research is a sidecar file next to the packet, not part of the packet. The page-budget step dedupes. Schema stays **1.3.0**. |
+| **3.36.0** | Final bake-off version. The main page is the v3.29 contradiction lines, verbatim, plus the named money recomputes. A later line about the same field or quantity is dropped. Round 8 scored 15.95, correctness 1.06, level with v3.29. Schema stays **1.3.0**. |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
 

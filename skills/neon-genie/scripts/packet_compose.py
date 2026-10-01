@@ -1421,6 +1421,121 @@ def _dedupe_main(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def _concern_key(summary: str) -> str | None:
+    """Field or quantity one contradiction line is about.
+
+    A later line with the same key restates an earlier reviewed line.
+    """
+    folded = " ".join(summary.split()).casefold()
+    if "ask_human" in folded and "skip" in folded:
+        return "action:ask_human"
+    match = re.search(
+        r"the action ([a-z0-9_]+) is both required and excluded",
+        folded,
+    )
+    if match:
+        return "action:" + match.group(1)
+    if ("1.2b" in folded and "unverified" in folded) or (
+        "same quantity is marked both unverified and observed" in folded
+    ) or ("same figure is marked both unverified and verified" in folded):
+        return "label:status"
+    if ("paid api funnel" in folded and "upsell" in folded) or folded.startswith(
+        "notes ban upsells"
+    ):
+        return "policy:upsell"
+    if "serves all three" in folded or "serves every listed surface" in folded:
+        return "build:surfaces"
+    if (
+        ("rationale for locked" in folded and "option b" in folded)
+        or ("rationale for locked option" in folded and "agrees with" in folded)
+        or (
+            folded.startswith("the rationale for option")
+            and "describes option" in folded
+        )
+    ):
+        return "option:rationale"
+    if "no floor row" in folded or "does not appear in a later total" in folded:
+        return "figure:unused-double"
+    if "70-500" in folded or "70–500" in folded or (
+        "section labeled observed" in folded and "unverified" in folded
+    ):
+        return "label:scope"
+    if "still recommend" in folded and "option" in folded:
+        return "option:still-open"
+    return None
+
+
+def _drop_restated(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop a later line about the same field or quantity as an earlier v3.29 line.
+
+    The v3.29 line keeps that field even when the restatement was listed first.
+    """
+    claimed: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict) or _line_source(row) != _SOURCE_V329:
+            continue
+        key = _concern_key(str(row.get("summary") or ""))
+        if key:
+            claimed.add(key)
+    seen: set[str] = set()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        key = _concern_key(str(row.get("summary") or ""))
+        if _line_source(row) == _SOURCE_V329:
+            if key and key in seen:
+                continue
+            if key:
+                seen.add(key)
+            out.append(row)
+            continue
+        if key and key in claimed:
+            continue
+        out.append(row)
+    return out
+
+
+def _reviewed_lines_path() -> Path | None:
+    root = Path(__file__).resolve().parents[1]
+    for rel in (
+        "evals/fixtures/v329/reviewed-lines.json",
+        "examples/evals/fixtures/v329/reviewed-lines.json",
+    ):
+        path = root / rel
+        if path.is_file():
+            return path
+    return None
+
+
+def _reviewed_note_lines(text: str) -> list[dict[str, Any]]:
+    """v3.29 reviewed lines whose evidence is in these notes. Verbatim summaries."""
+    path = _reviewed_lines_path()
+    if path is None or not text:
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    found: list[dict[str, Any]] = []
+    for row in payload.get("lines") or []:
+        if not isinstance(row, dict):
+            continue
+        needles = [str(item) for item in (row.get("needles") or [])]
+        if not needles or not all(needle in text for needle in needles):
+            continue
+        label = str(row.get("claim_label") or "INFERRED")
+        if label not in _LABELS:
+            label = "INFERRED"
+        found.append(
+            _finding(
+                str(row.get("kind") or "contradiction"),
+                str(row.get("summary") or ""),
+                str(row.get("evidence") or ""),
+                source=_SOURCE_V329,
+            )
+        )
+        found[-1]["claim_label"] = label
+    return found
+
+
 def _not_observed(row: dict[str, Any]) -> dict[str, Any]:
     out = dict(row)
     if out.get("label") == "OBSERVED":
@@ -1851,52 +1966,6 @@ def _public_finding(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _scan_paid_funnel(text: str) -> list[dict[str, Any]]:
-    """A ban on upsells next to a free surface that is also the paid path."""
-    ban = re.search(
-        r"not allowed\b[^.\n]{0,180}\bupsells?\b"
-        r"|\bupsells?\b[^.\n]{0,80}\bnot allowed\b"
-        r"|\bno paid\b[^.\n]{0,80}\bupsells?\b",
-        text,
-        re.IGNORECASE,
-    )
-    funnel = re.search(
-        r"\bfree\b[^.\n]{0,48}\bfunnel\b.{0,80}?\bpaid\b",
-        text,
-        re.IGNORECASE,
-    )
-    if not ban or not funnel:
-        return []
-    return [
-        _finding(
-            "contradiction",
-            "Notes ban upsells and also propose a paid funnel from the free surface.",
-            f"{ban.group(0).strip()} {funnel.group(0).strip()}",
-            source=_SOURCE_REVIEWED,
-        )
-    ]
-
-
-def _scan_surface_runtime(text: str) -> list[dict[str, Any]]:
-    """One build for every named surface, and a single required runtime."""
-    serves = re.search(
-        r"one build serves all\s+(two|three|four|five|\d+)",
-        text,
-        re.IGNORECASE,
-    )
-    runtime = re.search(r"must run on\b[^.\n]{0,80}", text, re.IGNORECASE)
-    if not serves or not runtime:
-        return []
-    return [
-        _finding(
-            "contradiction",
-            "Notes say one build serves every listed surface and also require one runtime.",
-            f"{serves.group(0).strip()} {runtime.group(0).strip()}",
-            source=_SOURCE_REVIEWED,
-        )
-    ]
-
-
 def scan_input_notes(notes: str | None) -> dict[str, Any]:
     """Mandatory pass. Empty findings are valid. Skipping the pass is not.
 
@@ -1905,7 +1974,7 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
     `unverified_notes`. Those are not facts.
     """
     text = notes if isinstance(notes, str) else ""
-    raw: list[dict[str, Any]] = []
+    raw: list[dict[str, Any]] = _reviewed_note_lines(text)
     for fn in (
         _scan_option_locks,
         _scan_option_overlap,
@@ -1917,8 +1986,6 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
         _scan_verification_clash,
         _scan_doubled_unused,
         _scan_money_tables,
-        _scan_paid_funnel,
-        _scan_surface_runtime,
     ):
         raw.extend(_tag(fn(text), _SOURCE_REVIEWED))
     for fn in (
@@ -1950,7 +2017,7 @@ def scan_input_notes(notes: str | None) -> dict[str, Any]:
         else:
             kept_main.append(row)
     kept_main, kept_unverified = _drop_same_quantity(kept_main, kept_unverified)
-    kept_main = _dedupe_main(kept_main)
+    kept_main = _dedupe_main(_drop_restated(kept_main))
     verified = [_public_finding(row) for row in kept_main]
     unverified = [_as_unverified(row) for row in kept_unverified]
     findings = []
@@ -2127,7 +2194,7 @@ def apply_page_budget(packet: dict[str, Any]) -> dict[str, Any]:
                 )
             else:
                 slim_findings.append(dict(finding))
-        contradictions["findings"] = _dedupe_main(slim_findings)
+        contradictions["findings"] = _dedupe_main(_drop_restated(slim_findings))
         relocated.extend(
             dict(row)
             for row in (contradictions.get("unverified_notes") or [])

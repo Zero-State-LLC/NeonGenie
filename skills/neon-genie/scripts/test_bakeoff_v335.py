@@ -38,42 +38,48 @@ def test_expected_lines_and_no_empty_pass() -> None:
     alta, alta_prose = _page("4-alta-commons-founding100.md")
     jev, jev_prose = _page("5-jev-crypto-arb.md")
 
-    assert "The same quantity is marked both UNVERIFIED and OBSERVED." in hyper_prose
+    assert "1.2B weekly users UNVERIFIED" in hyper_prose
+    assert "paid API funnel" in hyper_prose
     assert "1.2B" in json.dumps(hyper["appendix"]["contradiction_evidence"])
-    assert "paid funnel" in hyper_prose
     assert "upsell" in json.dumps(hyper["appendix"]["contradiction_evidence"]).lower()
     assert hyper["input_contradictions"]["findings"]
     assert "none found" not in hyper_prose.lower()
+    assert "The same quantity is marked both UNVERIFIED and OBSERVED." not in hyper_prose
 
     assert x402["input_contradictions"]["findings"]
     assert "none found" not in x402_prose.lower()
-    assert "one build serves every listed surface" in x402_prose
-    assert "paid funnel" in x402_prose
+    assert "One build serves all three" in x402_prose
+    assert "open-source repo" in x402_prose
+    assert "through the API" in x402_prose
+    assert "serves every listed surface" not in x402_prose
 
-    assert "The rationale for locked Option A agrees with Option B." in alta_prose
+    assert "maximizes conversion" in alta_prose
     assert "Input notes lock both Option A and B." in alta_prose
     assert "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr." in alta_prose
     assert "notes say monthly burn 35000, recomputed monthly rent 55000" in alta_prose
+    assert "The rationale for locked Option A agrees with Option B." not in alta_prose
     seat = packet_compose.scan_input_notes(packet_compose.SEAT_OPTION_NOTES)
     assert any(
         row["summary"] == "The rationale for locked A describes B."
         for row in seat["findings"]
     )
 
-    assert "Computed 512 does not appear in a later total." in auto_prose
+    assert "no floor row" in auto_prose
+    assert "Computed 512 does not appear in a later total." not in auto_prose
     assert auto_prose.count("notes say Heavy per tenant 636, recomputed Shared Heavy 336.4") == 1
     assert "331.5" not in auto_prose
     assert "Double of 64 is 128, not 512" not in auto_prose
 
     assert "70-500" in json.dumps(jev["appendix"]["contradiction_evidence"])
-    assert jev_prose.count("ask_human") >= 1
+    assert "red team says unclear cases default to skip, not ask_human" in jev_prose
+    assert "The action ask_human is both required and excluded." not in jev_prose
     assert len([line for line in jev_prose.splitlines() if "ask_human" in line]) == 1
 
     for prose in (hyper_prose, x402_prose, auto_prose, alta_prose, jev_prose):
         assert len(prose.split()) <= packet_compose.WORD_BUDGET
     for packet in (hyper, x402, auto, alta, jev):
         for row in packet["input_contradictions"]["findings"]:
-            assert row.get("source") == "reviewed"
+            assert row.get("source") in {"reviewed", "v329"}
     print("reviewed lines are on the main page; hyperlex and x402 are not empty")
 
 
