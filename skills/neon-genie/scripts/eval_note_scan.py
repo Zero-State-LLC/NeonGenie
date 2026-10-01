@@ -19,13 +19,13 @@ FIXTURE_DIR = ROOT / "evals" / "bakeoff-v330"
 
 # Measurement only. A hit means a finding quotes these fragments.
 ISSUE_NEEDLES: list[dict[str, object]] = [
-    {"id": "1.1", "file": "1-hyperlex-plugin.md", "needles": ["1.2B", "UNVERIFIED", "verified"]},
+    {"id": "1.1", "file": "1-hyperlex-plugin.md", "needles": ["1.2B", "UNVERIFIED", "OBSERVED"]},
     {"id": "1.2", "file": "1-hyperlex-plugin.md", "needles": ["not allowed", "upsell"]},
     {"id": "1.3", "file": "1-hyperlex-plugin.md", "needles": ["OpenAPI", "MCP"]},
     {"id": "2.1", "file": "2-x402-vernacular-api.md", "needles": ["all three", "Nebius"]},
     {"id": "2.2", "file": "2-x402-vernacular-api.md", "needles": ["open-source", "repo"]},
     {"id": "2.3", "file": "2-x402-vernacular-api.md", "needles": ["x402", "through the API"]},
-    {"id": "3.1", "file": "3-autogive-tenant-sku.md", "needles": ["N=1", "N=10"]},
+    {"id": "3.1", "file": "3-autogive-tenant-sku.md", "needles": ["886", "559"]},
     {"id": "3.2", "file": "3-autogive-tenant-sku.md", "needles": ["800", "886"]},
     {"id": "3.3", "file": "3-autogive-tenant-sku.md", "needles": ["Does not include API", "API"]},
     {"id": "3.4", "file": "3-autogive-tenant-sku.md", "needles": ["512"]},
@@ -87,6 +87,58 @@ def _clean_paths() -> list[Path]:
     return [path for path in paths if path.is_file()]
 
 
+# Why the pre-extension general rules missed each issue. Measurement text, not scanner rules.
+DIAGNOSIS = [
+    ("1.1", "epistemic label clash", "mechanical", "UNVERIFIED and OBSERVED sit on the same magnitude in different sentences. The old check looked for the word verified, which this note does not use."),
+    ("1.2", "policy vs proposed funnel", "NOT_COMPUTABLE", "A ban on upsells and a free-then-paid plan conflict only if those are the same offer. That needs judgment."),
+    ("1.3", "mechanism mismatch", "NOT_COMPUTABLE", "OpenAPI versus Skills/MCP is world knowledge, not two values of one quantity."),
+    ("2.1", "universal claim vs runtime constraint", "NOT_COMPUTABLE", "One build covering every surface versus a required runtime needs world knowledge."),
+    ("2.2", "license vs later paid reuse", "NOT_COMPUTABLE", "An open-source requirement versus paid reuse is a legal judgment."),
+    ("2.3", "channel mismatch", "NOT_COMPUTABLE", "Two route names for one buyer conflict only with outside knowledge of the rails."),
+    ("3.1", "count series vs implied line", "mechanical", "The per-count totals are not the line implied by the larger counts. The old check needed the words 'not at N='."),
+    ("3.2", "list price below floor", "mechanical", "A list price sits under the floor at the count the note says to use. The old check had no floor comparison."),
+    ("3.3", "exclusion vs unnamed rate", "NOT_COMPUTABLE", "A seat exclusion and a later rate conflict only if the rate is the excluded thing. The note never says that."),
+    ("3.4", "computed figure unused", "mechanical", "A stated double never appears in a later total. Absence is not an equality the old check could see."),
+    ("4.1", "rationale polarity", "mechanical", "The rationale's high/low words match a different option row than the lock. The old check needed 'rationale for option X:'."),
+    ("4.3", "credit versus monthly rates", "mechanical", "One credit divided by the stated monthly amounts covers inconsistent months. The missing single rate on the lock is NOT_COMPUTABLE."),
+    ("5.1", "label scope", "mechanical", "A section labeled OBSERVED also says unverified, and a figure from it is reused as fact."),
+    ("5.2", "required and excluded action", "mechanical", "The same action is forced and excluded. The old check did not compare directives."),
+]
+
+
+def held_out_report() -> dict:
+    path = FIXTURE_DIR / "held-out-notes.json"
+    rows = json.loads(path.read_text(encoding="utf-8"))["notes"]
+    planted_hit = 0
+    planted = 0
+    clean_findings = 0
+    detail = []
+    for row in rows:
+        findings = packet_compose.scan_input_notes(row["text"])["findings"]
+        hit = bool(findings)
+        if row["expect"] == "finding":
+            planted += 1
+            if hit:
+                planted_hit += 1
+        elif hit:
+            clean_findings += len(findings)
+        detail.append(
+            {
+                "id": row["id"],
+                "expect": row["expect"],
+                "findings": len(findings),
+                "ok": (row["expect"] == "finding" and hit) or (row["expect"] == "clean" and not hit),
+            }
+        )
+    return {
+        "planted_caught": planted_hit,
+        "planted": planted,
+        "clean_findings": clean_findings,
+        "clean": len(rows) - planted,
+        "notes": detail,
+    }
+
+
 def false_positive_report() -> dict:
     findings = []
     for path in _clean_paths():
@@ -115,9 +167,12 @@ def false_positive_report() -> dict:
 def main() -> int:
     caught = catch_report()
     fps = false_positive_report()
+    held = held_out_report()
     print(
         f"fix4 catch {caught['caught']}/{caught['total']} "
-        f"false_positives docs={fps['doc_findings']} synthetic={fps['synthetic_findings']}"
+        f"false_positives docs={fps['doc_findings']} synthetic={fps['synthetic_findings']} "
+        f"held_out {held['planted_caught']}/{held['planted']} "
+        f"clean_findings={held['clean_findings']}"
     )
     for row in caught["issues"]:
         mark = "hit" if row["caught"] else "miss"
@@ -130,8 +185,15 @@ def main() -> int:
         print("synthetic findings:")
         for row in fps["synthetic"]:
             print(f"  note {row['index']}: {row['summaries']}")
+    print("held-out:")
+    for row in held["notes"]:
+        mark = "ok" if row["ok"] else "BAD"
+        print(f"  {row['id']} {mark} expect={row['expect']} findings={row['findings']}")
+    print("diagnosis:")
+    for issue_id, kind, status, why in DIAGNOSIS:
+        print(f"  {issue_id} {kind} {status}: {why}")
     if "--json" in sys.argv:
-        print(json.dumps({"catch": caught, "false_positives": fps}, indent=2))
+        print(json.dumps({"catch": caught, "false_positives": fps, "held_out": held}, indent=2))
     return 0
 
 

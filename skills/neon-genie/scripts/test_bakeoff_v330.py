@@ -143,11 +143,17 @@ def test_note_scan_is_general() -> None:
         assert phrase not in source, phrase
     caught = eval_note_scan.catch_report()
     fps = eval_note_scan.false_positive_report()
+    held = eval_note_scan.held_out_report()
     assert caught["total"] == 16
     assert fps["synthetic_findings"] == 0, fps["synthetic"]
+    assert fps["doc_findings"] == 0, fps["docs"]
+    assert held["planted_caught"] == held["planted"], held
+    assert held["clean_findings"] == 0, held
     print(
         f"fix4 catch {caught['caught']}/{caught['total']} "
-        f"false_positives docs={fps['doc_findings']} synthetic={fps['synthetic_findings']}"
+        f"false_positives docs={fps['doc_findings']} synthetic={fps['synthetic_findings']} "
+        f"held_out {held['planted_caught']}/{held['planted']} "
+        f"clean_findings={held['clean_findings']}"
     )
     for row in caught["issues"]:
         mark = "hit" if row["caught"] else "miss"

@@ -57,15 +57,22 @@ def main() -> int:
         if r.returncode == 0:
             errors.append("validate empty opportunity should FAIL")
 
+        # The pre-3.27 stub used object thesis/path and omitted logic_label.
+        # Schema 1.3.0 still requires a string thesis, an array path, and
+        # logic_label (required since 3.27.0). Validation is not loosened.
         full = {
-            "blocked_transition": {},
-            "outcome_model": {},
-            "system_topology": {},
-            "opportunity_thesis": {},
-            "validation_path": {},
+            "blocked_transition": {
+                "from": "idea without a named buyer",
+                "to": "testable offer",
+            },
+            "outcome_model": {"success": "first paid outcome"},
+            "system_topology": {"actors": ["operator"]},
+            "opportunity_thesis": "A bounded offer can be tested with warm contacts.",
+            "validation_path": ["offer the check", "record yes or no"],
             "completion_proof": "first paid outcome within 14 days",
-            "scorecard": {},
+            "scorecard": {"evidence_density": 0.4},
             "promotion_state": "TESTABLE",
+            "logic_label": "mixed",
         }
         packet.write_text(json.dumps(full), encoding="utf-8")
         r = run(["do", "validate", "--packet", str(packet), "--type", "opportunity"])
