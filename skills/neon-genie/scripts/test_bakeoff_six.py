@@ -180,9 +180,10 @@ def test_input_contradictions_from_fixture_notes() -> None:
     assert scanned["checked"] is True
     kinds = {row["kind"] for row in scanned["findings"]}
     assert kinds == {"contradiction", "arithmetic_error", "inconsistent_figure"}
-    blob = json.dumps(scanned)
-    assert "Acme" not in blob
-    assert "buyer" not in blob.lower() or "not a customer" in packet_compose.SEAT_OPTION_NOTES
+    blob = json.dumps(scanned).lower()
+    assert "acme" not in blob
+    assert "buyer" not in blob
+    assert "revenue" not in blob
     clean = packet_compose.scan_input_notes("The operator has not declared a buyer.")
     assert clean["findings"] == []
     assert packet_compose.scan_input_notes("10 × 5 = 50.")["findings"] == []
