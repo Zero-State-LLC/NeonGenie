@@ -400,6 +400,7 @@ def recipe_commercial(out: Path) -> int:
                 "data_source": "operator DataRequest log for buyer_budget_authority",
                 "claim_label": "SPECULATIVE",
                 "role": "guardrail",
+                "derivation": packet_compose.identity_derivation(1),
             }
         ],
     )
@@ -900,6 +901,7 @@ def recipe_opportunity(out: Path) -> int:
                 "data_source": "operator ledger of invoices against declared warm contacts",
                 "claim_label": "SPECULATIVE",
                 "role": "guardrail",
+                "derivation": packet_compose.identity_derivation(1),
             }
         ],
     )

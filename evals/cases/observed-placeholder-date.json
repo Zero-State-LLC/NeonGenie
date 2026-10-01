@@ -1,0 +1,22 @@
+{
+  "input": {
+    "packet_type": "opportunity",
+    "code": "NG-LABEL-001",
+    "packet": {
+      "schema_version": "1.1.0",
+      "claims": [
+        {
+          "label": "OBSERVED",
+          "text": "The note records 3 cases.",
+          "quote": "The note records 3 cases.",
+          "retrieved_at": "1970-01-01"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "status": "GATE_FAIL",
+    "gate": "LABEL",
+    "code": "NG-LABEL-001"
+  }
+}

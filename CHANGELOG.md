@@ -5,6 +5,37 @@ All notable changes to Neon Genie are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses semantic versioning.
 
+## [3.29.0] — 2026-10-01
+
+Round-2 bake-off follow-up on v3.28.0. Honesty stays: no invented buyers,
+revenue, or prices. Schema **1.3.0** is additive. Packets below 1.3.0 still
+validate. See `schemas/migrations/1.2.0-to-1.3.0.md`.
+
+### Added
+
+- Note scan arithmetic for price × seats, fee-inclusive totals, flat per-unit
+  floors, and same per-seat rates, plus option-rationale overlap, verification
+  clashes, banned-upsell vs paid-funnel, scope clashes, and buyer-rail clashes.
+  `$300k` is 300000, not 300.
+- Kill recomputation (`derivation`) for schema 1.3.0. `min_tier_net_of_fee`
+  requires every tier, the percent fee, and the fixed fee (NG-KILL-004,
+  NG-KILL-005).
+- OBSERVED placeholder dates fail (NG-LABEL-001). A cited quote that does not
+  support the claim fails (NG-LABEL-002). Inconclusive quotes fail closed
+  unless a pluggable quote judge returns `supports` (NG-LABEL-003).
+- Free `robots_http` adapter. It honors robots.txt and does not fetch when
+  robots cannot be read. Paid adapters stay opt-in and are not bundled. CI
+  uses fixtures.
+- Tie-breaker judge in `scripts/judge_eval.py`. It runs only when the first
+  two judges disagree on the pairwise winner.
+
+### Changed
+
+- Opportunity packet and commercial simulation document `$id` **1.3.0**.
+- Packaging recipes emit schema 1.3.0 packets. Their kill thresholds are
+  identity derivations of the stated test count, not observed prices.
+- VERSION **3.29.0**.
+
 ## [3.28.0] — 2026-10-01
 
 Bake-off follow-up (2026-09-30, five ideas). Honesty stays: no invented

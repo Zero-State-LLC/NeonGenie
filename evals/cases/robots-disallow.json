@@ -1,0 +1,14 @@
+{
+  "input": {
+    "robots": "User-agent: *\nDisallow: /private\n",
+    "user_agent": "neon-genie-research/3.29",
+    "path": "/private/note",
+    "expect_allowed": false
+  },
+  "expected": {
+    "status": "PASS",
+    "allowed": false,
+    "gate": "RESEARCH",
+    "model_invoked": false
+  }
+}

@@ -1,7 +1,7 @@
 ---
 name: neon-genie
 description: Audit products and opportunities with labeled evidence.
-version: 3.28.0
+version: 3.29.0
 author: Daniel Meyer (scrimshawlife-ctrl), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -146,7 +146,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
    - Find → request private → `NOT_COMPUTABLE` — for public/fetchable gaps, attempt research first; for operator/private gaps, emit a `DataRequest` before (or instead of) `NOT_COMPUTABLE`; never invent.
    - Never fabricate — if fetch fails or tools are absent, mark `NOT_COMPUTABLE` with the attempted query (after find was attempted or correctly skipped offline, and after request when private).
    - Freshness — prefer primary/current sources; note retrieval time for volatile facts.
-   - Research mode (3.28.0) — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`). The core does not add a third-party HTTP library. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a retrieval date, and a complete source body. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
+   - Research mode — optional gathering before the packet is written, through pluggable adapters in `scripts/research_mode.py` (`null`, `fixture`, `stdlib_http`, and free `robots_http`). `robots_http` is a stdlib fetch that reads robots.txt and fails closed when robots cannot be read. Crawl4AI is not a dependency. Paid adapters are opt-in and are not bundled; CI uses fixtures only. Offline or `research.enabled=false` does not call an adapter and adds no OBSERVED claims. A gathered item is OBSERVED only with an http(s) URL, a real retrieval date, and a complete source body. A placeholder date is not OBSERVED. No source means no OBSERVED label. Do not invent buyers, revenue, or prices from a missing fetch.
    - Attribution boundaries — separate person / company / foundation / model inference.
    - Authority unchanged — research may draft; it may not submit, contact, spend, publish, or mutate repos.
    - Privacy — do not probe private systems without declared access; public + operator-granted only; request private facts via `DataRequest`. Run egress check before host tools; credentials never leave; private/operator egress needs consent.
@@ -236,11 +236,13 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
 
     Opportunity and commercial packets at schema **1.2.0** (`scripts/packet_compose.py`) also include:
 
-    - `input_contradictions` — a pass over the input notes for contradictions, arithmetic errors, and inconsistent figures, run before the packet is written. Empty findings are valid. Skipping the pass is not.
-    - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`.
+    - `input_contradictions` — a pass over the input notes for contradictions, arithmetic errors, and inconsistent figures, run before the packet is written. The pass does the arithmetic (price × seats, fee-inclusive totals, per-unit floors, tier labels) and compares an option rationale with the option definitions. Empty findings are valid. Skipping the pass is not.
+    - `kill_criteria[]` — each item has `metric`, a numeric `threshold`, `comparison` (`lt`|`lte`|`gt`|`gte`|`eq`|`neq`), `check_date`, and `data_source`. Prose-only kill criteria fail validation (NG-KILL-001). A threshold is not an observed price unless `evidence_refs` support `OBSERVED`. Schema **1.3.0** also requires `derivation` so the threshold can be recomputed from its inputs, including every cost it depends on. A missing input fails (NG-KILL-005). A threshold that is not the recomputed value fails (NG-KILL-004).
     - `build_handoff.first_commit` — files or areas to touch, a done-when check, one test to write, and an owner role.
     - `page_budget` — decision prose at most 450 words and 3200 characters. Long evidence moves intact into `appendix`. Do not truncate.
     - `research` — the gathering record. Offline records stay empty of OBSERVED claims.
+
+    An OBSERVED claim fails when its date is a placeholder (NG-LABEL-001) or its cited quote does not support the claim (NG-LABEL-002). When the quote check is inconclusive, a pluggable quote judge may decide; with no judge the claim fails closed (NG-LABEL-003). Packets below 1.2.0 stay valid. Migrations: `references/schemas/migrations/1.1.0-to-1.2.0.md` and `references/schemas/migrations/1.2.0-to-1.3.0.md`.
 
     Packets with `schema_version` below 1.2.0 stay valid. Migration: `references/schemas/migrations/1.1.0-to-1.2.0.md`.
 
@@ -282,6 +284,7 @@ Jobs: `doctor` (full smoke), `wizard` (guided packaging), `privacy` (resolved bo
     - irreversible agentic action without independent validation_isolation / validation_step (Gate ISO);
     - research ran without research_search_dag stages (Gate PILOT).
     - schema 1.2.0 opportunity/commercial packet with prose-only kill criteria, a missing first-commit handoff, a skipped input-contradiction pass, a truncated or over-budget main page, or an OBSERVED research claim without URL and retrieval date (NG-KILL / NG-HANDOFF / NG-INPUT / NG-PAGE / NG-RESEARCH).
+    - schema 1.3.0 kill threshold that does not recompute from its stated inputs, or an OBSERVED claim whose date is a placeholder or whose quote does not support the claim (NG-KILL-004 / NG-KILL-005 / NG-LABEL).
 
     Also apply anti-overclaim gates A–R and privacy gates S–Y in `references/anti-overclaim-patterns.md` during CLEAR. Registry: `references/gates.yaml` (includes LOGIC, STAGE, BRIC, CITE, HYP, METRIC, LIVE, CSET, LEDGER, ISO, PILOT). Completion: CLEAR lists every failed gate or records none.
 
@@ -348,7 +351,11 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/irreversible-missing-log-pointer.json`
 - `examples/evals/cases/irreversible-without-validation.json`
 - `examples/evals/cases/kill-criteria-prose.json`
+- `examples/evals/cases/kill-recompute-mismatch.json`
+- `examples/evals/cases/kill-recompute-missing.json`
 - `examples/evals/cases/memetic-cannot-promote.json`
+- `examples/evals/cases/observed-placeholder-date.json`
+- `examples/evals/cases/observed-quote-polarity.json`
 - `examples/evals/cases/offline-no-fabricated-observed.json`
 - `examples/evals/cases/page-budget-no-truncation.json`
 - `examples/evals/cases/paid-judge-rejected.json`
@@ -365,8 +372,10 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/evals/cases/research-offline-no-observed.json`
 - `examples/evals/cases/research-ran-without-dag.json`
 - `examples/evals/cases/research-source-required.json`
+- `examples/evals/cases/robots-disallow.json`
 - `examples/evals/cases/scale-without-test.json`
 - `examples/evals/cases/scorecard-cannot-override-gate.json`
+- `examples/evals/cases/tie-breaker-judge.json`
 - `examples/evals/cases/uncited-claim.json`
 - `examples/evals/cases/wayfinder-change-control.json`
 - `examples/evals/cases/x402-misfit.json`
@@ -392,6 +401,7 @@ Hermes Hub installs only `SKILL.md` plus **explicitly path-referenced** files un
 - `examples/packets/sample-data-request.json`
 - `examples/packets/sample-external-action.json`
 - `examples/packets/sample-opportunity-v12.packet.json`
+- `examples/packets/sample-opportunity-v13.packet.json`
 - `examples/packets/sample-opportunity.packet.json`
 - `examples/packets/sample-privacy-context.json`
 - `examples/packets/sample-purpose-bound-consent.json`
@@ -518,6 +528,6 @@ Pass when:
 - VERSION matches frontmatter and `manifest.json`.
 - `do check`, `do eval`, and `do doctor` exit 0.
 - Advisory authority is unchanged: no spend, publish, contact, or repo mutation.
-- Dual-judge bake-off scoring (`scripts/judge_eval.py`) uses fixture judges in CI. It does not call a paid model. Neutral criteria are founder usefulness, correctness, and actionability, beside the skill's own criteria, with shuffled order and an A/B swap.
+- Dual-judge bake-off scoring (`scripts/judge_eval.py`) uses fixture judges in CI. It does not call a paid model. Neutral criteria are founder usefulness, correctness, and actionability, beside the skill's own criteria, with shuffled order and an A/B swap. A third fixture judge runs only when the first two disagree on the pairwise winner.
 
 Source, profile, and migration rules: `references/source-and-upgrades.md`.

@@ -40,7 +40,7 @@ Separate **beneficiary**, **user**, **buyer**, **authorizer**, **payer**, and **
 
 Unsupported numerical projections remain `SPECULATIVE` or `NOT_COMPUTABLE` — never `OBSERVED` (Gate B).
 
-Schema 1.2.0 kill criteria are numeric and sourced (`metric`, `threshold`, `comparison`, `check_date`, `data_source`). A kill threshold labeled `OBSERVED` needs `evidence_refs`. The handoff ends with `first_commit`. Decision prose stays within `page_budget`; do not invent a price to fill the page.
+Schema 1.2.0 kill criteria are numeric and sourced (`metric`, `threshold`, `comparison`, `check_date`, `data_source`). Schema 1.3.0 recomputes `threshold` from `derivation`, including every cost the kill depends on. A kill threshold labeled `OBSERVED` needs `evidence_refs` and a date that is not a placeholder. The handoff ends with `first_commit`. Decision prose stays within `page_budget`; do not invent a price to fill the page.
 
 ## Outputs
 
