@@ -1,0 +1,100 @@
+[
+ {
+  "url": "https://developers.openai.com/plugins/plugin-guidelines",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://developers.openai.com/plugins/deploy/submission",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://raw.githubusercontent.com/coinbase/x402/main/README.md",
+  "complete": false,
+  "reason": "robots_unavailable",
+  "query": "https://raw.githubusercontent.com/coinbase/x402/main/README.md",
+  "text_len": 0
+ },
+ {
+  "url": "https://x402.org/",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://docs.x.ai/developers/pricing",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://stripe.com/pricing",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://developers.cloudflare.com/workers/platform/pricing/",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://supabase.com/pricing",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://docs.typesafe.ai/llms.txt",
+  "retrieved_at": "2026-10-01",
+  "complete": true,
+  "kind": "web_page",
+  "text_len": 16013
+ },
+ {
+  "url": "https://docs.typesafe.ai/api.md",
+  "retrieved_at": "2026-10-01",
+  "complete": true,
+  "kind": "web_page",
+  "text_len": 11209
+ },
+ {
+  "url": "https://www.kraken.com/features/fee-schedule",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://www.coinbase.com/advanced-fees",
+  "retrieved_at": "2026-10-01",
+  "complete": true,
+  "kind": "web_page",
+  "text_len": 5464
+ },
+ {
+  "url": "https://grok.com/plans",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ },
+ {
+  "url": "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+  "retrieved_at": "2026-10-01",
+  "complete": false,
+  "reason": "body_cap",
+  "text_len": 0
+ }
+]
