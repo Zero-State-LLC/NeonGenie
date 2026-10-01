@@ -1,0 +1,20 @@
+{
+  "duplicate_line": "SuperGrok Heavy seat ~$300/mo. CF Workers Paid $5/mo. Supabase Pro $25/mo.\nToken bands: low = $6.40; med = $64; high = $256; high+cliff x2 = $512.\nShared Heavy (1 seat, fixed $330): 1 tenant: $336/$394/$586; 10 tenants: $39/$97/$289; 50 tenants: $13/$71/$263.\nHeavy per tenant: 1: $636/$694/$886; 10: $309/$367/$559; 50: $307/$365/$557.\nFail closed: price as N=1. SKU 1 Shared-Heavy list ESTIMATE $500/$650. SKU 2 Dedicated-Heavy list ESTIMATE $800/$1,000.",
+  "alta_burn_rent": "Location thesis ~10k SF at $5.50/SF/mo.\nAt ~10k sf and CW mid-ask, BASE burns ~$35k/mo without sponsors.",
+  "not_found": {
+    "url": "https://example.test/pricing/missing",
+    "text": "Not found"
+  },
+  "instagram": {
+    "url": "https://www.instagram.com/reel/example",
+    "text": "Watch this reel about the product launch and the monthly price the vendor posted on its own site yesterday for subscribers who follow the account."
+  },
+  "fragment": {
+    "url": "https://example.test/pricing/snippet",
+    "text": "Price is 12"
+  },
+  "primary": {
+    "url": "https://example.test/pricing",
+    "text": "Vendor pricing documentation lists the published monthly price, the included quota, and the plan name on this official pricing page."
+  }
+}

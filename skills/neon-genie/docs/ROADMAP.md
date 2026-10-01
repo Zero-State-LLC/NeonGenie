@@ -93,6 +93,7 @@ Public entry points:
 | **3.30.0** | Round-3 fixes: quote negation and whole-token numbers, OBSERVED placeholder words on every labeled field, kill derivations that ignore declared tiers or fees, general note-scan checks, robots.txt 404 and a 2 MiB body cap, Los Angeles retrieval dates, optional Jev line-id correctness diagnostic. Schema stays **1.3.0**. |
 | **3.31.0** | Round-4 fixes: numeric note flags stay on the main page only when they recompute, money-table mismatches print `notes say X, recomputed Y`, unconfirmed flags go to an unverified appendix, capped per-idea research (free fetch first; paid search off unless keyed), optional one-action cheapest test. Schema stays **1.3.0**. |
 | **3.32.0** | Firecrawl `POST /search` fills the capped paid-search slot. On only when `NEON_GENIE_RESEARCH_PAID=1` and `FIRECRAWL_API_KEY` are set. Credit cost uses `DOLLARS_PER_CREDIT` (default 0.005). Schema stays **1.3.0**. |
+| **3.33.0** | Round-5 fixes: main page keeps named money-table recomputes only, duplicate quantities are dropped, search hits are OBSERVED only from primary sources, at most five links on the main page, and a mocked Jev reconcile step. Schema stays **1.3.0**. |
 
 Also on main around this line: **capital_sprint** profile/protocol and **external-signals** corpus (labeled references).
 

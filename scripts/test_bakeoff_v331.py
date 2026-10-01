@@ -51,17 +51,20 @@ def test_alta_burn_and_autogive_heavy_recompute() -> None:
         scanned = packet_compose.scan_input_notes(text)
         summaries = [row["summary"] for row in scanned["findings"]]
         assert any(
-            summary == "notes say 35000, recomputed 55000" for summary in summaries
+            summary == "notes say monthly burn 35000, recomputed monthly rent 55000"
+            for summary in summaries
         ), summaries
         prose = _main_text(scanned)
-        assert "notes say 35000, recomputed 55000" in prose
+        assert "notes say monthly burn 35000, recomputed monthly rent 55000" in prose
         assert "8.57143" not in prose
     for text in (rows["autogive_heavy"], _notes("3-autogive-tenant-sku.md")):
         scanned = packet_compose.scan_input_notes(text)
         summaries = [row["summary"] for row in scanned["findings"]]
-        assert "notes say 636, recomputed 336.4" in summaries, summaries
+        assert "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4" in summaries, summaries
+        assert not any("331.5" in summary for summary in summaries)
         prose = _main_text(scanned)
-        assert "notes say 636, recomputed 336.4" in prose
+        assert "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4" in prose
+        assert "331.5" not in prose
         assert "below the count-1 floor 886" not in prose
         wrapped = packet_compose.apply_page_budget(
             {
@@ -208,8 +211,11 @@ class _Provider:
             return self.rows
         return [
             {
-                "url": f"https://example.test/p/{self.calls}",
-                "text": f"Official price page for {query}.",
+                "url": f"https://example.test/pricing/p/{self.calls}",
+                "text": (
+                    "Vendor pricing documentation lists the published monthly price, "
+                    "the included quota, and the plan name on this official pricing page."
+                ),
                 "complete": True,
                 "kind": "web_page",
                 "retrieved_at": "2026-10-01",

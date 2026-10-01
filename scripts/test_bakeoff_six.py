@@ -289,8 +289,9 @@ def test_page_budget_moves_evidence_without_truncation() -> None:
     main_claim = packet["research"]["observed_claims"][0]
     assert "text" not in main_claim
     assert long not in packet_compose.prose_main(packet)
-    evidence = packet["appendix"]["contradiction_evidence"][0]["evidence"]
-    assert evidence == "10 × 5 = 100"
+    notes = packet["appendix"]["unverified_scanner_notes"]["notes"]
+    assert any(row.get("evidence") == "10 × 5 = 100" for row in notes)
+    assert "10 × 5 = 100" not in packet_compose.prose_main(packet)
 
     huge = dict(packet)
     huge["opportunity_thesis"] = "word " * 500
