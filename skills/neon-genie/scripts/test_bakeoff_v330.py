@@ -117,7 +117,7 @@ def test_autogive_cost_inputs() -> None:
     ]
     assert justified_errors == []
     full = json.loads(
-        (FIX / "r3-packets" / "3-autogive-tenant-sku.opportunity.packet.json").read_text(
+        (FIX / "r3-packets" / "3-harbor-seat-plan.opportunity.packet.json").read_text(
             encoding="utf-8"
         )
     )

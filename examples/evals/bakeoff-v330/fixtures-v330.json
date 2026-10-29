@@ -123,86 +123,86 @@
     "expect": "pass"
    }
   ],
-  "full_packets": "r3-packets/3-autogive-tenant-sku.opportunity.packet.json (round-3 final, passes) and r2-packets/3-autogive-tenant-sku.opportunity.packet.json (round-2)"
+  "full_packets": "r3-packets/3-harbor-seat-plan.opportunity.packet.json (round-3 final, passes) and r2-packets/3-harbor-seat-plan.opportunity.packet.json (round-2)"
  },
  "fix4_known_issues_raw_notes": [
   {
-   "idea": "1-hyperlex-plugin",
+   "idea": "1-lumen-desk-widget",
    "id": "1.1",
    "issue": "1.2B weekly users labeled UNVERIFIED in the gap packet but OBSERVED/verified in the CARD"
   },
   {
-   "idea": "1-hyperlex-plugin",
+   "idea": "1-lumen-desk-widget",
    "id": "1.2",
    "issue": "free plugin -> paid API funnel vs the plugin ban on upsells/promoting upgrades"
   },
   {
-   "idea": "1-hyperlex-plugin",
+   "idea": "1-lumen-desk-widget",
    "id": "1.3",
    "issue": "'OpenAPI or MCP manifest' vs plugins are Skills and/or an MCP server"
   },
   {
-   "idea": "2-x402-vernacular-api",
+   "idea": "2-brook-meter-api",
    "id": "2.1",
    "issue": "'one build serves all three' vs hackathon rule: must run on Nebius Token Factory with an NVIDIA open model at runtime"
   },
   {
-   "idea": "2-x402-vernacular-api",
+   "idea": "2-brook-meter-api",
    "id": "2.2",
    "issue": "hackathon requires open-source repo vs reusing the code for the paid API"
   },
   {
-   "idea": "2-x402-vernacular-api",
+   "idea": "2-brook-meter-api",
    "id": "2.3",
    "issue": "paid demand routed to x402 vs named payer (T&S teams) reached 'through the API'"
   },
   {
-   "idea": "3-autogive-tenant-sku",
+   "idea": "3-harbor-seat-plan",
    "id": "3.1",
    "issue": "per-tenant Heavy table counts an operator seat at N=1 but not at N=10/50"
   },
   {
-   "idea": "3-autogive-tenant-sku",
+   "idea": "3-harbor-seat-plan",
    "id": "3.2",
    "issue": "fail-closed 'price as N=1' puts SKU 2 at $800 below the $886 N=1 high floor"
   },
   {
-   "idea": "3-autogive-tenant-sku",
+   "idea": "3-harbor-seat-plan",
    "id": "3.3",
    "issue": "Heavy seat 'does not include API' yet tenant tokens priced at API rates"
   },
   {
-   "idea": "3-autogive-tenant-sku",
+   "idea": "3-harbor-seat-plan",
    "id": "3.4",
    "issue": "'high+cliff x2 = $512' listed but used in no floor row"
   },
   {
-   "idea": "4-alta-commons-founding100",
+   "idea": "4-willow-yard-pass",
    "id": "4.1",
    "issue": "01's rationale for locked Option A describes Option B (conversion/refund book)"
   },
   {
-   "idea": "4-alta-commons-founding100",
+   "idea": "4-willow-yard-pass",
    "id": "4.2",
    "issue": "Option B still recommended/gated in 03, 11, 19, 28, README after the A lock"
   },
   {
-   "idea": "4-alta-commons-founding100",
+   "idea": "4-willow-yard-pass",
    "id": "4.3",
    "issue": "$3,000 credit covers ~5-9 months of one tier but ~1 month of another; 'rate lock' has no stated rate"
   },
   {
-   "idea": "4-alta-commons-founding100",
+   "idea": "4-willow-yard-pass",
    "id": "4.4",
    "issue": "rent $5.50/sf/mo = $66/sf/yr vs a $60/sf/yr band"
   },
   {
-   "idea": "5-jev-crypto-arb",
+   "idea": "5-cinder-route-desk",
    "id": "5.1",
    "issue": "X top-20 labeled OBSERVED but claims inside (Jev 70-500ms, PnL) unverified; S1 treats 70-500ms as fact"
   },
   {
-   "idea": "5-jev-crypto-arb",
+   "idea": "5-cinder-route-desk",
    "id": "5.2",
    "issue": "high consequential_spend routes to ask_human vs red team 'unclear cases default to skip'"
   }
@@ -217,7 +217,7 @@
  "gate_log_round3": {
   "authoring_firings": [
    {
-    "idea": "3-autogive-tenant-sku",
+    "idea": "3-harbor-seat-plan",
     "draft": "claim c-grok46 quoted only the two grok-4.6 table rows",
     "fired": [
      "NG-LABEL-002: claims[0] cited quote does not support the claim"

@@ -18,7 +18,9 @@ import research_mode
 ROOT = Path(__file__).resolve().parents[1]
 FIX = ROOT / "evals" / "fixtures" / "v331" / "regressions.json"
 RAW = ROOT / "evals" / "bakeoff-v330" / "raw-notes"
-FALSE_FLAG = "Double of 64 is 128, not 512"
+FALSE_FLAG = "Double of 40 is 80, not 160"
+BURN = "notes say monthly burn 18000, recomputed monthly rent 32000"
+SEAT = "notes say Cove per tenant 425, recomputed Pooled cove 225"
 
 
 def _notes(name: str) -> str:
@@ -34,7 +36,7 @@ def _main_text(scanned: dict) -> str:
 
 def test_false_double_stays_off_the_main_page() -> None:
     rows = json.loads(FIX.read_text(encoding="utf-8"))
-    for text in (rows["false_double"], _notes("3-autogive-tenant-sku.md")):
+    for text in (rows["false_double"], _notes("3-harbor-seat-plan.md")):
         scanned = packet_compose.scan_input_notes(text)
         blob = _main_text(scanned)
         assert FALSE_FLAG not in blob
@@ -45,30 +47,27 @@ def test_false_double_stays_off_the_main_page() -> None:
                 assert row["claim_label"] in {"OBSERVED", "INFERRED"}
             else:
                 assert row["claim_label"] == "OBSERVED"
-    print("false double 64/128/512 absent from main")
+    print("false double 40/80/160 absent from main")
 
 
 def test_alta_burn_and_autogive_heavy_recompute() -> None:
     rows = json.loads(FIX.read_text(encoding="utf-8"))
-    for text in (rows["alta_burn_rent"], _notes("4-alta-commons-founding100.md")):
+    for text in (rows["yard_burn_rent"], _notes("4-willow-yard-pass.md")):
         scanned = packet_compose.scan_input_notes(text)
         summaries = [row["summary"] for row in scanned["findings"]]
-        assert any(
-            summary == "notes say monthly burn 35000, recomputed monthly rent 55000"
-            for summary in summaries
-        ), summaries
+        assert summaries.count(BURN) == 1, summaries
         prose = _main_text(scanned)
-        assert "notes say monthly burn 35000, recomputed monthly rent 55000" in prose
+        assert BURN in prose
         assert "8.57143" not in prose
-    for text in (rows["autogive_heavy"], _notes("3-autogive-tenant-sku.md")):
+    for text in (rows["seat_heavy"], _notes("3-harbor-seat-plan.md")):
         scanned = packet_compose.scan_input_notes(text)
         summaries = [row["summary"] for row in scanned["findings"]]
-        assert "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4" in summaries, summaries
-        assert not any("331.5" in summary for summary in summaries)
+        money = [summary for summary in summaries if summary.startswith("notes say ")]
+        assert money == [SEAT], summaries
         prose = _main_text(scanned)
-        assert "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4" in prose
-        assert "331.5" not in prose
-        assert "below the count-1 floor 886" not in prose
+        assert SEAT in prose
+        assert FALSE_FLAG not in prose
+        assert "below the count-1 floor" not in prose
         wrapped = packet_compose.apply_page_budget(
             {
                 "input_contradictions": scanned,
@@ -84,7 +83,7 @@ def test_alta_burn_and_autogive_heavy_recompute() -> None:
             assert note["claim_label"] == "NOT_COMPUTABLE"
             assert note["claim_label"] != "OBSERVED"
             assert note["summary"].startswith("Unverified scanner note: not stated as fact.")
-    print("alta burn 35000→55000 and autogive 636→336.4 on the main page")
+    print("yard burn 18000 to 32000 and cove seat 425 to 225 on the main page")
 
 
 def test_held_out_still_clean() -> None:

@@ -13,8 +13,8 @@ printed search hits and Jev reconcile lines there.
 1. The main page again shows the reviewed contradictions (a dual option
    lock, a monthly rate that is not the yearly band, and an action that
    is both required and excluded) and the verified money-table recomputes
-   that name both quantities. The false 64/128/512 flag stays off. The
-   Autogive seat line stays singular, with no 331.5 duplicate.
+   that name both quantities. A false double flag stays off the main page.
+   A seat recompute stays singular.
 2. Firecrawl hits, Jev reconcile lines, and the other scanner notes go to
    an appendix labeled `Research (unreviewed, needs a person's review)`.
    None of that is OBSERVED and none of it is on the main page.

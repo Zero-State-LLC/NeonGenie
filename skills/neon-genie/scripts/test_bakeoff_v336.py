@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """v3.36 final bake-off page. Stdlib only. No network and no paid calls.
 
-The main-page contradiction set for the five bake-off ideas is v3.29's
-set plus the named money recomputes.
+The main-page contradiction set for the five bake-off ideas is the
+reviewed-line fixture plus the named money recomputes.
 """
 
 from __future__ import annotations
@@ -14,31 +14,35 @@ import packet_compose
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "evals" / "bakeoff-v330" / "raw-notes"
-R2 = ROOT / "evals" / "bakeoff-v330" / "r2-packets"
 REVIEWED = ROOT / "evals" / "fixtures" / "v329" / "reviewed-lines.json"
 IDEAS = (
-    "1-hyperlex-plugin.md",
-    "2-x402-vernacular-api.md",
-    "3-autogive-tenant-sku.md",
-    "4-alta-commons-founding100.md",
-    "5-jev-crypto-arb.md",
+    "1-lumen-desk-widget.md",
+    "2-brook-meter-api.md",
+    "3-harbor-seat-plan.md",
+    "4-willow-yard-pass.md",
+    "5-cinder-route-desk.md",
 )
 MONEY = {
-    "3-autogive-tenant-sku.md": "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4",
-    "4-alta-commons-founding100.md": "notes say monthly burn 35000, recomputed monthly rent 55000",
+    "3-harbor-seat-plan.md": "notes say Cove per tenant 425, recomputed Pooled cove 225",
+    "4-willow-yard-pass.md": "notes say monthly burn 18000, recomputed monthly rent 32000",
 }
-FALSE_FLAG = "Double of 64 is 128, not 512"
+FALSE_FLAG = "Double of 40 is 80, not 160"
+ROUTE_LINE = (
+    "The route sends high spend to hold_review; "
+    "the review note says unclear cases default to skip, not hold_review."
+)
 
 
-def _v329(name: str) -> set[str]:
-    packet = R2 / (Path(name).stem + ".opportunity.packet.json")
-    data = json.loads(packet.read_text(encoding="utf-8"))
+def _reviewed(name: str, notes: str) -> set[str]:
+    prefix = name.split("-", 1)[0] + "."
+    payload = json.loads(REVIEWED.read_text(encoding="utf-8"))
     lines: set[str] = set()
-    for row in data["input_contradictions"]["findings"]:
-        note = str(row.get("host_review") or "")
-        if note.startswith("FALSE_POSITIVE"):
+    for row in payload["lines"]:
+        if not str(row["id"]).startswith(prefix):
             continue
-        lines.add(row["summary"])
+        needles = [str(item) for item in row["needles"]]
+        if needles and all(needle in notes for needle in needles):
+            lines.add(str(row["summary"]))
     return lines
 
 
@@ -59,9 +63,10 @@ def test_main_page_is_v329_plus_recomputes() -> None:
     assert len(reviewed) == 16
     seen: set[str] = set()
     for name in IDEAS:
+        notes = (RAW / name).read_text(encoding="utf-8")
         packet, prose = _page(name)
         got = {row["summary"] for row in packet["input_contradictions"]["findings"]}
-        want = set(_v329(name))
+        want = _reviewed(name, notes)
         extra = MONEY.get(name)
         if extra:
             want.add(extra)
@@ -73,13 +78,13 @@ def test_main_page_is_v329_plus_recomputes() -> None:
         seen.update(got)
     for row in reviewed:
         assert row["summary"] in seen, row["id"]
-    _, auto = _page("3-autogive-tenant-sku.md")
-    assert auto.count(MONEY["3-autogive-tenant-sku.md"]) == 1
-    assert "331.5" not in auto
-    _, jev = _page("5-jev-crypto-arb.md")
-    assert jev.count("red team says unclear cases default to skip, not ask_human") == 1
-    assert "The action ask_human is both required and excluded." not in jev
-    print("main page is the v3.29 set plus the money recomputes")
+    _, seat = _page("3-harbor-seat-plan.md")
+    assert seat.count(MONEY["3-harbor-seat-plan.md"]) == 1
+    assert "below the count-1 floor" not in seat
+    _, route = _page("5-cinder-route-desk.md")
+    assert route.count(ROUTE_LINE) == 1
+    assert "The action hold_review is both required and excluded." not in route
+    print("main page is the reviewed set plus the money recomputes")
 
 
 def main() -> None:
