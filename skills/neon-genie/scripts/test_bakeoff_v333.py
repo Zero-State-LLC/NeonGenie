@@ -37,13 +37,12 @@ def test_duplicate_line_keeps_one_named_recompute() -> None:
     summaries = [row["summary"] for row in scanned["findings"]]
     money = [summary for summary in summaries if summary.startswith("notes say ")]
     assert money == [
-        "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4"
+        "notes say Cove per tenant 425, recomputed Pooled cove 225"
     ], money
     blob = "\n".join(
         row["summary"] for row in scanned["findings"] + scanned["unverified_notes"]
     )
-    assert "331.5" not in blob
-    assert "Double of 64 is 128, not 512" not in blob
+    assert "Double of 40 is 80, not 160" not in blob
     wrapped = packet_compose.apply_page_budget(
         {
             "input_contradictions": scanned,
@@ -61,19 +60,18 @@ def test_duplicate_line_keeps_one_named_recompute() -> None:
     )
     main = [row["summary"] for row in wrapped["input_contradictions"]["findings"]]
     assert main.count(money[0]) == 1
-    assert "Computed 512 does not appear in a later total." in main
+    assert "Computed 160 does not appear in a later total." in main
     prose = packet_compose.prose_main(wrapped)
     assert money[0] in prose
     assert prose.count(money[0]) == 1
-    assert "331.5" not in prose
-    assert prose.count("Computed 512 does not appear in a later total.") == 1
+    assert prose.count("Computed 160 does not appear in a later total.") == 1
     assert wrapped["build_handoff"]["first_commit"]["touch"] == ["pricing notes"]
-    alta = packet_compose.scan_input_notes(rows["alta_burn_rent"])
+    yard = packet_compose.scan_input_notes(rows["yard_burn_rent"])
     assert any(
-        row["summary"] == "notes say monthly burn 35000, recomputed monthly rent 55000"
-        for row in alta["findings"]
+        row["summary"] == "notes say monthly burn 18000, recomputed monthly rent 32000"
+        for row in yard["findings"]
     )
-    print("one named recompute; duplicate 331.5 dropped; burn versus rent named")
+    print("one named recompute; false double dropped; burn versus rent named")
 
 
 class _Provider:

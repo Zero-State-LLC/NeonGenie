@@ -32,55 +32,54 @@ def _page(name: str) -> tuple[dict, str]:
 
 
 def test_expected_lines_and_no_empty_pass() -> None:
-    hyper, hyper_prose = _page("1-hyperlex-plugin.md")
-    x402, x402_prose = _page("2-x402-vernacular-api.md")
-    auto, auto_prose = _page("3-autogive-tenant-sku.md")
-    alta, alta_prose = _page("4-alta-commons-founding100.md")
-    jev, jev_prose = _page("5-jev-crypto-arb.md")
+    desk, desk_prose = _page("1-lumen-desk-widget.md")
+    meter, meter_prose = _page("2-brook-meter-api.md")
+    seat, seat_prose = _page("3-harbor-seat-plan.md")
+    yard, yard_prose = _page("4-willow-yard-pass.md")
+    route, route_prose = _page("5-cinder-route-desk.md")
 
-    assert "1.2B weekly users UNVERIFIED" in hyper_prose
-    assert "paid API funnel" in hyper_prose
-    assert "1.2B" in json.dumps(hyper["appendix"]["contradiction_evidence"])
-    assert "upsell" in json.dumps(hyper["appendix"]["contradiction_evidence"]).lower()
-    assert hyper["input_contradictions"]["findings"]
-    assert "none found" not in hyper_prose.lower()
-    assert "The same quantity is marked both UNVERIFIED and OBSERVED." not in hyper_prose
+    assert "4.4 million monthly readers" in desk_prose
+    assert "paid meter funnel" in desk_prose
+    assert "4.4 million" in json.dumps(desk["appendix"]["contradiction_evidence"])
+    assert "upsell" in json.dumps(desk["appendix"]["contradiction_evidence"]).lower()
+    assert desk["input_contradictions"]["findings"]
+    assert "none found" not in desk_prose.lower()
+    assert "The same quantity is marked both UNVERIFIED and OBSERVED." not in desk_prose
 
-    assert x402["input_contradictions"]["findings"]
-    assert "none found" not in x402_prose.lower()
-    assert "One build serves all three" in x402_prose
-    assert "open-source repo" in x402_prose
-    assert "through the API" in x402_prose
-    assert "serves every listed surface" not in x402_prose
+    assert meter["input_contradictions"]["findings"]
+    assert "none found" not in meter_prose.lower()
+    assert "all three surfaces" in meter_prose
+    assert "shared-code repo" in meter_prose
+    assert "through the meter" in meter_prose
+    assert "serves every listed surface" not in meter_prose
 
-    assert "maximizes conversion" in alta_prose
-    assert "Input notes lock both Option A and B." in alta_prose
-    assert "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr." in alta_prose
-    assert "notes say monthly burn 35000, recomputed monthly rent 55000" in alta_prose
-    assert "The rationale for locked Option A agrees with Option B." not in alta_prose
-    seat = packet_compose.scan_input_notes(packet_compose.SEAT_OPTION_NOTES)
+    assert "refund load" in yard_prose
+    assert "Input notes lock both Option A and B." in yard_prose
+    assert "$4/sf/mo implies $48/sf/yr, not $40/sf/yr." in yard_prose
+    assert "notes say monthly burn 18000, recomputed monthly rent 32000" in yard_prose
+    assert "The rationale for locked Option A agrees with Option B." not in yard_prose
+    option_notes = packet_compose.scan_input_notes(packet_compose.SEAT_OPTION_NOTES)
     assert any(
         row["summary"] == "The rationale for locked A describes B."
-        for row in seat["findings"]
+        for row in option_notes["findings"]
     )
 
-    assert "no floor row" in auto_prose
-    assert "Computed 512 does not appear in a later total." not in auto_prose
-    assert auto_prose.count("notes say Heavy per tenant 636, recomputed Shared Heavy 336.4") == 1
-    assert "331.5" not in auto_prose
-    assert "Double of 64 is 128, not 512" not in auto_prose
+    assert "no floor row" in seat_prose
+    assert "Computed 160 does not appear in a later total." not in seat_prose
+    assert seat_prose.count("notes say Cove per tenant 425, recomputed Pooled cove 225") == 1
+    assert "Double of 40 is 80, not 160" not in seat_prose
 
-    assert "70-500" in json.dumps(jev["appendix"]["contradiction_evidence"])
-    assert "red team says unclear cases default to skip, not ask_human" in jev_prose
-    assert "The action ask_human is both required and excluded." not in jev_prose
-    assert len([line for line in jev_prose.splitlines() if "ask_human" in line]) == 1
+    assert "40-90" in json.dumps(route["appendix"]["contradiction_evidence"])
+    assert "default to skip, not hold_review" in route_prose
+    assert "The action hold_review is both required and excluded." not in route_prose
+    assert len([line for line in route_prose.splitlines() if "hold_review" in line]) == 1
 
-    for prose in (hyper_prose, x402_prose, auto_prose, alta_prose, jev_prose):
+    for prose in (desk_prose, meter_prose, seat_prose, yard_prose, route_prose):
         assert len(prose.split()) <= packet_compose.WORD_BUDGET
-    for packet in (hyper, x402, auto, alta, jev):
+    for packet in (desk, meter, seat, yard, route):
         for row in packet["input_contradictions"]["findings"]:
             assert row.get("source") in {"reviewed", "v329"}
-    print("reviewed lines are on the main page; hyperlex and x402 are not empty")
+    print("reviewed lines are on the main page; desk and meter are not empty")
 
 
 def test_v329_packet_lines_pass_by_provenance() -> None:
@@ -109,19 +108,19 @@ def test_v329_packet_lines_pass_by_provenance() -> None:
 
 
 def test_page_budget_twice_and_sidecar() -> None:
-    notes = (RAW / "5-jev-crypto-arb.md").read_text(encoding="utf-8")
+    notes = (RAW / "5-cinder-route-desk.md").read_text(encoding="utf-8")
     scanned = packet_compose.scan_input_notes(notes)
     scanned["findings"].append(
         {
             "finding_id": "in-v329",
             "kind": "contradiction",
             "summary": (
-                "The route sends high consequential_spend to ask_human; "
-                "the red team says unclear cases default to skip, not ask_human."
+                "The route sends high spend to hold_review; "
+                "the review note says unclear cases default to skip, not hold_review."
             ),
             "claim_label": "OBSERVED",
             "source": "v329",
-            "evidence": "skip, not ask_human",
+            "evidence": "skip, not hold_review",
         }
     )
     base = {
@@ -154,7 +153,7 @@ def test_page_budget_twice_and_sidecar() -> None:
         row["summary"] for row in twice["input_contradictions"]["findings"]
     ]
     prose = packet_compose.prose_main(twice)
-    assert len([line for line in prose.splitlines() if "ask_human" in line]) == 1
+    assert len([line for line in prose.splitlines() if "hold_review" in line]) == 1
     doc = packet_compose.unreviewed_research(twice)
     assert doc is not None
     assert doc["label"] == LABEL

@@ -5,8 +5,8 @@
 Neon Genie v3.32.0 (main `d622079`, schema 1.3.0) scored 0.90 on
 correctness in the 2026-10-01 round-5 bake-off, down from 0.93 (v3.30)
 and 1.11 (v3.29). Automatic scanner lines reached the main page as
-confirmed and sometimes conflicted (Autogive showed both "recomputed
-336.4" and "implies 331.5"). Web search hits were listed and labeled
+confirmed and sometimes conflicted (a seat line showed two recomputed
+figures). Web search hits were listed and labeled
 OBSERVED, including a Not found page and Instagram, and every link was
 printed on the main page, which broke the 450-word cap. Nothing
 reconciled a hit with the notes.
@@ -54,7 +54,7 @@ draft PR against main at `d622079`.
 |---|---|---|
 | main was v3.32.0 at `d622079` before this branch | `OBSERVED` | `git rev-parse HEAD` on the base checkout |
 | correctness 1.11 → 0.93 → 0.90 across v3.29, v3.30, v3.32 | `OBSERVED` | uploaded REPORT-round5.md |
-| Autogive printed both recomputed 336.4 and implies 331.5 | `OBSERVED` | same report |
+| A seat line printed two recomputed figures | `OBSERVED` | same report |
 | A Not found page and Instagram were labeled OBSERVED | `OBSERVED` | same report |
 | Live head-to-head score after this patch | `NOT_COMPUTABLE` | no outside judge was run in this change |
 

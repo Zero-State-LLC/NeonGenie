@@ -1,185 +1,181 @@
 {
-  "note": "v3.29 reviewed contradiction lines, copied from the round-2 packets. A line is restored when every needle is in the notes. The false $300 product reading is not in this set.",
+  "note": "Synthetic fixture lines. A line is restored when every needle is in the note.",
   "lines": [
     {
       "id": "1.1",
       "kind": "contradiction",
-      "summary": "Gap packet calls 1.2B weekly users UNVERIFIED; the CARD verified it from OpenAI's 2026-09-29 recap.",
+      "summary": "Desk card lists 4.4 million monthly readers as unverified; the launch card marks the same figure as verified, so the same figure is marked both unverified and verified.",
       "claim_label": "OBSERVED",
       "needles": [
-        "devday-2026-recap",
-        "1.2B weekly users"
+        "4.4 million monthly readers as unverified",
+        "4.4 million monthly readers as observed"
       ],
-      "evidence": "1.2B weekly users UNVERIFIED until LIMINAL. 1.2B weekly users is OBSERVED."
+      "evidence": "4.4 million monthly readers as unverified. 4.4 million monthly readers as observed."
     },
     {
       "id": "1.2",
       "kind": "contradiction",
-      "summary": "Gap packet's free plugin to paid API funnel conflicts with the ban on upsells and checkout links.",
+      "summary": "The free desk widget to paid meter funnel conflicts with the ban on upsells.",
       "claim_label": "OBSERVED",
       "needles": [
-        "IDEA 1: Hyperlex",
-        "freemium upsells",
-        "free top-of-funnel"
+        "paid meter funnel",
+        "not allowed"
       ],
-      "evidence": "not allowed, whether offered directly or indirectly (for example, through freemium upsells)."
+      "evidence": "Upsells and checkout links are not allowed."
     },
     {
       "id": "1.3",
       "kind": "contradiction",
-      "summary": "Gap packet offers an OpenAPI manifest; current plugins are MCP servers or Skills.",
+      "summary": "The brief offers a manifest file; the current widget is a tool server or a skill pack.",
       "claim_label": "INFERRED",
       "needles": [
-        "a plugin = Skills (SKILL.md) and/or an MCP server",
-        "OpenAPI or MCP manifest"
+        "manifest file",
+        "tool server or a skill pack"
       ],
-      "evidence": "OpenAPI or MCP manifest. A plugin is an MCP server or Skills."
+      "evidence": "manifest file. tool server or a skill pack."
     },
     {
       "id": "2.1",
       "kind": "contradiction",
-      "summary": "'One build serves all three' conflicts with the hackathon rule that the entry calls Nebius Token Factory with an NVIDIA open model at runtime; a static lookup does not.",
+      "summary": "One kit covers all three surfaces, but the lab rule requires one bench runtime.",
       "claim_label": "INFERRED",
       "needles": [
-        "Nebius Token Factory",
-        "One build serves all three"
+        "all three surfaces",
+        "bench runtime"
       ],
-      "evidence": "One build serves all three. Nebius Token Factory."
+      "evidence": "all three surfaces. bench runtime."
     },
     {
       "id": "2.2",
       "kind": "contradiction",
-      "summary": "The hackathon requires a public open-source repo, so shared paid-API code would become freely reusable.",
+      "summary": "The booth requires a public shared-code repo, so a paid reuse plan would give that code away.",
       "claim_label": "INFERRED",
       "needles": [
-        "open-source license",
-        "freely reusable"
+        "shared-code repo",
+        "paid reuse"
       ],
-      "evidence": "public open-source repo. freely reusable."
+      "evidence": "shared-code repo. paid reuse."
     },
     {
       "id": "2.3",
       "kind": "contradiction",
-      "summary": "Paid demand is routed to x402, but the named payer (T&S teams) is reached 'through the API', i.e. contracts or keys.",
+      "summary": "Paid demand is routed to the booth rail, but the named payer is reached through the meter.",
       "claim_label": "INFERRED",
       "needles": [
-        "IDEA 2: x402",
-        "reached through the API"
+        "booth rail",
+        "through the meter"
       ],
-      "evidence": "reached through the API. x402."
+      "evidence": "booth rail. through the meter."
     },
     {
       "id": "3.1",
       "kind": "arithmetic_error",
-      "summary": "Per-tenant Heavy N=1 floors ($636/$694/$886) include an operator seat; N=10/50 rows do not. Without it N=1 is $336/$394/$586; with it N=10 is $339/$397/$589.",
+      "summary": "Per-tenant cove floors at N=1 include a host seat; the N=10 and N=50 rows do not.",
       "claim_label": "INFERRED",
       "needles": [
-        "linear $300xN",
-        "Heavy per tenant: 1: $636/$694/$886",
-        "10: $309/$367/$559"
+        "Cove per tenant",
+        "Pooled cove"
       ],
-      "evidence": "Heavy per tenant 10: $309/$367/$559."
+      "evidence": "Cove per tenant versus Pooled cove."
     },
     {
       "id": "3.2",
       "kind": "inconsistent_figure",
-      "summary": "Fail-closed N=1 pricing uses the operator-seat row, so SKU 2 at $800 sits under the $886 high floor; without the operator seat it clears $586.",
+      "summary": "Fail-closed N=1 pricing uses the host-seat row, so plan B at 450 sits under the high floor.",
       "claim_label": "INFERRED",
       "needles": [
-        "No observed tenants",
-        "Dedicated-Heavy list ESTIMATE $800"
+        "Fail closed",
+        "Plan B cove"
       ],
-      "evidence": "SKU 2 at $800 under the $886 floor."
+      "evidence": "Plan B cove list under the host-seat floor."
     },
     {
       "id": "3.3",
       "kind": "contradiction",
-      "summary": "The Heavy seat 'does not include API', yet tenant token costs are priced at API rates; the seat's tenant role is unstated.",
+      "summary": "The cove seat does not include the meter, yet tenant usage is priced on meter rates.",
       "claim_label": "INFERRED",
       "needles": [
-        "Does not include API",
-        "grok-4.6"
+        "does not include the meter",
+        "meter rates"
       ],
-      "evidence": "Does not include API. grok-4.6 API rates."
+      "evidence": "does not include the meter. meter rates."
     },
     {
       "id": "3.4",
       "kind": "inconsistent_figure",
-      "summary": "'high+cliff x2 = $512' is listed but used in no floor row.",
+      "summary": "The tall-cap double is listed but used in no floor row.",
       "claim_label": "INFERRED",
       "needles": [
-        "no measured tenant usage",
-        "high+cliff x2 = $512"
+        "tall cap x2",
+        "no floor row"
       ],
-      "evidence": "high+cliff x2 = $512."
+      "evidence": "tall cap x2. no floor row."
     },
     {
       "id": "4.1",
       "kind": "contradiction",
-      "summary": "01's rationale for locked A ('maximizes conversion… reduces full-prepaid refund book') describes Option B.",
+      "summary": "The rationale for locked A describes Option B on refund load.",
       "claim_label": "OBSERVED",
       "needles": [
-        "maximizes conversion",
-        "reduces full-prepaid refund book"
+        "highest refund load",
+        "Option A is locked"
       ],
-      "evidence": "rationale for locked A describes Option B."
+      "evidence": "highest refund load. Option A is locked."
     },
     {
       "id": "4.2",
       "kind": "contradiction",
-      "summary": "03, 11 R1, 19 F1/F2, 28 and the README index still recommend or gate on Option B after the A lock.",
+      "summary": "Input notes lock both Option A and B.",
       "claim_label": "OBSERVED",
       "needles": [
-        "01-OFFER-ARCHITECTURE.md",
-        "Default Option B",
-        "Danny human-yes on Option B"
+        "Option B is locked",
+        "Option A is locked"
       ],
-      "evidence": "Option A locked. Option B still recommended."
+      "evidence": "Option A is locked. Option B is locked."
     },
     {
       "id": "4.3",
       "kind": "inconsistent_figure",
-      "summary": "The $3,000 credit covers about 5–9 months of Commons Member but about 1 month of Operator Study; the 'rate lock' has no stated rate.",
+      "summary": "One member credit covers many months of the member desk and about one month of the operator loft.",
       "claim_label": "INFERRED",
       "needles": [
-        "Commons Member $350",
-        "Operator Study $2,500",
-        "Founding rate lock"
+        "Member credit of 2400",
+        "Member desk is $400"
       ],
-      "evidence": "The $3,000 credit covers months."
+      "evidence": "Member credit of 2400. Member desk is $400 monthly."
     },
     {
       "id": "4.4",
       "kind": "inconsistent_figure",
-      "summary": "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr.",
+      "summary": "$4/sf/mo implies $48/sf/yr, not $40/sf/yr.",
       "claim_label": "OBSERVED",
       "needles": [
-        "$5.50/SF/mo",
-        "$60/sf/yr"
+        "$4.00/sf/mo",
+        "$40/sf/yr"
       ],
-      "evidence": "$5.5/sf/mo vs $60/sf/yr."
+      "evidence": "$4/sf/mo vs $40/sf/yr."
     },
     {
       "id": "5.1",
       "kind": "contradiction",
-      "summary": "The X top 20 is labeled OBSERVED, but only the posts' existence is observed; claims in them (Jev 70–500ms, bot PnL) are unverified, yet S1 treats 70–500ms as fact.",
+      "summary": "The queue section labeled OBSERVED also calls the 40-90 band unverified, and a later step treats 40-90 as fact.",
       "claim_label": "INFERRED",
       "needles": [
-        "X top 20 (OBSERVED",
-        "70-500ms"
+        "40-90 band is unverified",
+        "40-90 band as the planning figure"
       ],
-      "evidence": "70-500ms unverified. X top 20 labeled OBSERVED."
+      "evidence": "40-90 band is unverified. 40-90 band as the planning figure."
     },
     {
       "id": "5.2",
       "kind": "contradiction",
-      "summary": "The route sends high consequential_spend to ask_human; the red team says unclear cases default to skip, not ask_human.",
+      "summary": "The route sends high spend to hold_review; the review note says unclear cases default to skip, not hold_review.",
       "claim_label": "INFERRED",
       "needles": [
-        "consequential_spend",
-        "not `ask_human`"
+        "must use `hold_review`",
+        "default to skip, not `hold_review`"
       ],
-      "evidence": "ask_human versus skip."
+      "evidence": "hold_review versus skip."
     }
   ]
 }

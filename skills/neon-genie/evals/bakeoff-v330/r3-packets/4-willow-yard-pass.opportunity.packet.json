@@ -1,0 +1,323 @@
+{
+ "blocked_transition": {
+  "from": "a $3,000 presale pack with 0 LOIs and contradictory option text",
+  "to": "one consistent offer and ≥10 named-price LOIs (Lease Gate)"
+ },
+ "outcome_model": {
+  "success": "≥10 named-price LOIs from the ICP list before counsel and Stripe spend",
+  "failure": "LOIs stall, or contradictions ship into the agreement or landing page"
+ },
+ "system_topology": {
+  "actors": [
+   "Rank-1 operators, diaspora professionals, soft-land teams (personas)",
+   "Danny",
+   "counsel",
+   "landlord"
+  ],
+  "systems": [
+   "Campaign OS docs 01–34",
+   "CRM",
+   "Stripe (not live)"
+  ]
+ },
+ "opportunity_thesis": "Founding 100 is a validation wedge, not capital: 100 × $3,000 = $300k gross, about 5.5 months of the $55k/mo rent thesis (source math). Demand is 0 LOIs (GAP). The pack contradicts its own Option A lock in at least five places, so nothing customer-facing should ship until one option is used everywhere.",
+ "affected_user": "Rank-1 operators, diaspora professionals, international soft-landing teams (source personas; demand GAP).",
+ "economic_buyer": "Individual members and sponsors; WTP at $3,000 NOT_COMPUTABLE (0 LOIs).",
+ "service_first_wedge": "Conversations only, no money collected (allowed by readiness checklist).",
+ "validation_path": [
+  "V1: one offer in 01, 03, 11, 19, 28 and README.",
+  "V2: work the 40-name ICP list; ask for a named-price LOI.",
+  "V3: if V2 yields LOIs, run X2 ($2,750 vs $3,000).",
+  "V4: a CoStar or landlord quote settles the rent band."
+ ],
+ "completion_proof": "Input pass shows 0 option findings, and ≥10 named-price LOIs are logged in CRM.",
+ "failure_modes": "Option A refund exposure if opening slips; contradictory terms; Danny bandwidth; no LOIs",
+ "scorecard": {
+  "evidence_density": 0.6,
+  "outcome_clarity": 0.8,
+  "affected_user_clarity": 0.55,
+  "completion_proof_quality": 0.85,
+  "integration_feasibility": 0.8,
+  "reversibility": 0.9,
+  "auditability": 0.85,
+  "scope_boundedness": 0.8
+ },
+ "promotion_state": "TESTABLE",
+ "logic_label": "effectual",
+ "authority": "advisory_only",
+ "grants_execution": false,
+ "data_requests": [
+  {
+   "request_id": "dr-option",
+   "field": "Danny reconfirms A or B given 01's rationale",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  },
+  {
+   "request_id": "dr-rent",
+   "field": "CoStar or landlord quote ($5.50/sf/mo = $66/yr vs $60 band)",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  }
+ ],
+ "schema_id": "neon-genie/opportunity-packet",
+ "schema_version": "1.3.0",
+ "input_contradictions": {
+  "checked": true,
+  "findings": [
+   {
+    "kind": "contradiction",
+    "summary": "Input notes lock both Option A and B.",
+    "claim_label": "OBSERVED",
+    "finding_id": "in-1",
+    "origin": "packet_compose.scan_input_notes"
+   },
+   {
+    "kind": "inconsistent_figure",
+    "summary": "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr.",
+    "claim_label": "OBSERVED",
+    "finding_id": "in-2",
+    "origin": "packet_compose.scan_input_notes"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "01's rationale for locked A ('maximizes conversion… reduces full-prepaid refund book') describes Option B.",
+    "claim_label": "OBSERVED",
+    "origin": "host_review",
+    "finding_id": "h-1"
+   },
+   {
+    "kind": "inconsistent_figure",
+    "summary": "The $3,000 credit covers about 5–9 months of Commons Member but about 1 month of Operator Study; the 'rate lock' has no stated rate.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-2"
+   }
+  ]
+ },
+ "research": {
+  "enabled": true,
+  "offline": false,
+  "adapter": "robots_http",
+  "research_ran": true,
+  "items": [
+   {
+    "url": "https://stripe.com/pricing",
+    "complete": false,
+    "reason": "body_cap",
+    "query": "https://stripe.com/pricing"
+   },
+   {
+    "url": "https://stripe.com/pricing.md",
+    "complete": false,
+    "reason": "fetch_failed",
+    "query": "https://stripe.com/pricing.md"
+   }
+  ],
+  "observed_claims": [],
+  "rejected": [
+   {
+    "reason": "body_cap",
+    "url": "https://stripe.com/pricing"
+   },
+   {
+    "reason": "fetch_failed",
+    "url": "https://stripe.com/pricing.md"
+   }
+  ]
+ },
+ "research_search_dag": {
+  "schema_id": "neon-genie/research-search-dag",
+  "schema_version": "1.0.0",
+  "research_ran": true,
+  "stages": [
+   {
+    "stage_id": "s1",
+    "kind": "keyword",
+    "queries": [
+     "https://stripe.com/pricing",
+     "https://stripe.com/pricing.md"
+    ]
+   },
+   {
+    "stage_id": "s2",
+    "kind": "cite-expand",
+    "inputs": [
+     "s1"
+    ]
+   },
+   {
+    "stage_id": "s3",
+    "kind": "filter",
+    "inputs": [
+     "s2"
+    ]
+   },
+   {
+    "stage_id": "s4",
+    "kind": "score",
+    "inputs": [
+     "s3"
+    ]
+   },
+   {
+    "stage_id": "s5",
+    "kind": "extract",
+    "inputs": [
+     "s4"
+    ],
+    "citations": []
+   }
+  ],
+  "edges": [
+   {
+    "from_stage": "s1",
+    "to_stage": "s2"
+   },
+   {
+    "from_stage": "s2",
+    "to_stage": "s3"
+   },
+   {
+    "from_stage": "s3",
+    "to_stage": "s4"
+   },
+   {
+    "from_stage": "s4",
+    "to_stage": "s5"
+   }
+  ],
+  "notes": "Citations are fetched URLs only. No generated paper ids."
+ },
+ "build_handoff": {
+  "summary": "Docs and CRM only; no landing, Stripe or agreement goes out.",
+  "steps": [
+   "Archive Option B text under one 'alternate' note.",
+   "Add LOI fields to CRM."
+  ],
+  "first_commit": {
+   "touch": [
+    "01, 03, 11, 19, 28, README option text",
+    "CRM LOI fields: name, tier, named price, date"
+   ],
+   "done_when": "'Option B' appears only in the archived-alternate note and CRM accepts an LOI record.",
+   "test_to_write": "Re-run the input contradiction pass on the pack; expect 0 option-lock findings.",
+   "owner_role": "Boof operator, Grok Bot producer"
+  }
+ },
+ "kill_criteria": [
+  {
+   "criterion_id": "kc-lease-gate-lois",
+   "metric": "named_price_lois",
+   "comparison": "lt",
+   "threshold": 10,
+   "check_date": "2026-12-01",
+   "data_source": "CRM LOI records",
+   "claim_label": "INFERRED",
+   "role": "kill",
+   "evidence_refs": [
+    "Alta-Commons-ONE-PAGER Lease Gate: '≥10 named-price LOIs'"
+   ],
+   "note": "threshold is OBSERVED in the source; the check date is proposed, so the criterion is INFERRED",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 10
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-early-lois",
+   "metric": "lois_after_20_conversations",
+   "comparison": "lt",
+   "threshold": 3,
+   "check_date": "2026-10-31",
+   "data_source": "CRM conversation log",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "note": "early-warning placeholder; Danny sets",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 3
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-contradictions",
+   "metric": "option_lock_findings_in_pack",
+   "comparison": "gt",
+   "threshold": 0,
+   "check_date": "2026-10-07",
+   "data_source": "input contradiction pass",
+   "claim_label": "INFERRED",
+   "role": "launch_block",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  }
+ ],
+ "appendix": {
+  "research_claims": [],
+  "contradiction_evidence": [
+   {
+    "finding_id": "in-1",
+    "evidence": "Option B~~ → **LOCKED locked Option B LOCKED Option A LOCKED (Danny 2026-09-20):** **Option A"
+   },
+   {
+    "finding_id": "in-2",
+    "evidence": "$5.5/sf/mo vs $60/sf/yr"
+   },
+   {
+    "finding_id": "h-1",
+    "evidence": "01 §3 LOCKED rationale vs table: A has lowest conversion and highest refund exposure"
+   },
+   {
+    "finding_id": "h-2",
+    "evidence": "3000/550=5.5, 3000/350=8.6, 3000/3800=0.8, 3000/2500=1.2 months"
+   }
+  ],
+  "build_spec": {
+   "crm_loi_fields": [
+    "contact (private, CRM only)",
+    "persona",
+    "tier",
+    "named_price",
+    "option (A or B)",
+    "date",
+    "source conversation"
+   ],
+   "do_not": [
+    "publish landing",
+    "take money",
+    "send agreement before counsel (R2)"
+   ],
+   "stripe_math_for_reference": "100 × (3000 − 87.30) = $291,270 net (source fee ESTIMATE 2.9% + $0.30)"
+  }
+ },
+ "page_budget": {
+  "word_budget": 450,
+  "char_budget": 3200,
+  "main_word_count": 288,
+  "main_char_count": 1794,
+  "appendix_word_count": 78,
+  "fits_one_page": true,
+  "truncated": false
+ },
+ "claims": [],
+ "decision": "NO MONEY YET. Make one offer consistent everywhere, then collect named-price LOIs with no money taken."
+}

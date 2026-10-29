@@ -1,18 +1,21 @@
 {
   "appendix_label": "Research (unreviewed, needs a person's review)",
-  "alta_main": [
+  "yard_main": [
+    "The rationale for locked A describes Option B on refund load.",
     "Input notes lock both Option A and B.",
-    "$5.5/sf/mo implies $66/sf/yr, not $60/sf/yr.",
-    "notes say monthly burn 35000, recomputed monthly rent 55000"
+    "$4/sf/mo implies $48/sf/yr, not $40/sf/yr.",
+    "notes say monthly burn 18000, recomputed monthly rent 32000"
   ],
-  "jev_main": [
-    "The route sends high consequential_spend to ask_human; the red team says unclear cases default to skip, not ask_human."
+  "route_main": [
+    "The route sends high spend to hold_review; the review note says unclear cases default to skip, not hold_review."
   ],
-  "autogive_main": [
-    "notes say Heavy per tenant 636, recomputed Shared Heavy 336.4"
+  "seat_main": [
+    "notes say Cove per tenant 425, recomputed Pooled cove 225"
   ],
   "off_main": [
-    "Double of 64 is 128, not 512",
-    "331.5"
+    "Double of 40 is 80, not 160",
+    "The rationale for locked Option A agrees with Option B.",
+    "The action hold_review is both required and excluded.",
+    "Computed 160 does not appear in a later total."
   ]
 }

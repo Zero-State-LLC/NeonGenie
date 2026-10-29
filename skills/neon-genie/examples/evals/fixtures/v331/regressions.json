@@ -1,5 +1,5 @@
 {
-  "false_double": "Token bands: low = $6.40; med = $64; high = $256; high+cliff x2 = $512.",
-  "alta_burn_rent": "Location thesis ~10k SF at $5.50/SF/mo.\nAt ~10k sf and CW mid-ask, BASE burns ~$35k/mo without sponsors.",
-  "autogive_heavy": "SuperGrok Heavy seat ~$300/mo. CF Workers Paid $5/mo. Supabase Pro $25/mo.\nToken bands: low = $6.40; med = $64; high = $256; high+cliff x2 = $512.\nShared Heavy (1 seat, fixed $330): 1 tenant: $336/$394/$586; 10 tenants: $39/$97/$289; 50 tenants: $13/$71/$263.\nHeavy per tenant: 1: $636/$694/$886; 10: $309/$367/$559; 50: $307/$365/$557.\nFail closed: price as N=1. SKU 1 Shared-Heavy list ESTIMATE $500/$650. SKU 2 Dedicated-Heavy list ESTIMATE $800/$1,000."
+  "false_double": "Tier bands: small = $4; mid = $40; tall = $80; tall cap x2 = $160.",
+  "yard_burn_rent": "Site note ~8k sf at $4.00/sf/mo.\nAt 8k sf the yard burns $18k/mo before sponsors.",
+  "seat_heavy": "Cove seat ~$200/mo. Relay desk $4/mo. Store bin $16/mo.\nTier bands: small = $5; mid = $40; tall = $80; tall cap x2 = $160.\nPooled cove (1 seat, fixed $220): 1 tenant: $225/$260/$300; 10 tenants: $28/$63/$103; 50 tenants: $9/$44/$84.\nCove per tenant: 1: $425/$460/$500; 10: $208/$243/$283; 50: $206/$241/$281.\nFail closed: price as N=1. Plan A pooled list ESTIMATE $400/$480. Plan B cove list ESTIMATE $450/$520."
 }

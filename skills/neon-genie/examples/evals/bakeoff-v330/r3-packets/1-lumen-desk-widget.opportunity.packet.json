@@ -1,0 +1,470 @@
+{
+ "blocked_transition": {
+  "from": "ChatGPT answers slang questions with undated, blended meanings (INFERRED)",
+  "to": "a dated, evidence-pointed Hyperlex verdict inside the conversation"
+ },
+ "outcome_model": {
+  "success": "indirect slang prompts hit the snapshot and the verdict beats the native answer on date and evidence",
+  "failure": "most prompts miss 84 terms, native answer ties, or review rejects on teen safety or sourcing"
+ },
+ "system_topology": {
+  "actors": [
+   "ChatGPT user",
+   "OpenAI review",
+   "Danny (human-yes)",
+   "PROMETHEUS (build)"
+  ],
+  "systems": [
+   "Vernacular public verdict export (84 terms)",
+   "remote MCP server /mcp",
+   "Plugin Directory"
+  ]
+ },
+ "opportunity_thesis": "A read-only Hyperlex lookup is a cheap distribution and demand-sensor channel, not revenue: plugins may not sell digital services or link to checkout (OBSERVED, guidelines). Its only edge over ChatGPT's own answer is dated, evidence-pointed verdicts, and 84 terms is thin (INFERRED).",
+ "affected_user": "People asking ChatGPT what a slang term means or whether it is current (INFERRED; no user research).",
+ "economic_buyer": "None inside ChatGPT (OBSERVED). Off-platform T&S and brand teams are SPECULATIVE; WTP NOT_COMPUTABLE.",
+ "jtbd": "Tell me what this term means now, with a date and proof.",
+ "service_first_wedge": "Developer-mode MCP server, two read-only tools, static public snapshot.",
+ "validation_path": [
+  "V1: 60-prompt golden set (20 direct, 20 indirect, 20 negative) that also yields the five positive and three negative review cases (OBSERVED, submission page).",
+  "V2: hit rate of indirect prompts plus a 100-query miss-queue sample.",
+  "V3: blind pairs, native answer vs verdict, on date, evidence, current sense.",
+  "V4: teen-safety pass on all 84 verdicts (plugins must suit ages 13–17, OBSERVED)."
+ ],
+ "completion_proof": "Dev-mode tool-call log for the golden set, V2–V4 results against the kills, and a passing snapshot-field test.",
+ "distribution": "Suggestions in conversation exist since 2025-10-06 and are earned by retention (OBSERVED, CARD). Reach for a new plugin: NOT_COMPUTABLE.",
+ "failure_modes": "coverage miss; native parity; teen-safety rejection; source-license authorization; private-row leak; treating the '2000% growth' anecdote as demand",
+ "scorecard": {
+  "evidence_density": 0.6,
+  "outcome_clarity": 0.7,
+  "affected_user_clarity": 0.4,
+  "completion_proof_quality": 0.8,
+  "integration_feasibility": 0.8,
+  "reversibility": 0.9,
+  "auditability": 0.8,
+  "scope_boundedness": 0.85
+ },
+ "promotion_state": "TESTABLE",
+ "logic_label": "effectual",
+ "authority": "advisory_only",
+ "grants_execution": false,
+ "data_requests": [
+  {
+   "request_id": "dr-kill-thresholds",
+   "field": "numeric floors for kc-hit-rate, kc-native-parity, kc-teen-safe",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  },
+  {
+   "request_id": "dr-source-license",
+   "field": "license or authorization basis for each source behind public verdicts",
+   "sensitivity": "operator",
+   "blocks_promotion": true,
+   "status": "open"
+  }
+ ],
+ "schema_id": "neon-genie/opportunity-packet",
+ "schema_version": "1.3.0",
+ "input_contradictions": {
+  "checked": true,
+  "findings": [
+   {
+    "kind": "contradiction",
+    "summary": "Gap packet calls 1.2B weekly users UNVERIFIED; the CARD verified it from OpenAI's 2026-09-29 recap.",
+    "claim_label": "OBSERVED",
+    "origin": "host_review",
+    "finding_id": "h-1"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "Gap packet's free plugin to paid API funnel conflicts with the ban on upsells and checkout links.",
+    "claim_label": "OBSERVED",
+    "origin": "host_review",
+    "finding_id": "h-2"
+   },
+   {
+    "kind": "contradiction",
+    "summary": "Gap packet offers an OpenAPI manifest; current plugins are MCP servers or Skills.",
+    "claim_label": "INFERRED",
+    "origin": "host_review",
+    "finding_id": "h-3"
+   }
+  ]
+ },
+ "research": {
+  "enabled": true,
+  "offline": false,
+  "adapter": "robots_http",
+  "research_ran": true,
+  "items": [
+   {
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://developers.openai.com/plugins/plugin-guidelines.md"
+   },
+   {
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://developers.openai.com/plugins/plugin-guidelines.md"
+   },
+   {
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://developers.openai.com/plugins/plugin-guidelines.md"
+   },
+   {
+    "url": "https://developers.openai.com/plugins/deploy/submission.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "complete": true,
+    "title": null,
+    "query": "https://developers.openai.com/plugins/deploy/submission.md"
+   }
+  ],
+  "observed_claims": [
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-1",
+    "text_in": "appendix.research_claims"
+   },
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-2",
+    "text_in": "appendix.research_claims"
+   },
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-3",
+    "text_in": "appendix.research_claims"
+   },
+   {
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/deploy/submission.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-4",
+    "text_in": "appendix.research_claims"
+   }
+  ],
+  "rejected": []
+ },
+ "research_search_dag": {
+  "schema_id": "neon-genie/research-search-dag",
+  "schema_version": "1.0.0",
+  "research_ran": true,
+  "stages": [
+   {
+    "stage_id": "s1",
+    "kind": "keyword",
+    "queries": [
+     "https://developers.openai.com/plugins/plugin-guidelines.md",
+     "https://developers.openai.com/plugins/deploy/submission.md"
+    ]
+   },
+   {
+    "stage_id": "s2",
+    "kind": "cite-expand",
+    "inputs": [
+     "s1"
+    ]
+   },
+   {
+    "stage_id": "s3",
+    "kind": "filter",
+    "inputs": [
+     "s2"
+    ]
+   },
+   {
+    "stage_id": "s4",
+    "kind": "score",
+    "inputs": [
+     "s3"
+    ]
+   },
+   {
+    "stage_id": "s5",
+    "kind": "extract",
+    "inputs": [
+     "s4"
+    ],
+    "citations": [
+     {
+      "id": "https://developers.openai.com/plugins/plugin-guidelines.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     },
+     {
+      "id": "https://developers.openai.com/plugins/plugin-guidelines.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     },
+     {
+      "id": "https://developers.openai.com/plugins/plugin-guidelines.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     },
+     {
+      "id": "https://developers.openai.com/plugins/deploy/submission.md",
+      "verified_fetch": true,
+      "operator_supplied": false
+     }
+    ]
+   }
+  ],
+  "edges": [
+   {
+    "from_stage": "s1",
+    "to_stage": "s2"
+   },
+   {
+    "from_stage": "s2",
+    "to_stage": "s3"
+   },
+   {
+    "from_stage": "s3",
+    "to_stage": "s4"
+   },
+   {
+    "from_stage": "s4",
+    "to_stage": "s5"
+   }
+  ],
+  "notes": "Citations are fetched URLs only. No generated paper ids."
+ },
+ "build_handoff": {
+  "summary": "Build only the snapshot and two tools. No submission, wallet or price.",
+  "steps": [
+   "Export public verdict fields to snapshot.json plus sha256.",
+   "MCP /mcp: lookup_term(slug), search_terms(query), readOnlyHint true.",
+   "Log misses as the normalized term only, never prompt text (obs-3)."
+  ],
+  "first_commit": {
+   "touch": [
+    "snapshot builder",
+    "public-field allowlist test"
+   ],
+   "done_when": "snapshot.json builds from the public export and the allowlist test passes in CI.",
+   "test_to_write": "Every record has only allowlisted public fields and no held-out ID; any extra key fails.",
+   "owner_role": "PROMETHEUS engineer"
+  }
+ },
+ "kill_criteria": [
+  {
+   "criterion_id": "kc-hit-rate",
+   "metric": "indirect_prompt_hit_rate",
+   "comparison": "lt",
+   "threshold": 0.3,
+   "check_date": "2026-10-14",
+   "data_source": "V2 golden-set and miss-queue log",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "note": "placeholder; source says Danny sets the number",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0.3
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-native-parity",
+   "metric": "native_tie_or_win_share",
+   "comparison": "gte",
+   "threshold": 0.5,
+   "check_date": "2026-10-14",
+   "data_source": "V3 blind pair results",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "note": "placeholder; Danny sets",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0.5
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-teen-safe",
+   "metric": "entries_not_teen_safe_share",
+   "comparison": "gt",
+   "threshold": 0.2,
+   "check_date": "2026-10-14",
+   "data_source": "V4 review sheet",
+   "claim_label": "SPECULATIVE",
+   "role": "kill",
+   "note": "placeholder; Danny sets",
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0.2
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  },
+  {
+   "criterion_id": "kc-leak",
+   "metric": "non_public_fields_in_snapshot",
+   "comparison": "gt",
+   "threshold": 0,
+   "check_date": "2026-10-07",
+   "data_source": "allowlist test on every build",
+   "claim_label": "INFERRED",
+   "role": "hard_stop",
+   "evidence_refs": [
+    "gap packet: any leak path to private or held-out rows means stop at once"
+   ],
+   "derivation": {
+    "formula": "identity",
+    "inputs": {
+     "value": 0
+    },
+    "depends_on": [
+     "value"
+    ]
+   }
+  }
+ ],
+ "appendix": {
+  "research_claims": [
+   {
+    "text": "Plugins must be suitable for general audiences, including users aged 13–17.",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-1"
+   },
+   {
+    "text": "Selling digital products or services—including subscriptions, digital content, tokens, or credits—is not allowed, whether offered directly or indirectly (for example, through freemium upsells).",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-2"
+   },
+   {
+    "text": "Link directly to a checkout or other transactional page.",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-3"
+   },
+   {
+    "text": "**Five positive test cases.** Include the scenario, user prompt, expected tools, and expected result. Run each case using the test account before submitting.\n- **Three negative test cases.** Include a prompt or scenario where the plugin should not act, why it should not complete the request, and the expected refusal, clarification, or safe fallback.",
+    "label": "OBSERVED",
+    "url": "https://developers.openai.com/plugins/deploy/submission.md",
+    "retrieved_at": "2026-10-01",
+    "kind": "web_page",
+    "claim_id": "obs-4"
+   }
+  ],
+  "contradiction_evidence": [
+   {
+    "finding_id": "h-1",
+    "evidence": "gap packet 'UNVERIFIED until LIMINAL reports' vs CARD Q5 'OBSERVED in OpenAI's own words'"
+   },
+   {
+    "finding_id": "h-2",
+    "evidence": "gap packet 'Paid = the same backend sold through x402' vs CARD Q3 'must not ... promote upgrades'; only an informational plans page"
+   },
+   {
+    "finding_id": "h-3",
+    "evidence": "gap packet 'OpenAPI or MCP manifest' vs CARD Q2 'a plugin = Skills and/or an MCP server'"
+   }
+  ],
+  "build_spec": {
+   "lookup_term": {
+    "input": {
+     "slug": "string"
+    },
+    "output": {
+     "term": "string",
+     "meaning_from_context": "string",
+     "lineage_family": "string",
+     "adoption_evidence": "list of evidence pointers (paraphrase, no raw source text)",
+     "verdict": "OBSERVE | PASS",
+     "as_of": "YYYY-MM-DD"
+    },
+    "annotations": {
+     "readOnlyHint": true,
+     "destructiveHint": false,
+     "openWorldHint": false
+    },
+    "description": "Use this when the user asks what a slang term means, where it came from, or whether it is current. Do not use for standard dictionary words."
+   },
+   "search_terms": {
+    "input": {
+     "query": "string, max 64 chars"
+    },
+    "output": {
+     "matches": "list of {slug, term, score}",
+     "miss": "bool"
+    },
+    "side_effect": "append {normalized_term, date} to miss log; no prompt text, IP or session id"
+   },
+   "submission_needs_OBSERVED": [
+    "5 positive and 3 negative test cases (submission page; see claims c-tests)",
+    "domain challenge at /.well-known/openai-apps-challenge (CARD Q2)",
+    "verified identity; global-residency project (CARD Q2)"
+   ],
+   "name": "Hyperlex, not a generic word (CARD guideline note)"
+  }
+ },
+ "page_budget": {
+  "word_budget": 450,
+  "char_budget": 3200,
+  "main_word_count": 367,
+  "main_char_count": 2734,
+  "appendix_word_count": 273,
+  "fits_one_page": true,
+  "truncated": false
+ },
+ "claims": [
+  {
+   "claim_id": "c-teen",
+   "text": "Plugins must suit users aged 13–17.",
+   "quote": "Plugins must be suitable for general audiences, including users aged 13–17.",
+   "url": "https://developers.openai.com/plugins/plugin-guidelines.md",
+   "retrieved_at": "2026-10-01",
+   "claim_label": "OBSERVED"
+  },
+  {
+   "claim_id": "c-tests",
+   "text": "Submission needs five positive and three negative test cases.",
+   "quote": "**Five positive test cases.** Include the scenario, user prompt, expected tools, and expected result. Run each case using the test account before submitting.\n- **Three negative test cases.** Include a prompt or scenario where the plugin should not act, why it should not complete the request, and the expected refusal, clarification, or safe fallback.",
+   "url": "https://developers.openai.com/plugins/deploy/submission.md",
+   "retrieved_at": "2026-10-01",
+   "claim_label": "OBSERVED"
+  }
+ ],
+ "decision": "NANO-TEST FIRST (offline, about $0). No submission, listing or pricing until the kill checks pass and Danny says yes."
+}
