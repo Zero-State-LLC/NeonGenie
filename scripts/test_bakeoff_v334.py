@@ -2,7 +2,7 @@
 """v3.34 main-page rollback. Stdlib only. No network and no paid calls.
 
 Reviewed contradictions and named money recomputes stay on the main page.
-Scanner notes, search hits, and Jev lines go to the unreviewed appendix.
+Scanner notes and search hits go to the unreviewed appendix.
 """
 
 from __future__ import annotations
@@ -54,27 +54,27 @@ def _page(name: str) -> tuple[dict, str]:
 
 def test_reviewed_lines_and_named_recomputes_stay() -> None:
     rows = _rows()
-    alta, alta_prose = _page("4-alta-commons-founding100.md")
-    jev, jev_prose = _page("5-jev-crypto-arb.md")
-    auto, auto_prose = _page("3-autogive-tenant-sku.md")
-    for line in rows["alta_main"]:
-        assert line in alta_prose, line
-        assert any(row["summary"] == line for row in alta["input_contradictions"]["findings"])
-    for line in rows["jev_main"]:
-        assert line in jev_prose, line
-    for line in rows["autogive_main"]:
-        assert line in auto_prose, line
-        assert auto_prose.count(line) == 1
-    for prose in (alta_prose, jev_prose, auto_prose):
+    yard, yard_prose = _page("4-willow-yard-pass.md")
+    route, route_prose = _page("5-cinder-route-desk.md")
+    seat, seat_prose = _page("3-harbor-seat-plan.md")
+    for line in rows["yard_main"]:
+        assert line in yard_prose, line
+        assert any(row["summary"] == line for row in yard["input_contradictions"]["findings"])
+    for line in rows["route_main"]:
+        assert line in route_prose, line
+    for line in rows["seat_main"]:
+        assert line in seat_prose, line
+        assert seat_prose.count(line) == 1
+    for prose in (yard_prose, route_prose, seat_prose):
         for banned in rows["off_main"]:
             assert banned not in prose, banned
         assert "one prepaid pilot at the floor price" in prose
         assert "Ship the notes check." in prose
         assert len(prose.split()) <= packet_compose.WORD_BUDGET
-    parked_doc = packet_compose.unreviewed_research(alta)
+    parked_doc = packet_compose.unreviewed_research(seat)
     assert parked_doc is not None
     assert parked_doc["label"] == rows["appendix_label"]
-    assert "research_unreviewed" not in alta.get("appendix", {})
+    assert "research_unreviewed" not in seat.get("appendix", {})
     parked = parked_doc["scanner_notes"] + parked_doc["search_hits"] + parked_doc["reconcile"]
     assert parked
     assert all(row.get("claim_label") != "OBSERVED" for row in parked)

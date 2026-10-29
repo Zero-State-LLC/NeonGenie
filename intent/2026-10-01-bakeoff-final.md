@@ -11,8 +11,7 @@ correctness 1.06, level with v3.29. That is the page this release keeps.
 
 1. The main-page contradiction set for the five bake-off ideas is v3.29's
    set plus the named money recomputes. All 16 reviewed lines are restored
-   verbatim, including the Jev line that the red team defaults unclear
-   cases to skip, not `ask_human`.
+   verbatim.
 2. A later contradiction line is dropped when it concerns the same field
    or quantity as an earlier reviewed line.
 3. The research sidecar, the idempotent page-budget dedupe, the one-action

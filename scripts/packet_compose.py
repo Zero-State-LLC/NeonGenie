@@ -1404,6 +1404,8 @@ def _main_key(summary: str) -> str:
         return "action:" + match.group(1)
     if "ask_human" in folded and "skip" in folded:
         return "action:ask_human"
+    if "hold_review" in folded and "skip" in folded:
+        return "action:hold_review"
     return folded
 
 
@@ -1429,6 +1431,8 @@ def _concern_key(summary: str) -> str | None:
     folded = " ".join(summary.split()).casefold()
     if "ask_human" in folded and "skip" in folded:
         return "action:ask_human"
+    if "hold_review" in folded and "skip" in folded:
+        return "action:hold_review"
     match = re.search(
         r"the action ([a-z0-9_]+) is both required and excluded",
         folded,

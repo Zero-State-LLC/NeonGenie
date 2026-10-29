@@ -19,22 +19,22 @@ FIXTURE_DIR = ROOT / "evals" / "bakeoff-v330"
 
 # Measurement only. A hit means a finding quotes these fragments.
 ISSUE_NEEDLES: list[dict[str, object]] = [
-    {"id": "1.1", "file": "1-hyperlex-plugin.md", "needles": ["1.2B", "UNVERIFIED", "OBSERVED"]},
-    {"id": "1.2", "file": "1-hyperlex-plugin.md", "needles": ["not allowed", "upsell"]},
-    {"id": "1.3", "file": "1-hyperlex-plugin.md", "needles": ["OpenAPI", "MCP"]},
-    {"id": "2.1", "file": "2-x402-vernacular-api.md", "needles": ["all three", "Nebius"]},
-    {"id": "2.2", "file": "2-x402-vernacular-api.md", "needles": ["open-source", "repo"]},
-    {"id": "2.3", "file": "2-x402-vernacular-api.md", "needles": ["x402", "through the API"]},
-    {"id": "3.1", "file": "3-autogive-tenant-sku.md", "needles": ["886", "559"]},
-    {"id": "3.2", "file": "3-autogive-tenant-sku.md", "needles": ["800", "886"]},
-    {"id": "3.3", "file": "3-autogive-tenant-sku.md", "needles": ["Does not include API", "API"]},
-    {"id": "3.4", "file": "3-autogive-tenant-sku.md", "needles": ["512"]},
-    {"id": "4.1", "file": "4-alta-commons-founding100.md", "needles": ["rationale", "Option B"]},
-    {"id": "4.2", "file": "4-alta-commons-founding100.md", "needles": ["Option A", "Option B"]},
-    {"id": "4.3", "file": "4-alta-commons-founding100.md", "needles": ["months", "3,000"]},
-    {"id": "4.4", "file": "4-alta-commons-founding100.md", "needles": ["5.5", "60"]},
-    {"id": "5.1", "file": "5-jev-crypto-arb.md", "needles": ["70-500", "unverified"]},
-    {"id": "5.2", "file": "5-jev-crypto-arb.md", "needles": ["ask_human", "skip"]},
+    {"id": "1.1", "file": "1-lumen-desk-widget.md", "needles": ["4.4 million", "unverified", "observed"]},
+    {"id": "1.2", "file": "1-lumen-desk-widget.md", "needles": ["paid meter funnel", "upsell"]},
+    {"id": "1.3", "file": "1-lumen-desk-widget.md", "needles": ["manifest file", "tool server"]},
+    {"id": "2.1", "file": "2-brook-meter-api.md", "needles": ["all three", "bench"]},
+    {"id": "2.2", "file": "2-brook-meter-api.md", "needles": ["shared-code", "repo"]},
+    {"id": "2.3", "file": "2-brook-meter-api.md", "needles": ["booth rail", "through the meter"]},
+    {"id": "3.1", "file": "3-harbor-seat-plan.md", "needles": ["host seat", "N=10"]},
+    {"id": "3.2", "file": "3-harbor-seat-plan.md", "needles": ["450", "floor"]},
+    {"id": "3.3", "file": "3-harbor-seat-plan.md", "needles": ["does not include the meter", "meter"]},
+    {"id": "3.4", "file": "3-harbor-seat-plan.md", "needles": ["no floor row", "tall-cap"]},
+    {"id": "4.1", "file": "4-willow-yard-pass.md", "needles": ["rationale", "Option B"]},
+    {"id": "4.2", "file": "4-willow-yard-pass.md", "needles": ["Option A", "Option B"]},
+    {"id": "4.3", "file": "4-willow-yard-pass.md", "needles": ["months", "2400"]},
+    {"id": "4.4", "file": "4-willow-yard-pass.md", "needles": ["4/sf/mo", "40/sf/yr"]},
+    {"id": "5.1", "file": "5-cinder-route-desk.md", "needles": ["40-90", "unverified"]},
+    {"id": "5.2", "file": "5-cinder-route-desk.md", "needles": ["hold_review", "skip"]},
 ]
 
 CLEAN_SYNTHETIC = [
@@ -98,7 +98,7 @@ def _clean_paths() -> list[Path]:
 DIAGNOSIS = [
     ("1.1", "epistemic label clash", "mechanical", "UNVERIFIED and OBSERVED sit on the same magnitude in different sentences. The old check looked for the word verified, which this note does not use."),
     ("1.2", "policy vs proposed funnel", "NOT_COMPUTABLE", "A ban on upsells and a free-then-paid plan conflict only if those are the same offer. That needs judgment."),
-    ("1.3", "mechanism mismatch", "NOT_COMPUTABLE", "OpenAPI versus Skills/MCP is world knowledge, not two values of one quantity."),
+    ("1.3", "mechanism mismatch", "NOT_COMPUTABLE", "A manifest file versus a tool server is world knowledge, not two values of one quantity."),
     ("2.1", "universal claim vs runtime constraint", "NOT_COMPUTABLE", "One build covering every surface versus a required runtime needs world knowledge."),
     ("2.2", "license vs later paid reuse", "NOT_COMPUTABLE", "An open-source requirement versus paid reuse is a legal judgment."),
     ("2.3", "channel mismatch", "NOT_COMPUTABLE", "Two route names for one buyer conflict only with outside knowledge of the rails."),

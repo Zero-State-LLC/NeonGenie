@@ -59,7 +59,7 @@ None blocking. Danny approved this implementation on 2026-09-30 at 22:35 PT.
 |---|---|---|
 | Checkout is v3.29.0 at `7c06cfd`; schema `$id` is 1.3.0 | `OBSERVED` | `VERSION`, `git rev-parse`, `schemas/opportunity-packet.schema.json` |
 | v3.29 `quote_support` returns supports for "allowed" against "not allowed", and for the x402 opposite claim | `OBSERVED` | `evals/bakeoff-v330/fixtures-v330.json` `v329` notes |
-| The Alta r2 kill states the placeholder only in `note` | `OBSERVED` | `r2-packets/4-alta-commons-founding100.opportunity.packet.json` |
+| The yard-pass r2 kill states the placeholder only in `note` | `OBSERVED` | `r2-packets/4-willow-yard-pass.opportunity.packet.json` |
 | Jev System One returns choice, score, and noul answers, not prose | `OBSERVED` | TypeSafe API reference, `docs.typesafe.ai/api.md` |
 | A 2 MiB body cap is enough for the probed HTML pages that failed at 64 KB | `INFERRED` | probe file shows `body_cap` at 65536; cap choice is local |
 
